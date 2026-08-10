@@ -90,6 +90,7 @@
     "builder": "rex",
     "drive_index": 1,
     "network": "wifi",
+    "device_profiles": ["production", "dvt"],
     "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],

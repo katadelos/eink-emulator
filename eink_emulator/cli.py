@@ -160,6 +160,7 @@ def machine_directory(name: str) -> Path:
 def command_create(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     identity = parse_identity(args.idme, definition)
+    profile = parse_profile(args.profile, definition)
     artifacts = firmware_for(args.model, definition)
     target = machine_directory(args.name)
     if target.exists():
@@ -173,7 +174,7 @@ def command_create(args: argparse.Namespace) -> None:
         disk = temporary / "disk.qcow2"
         relative_base = os.path.relpath(base, temporary)
         run_checked([str(QEMU_IMG), "create", "-f", "qcow2", "-F", "qcow2", "-b", relative_base, str(disk)])
-        write_json(temporary / "machine.json", {
+        manifest = {
             "base": str(base.relative_to(ROOT)),
             "created": datetime.now(timezone.utc).isoformat(),
             "firmware_fingerprint": fingerprint,
@@ -181,7 +182,10 @@ def command_create(args: argparse.Namespace) -> None:
             "idme": identity,
             "model": args.model,
             "name": args.name,
-        })
+        }
+        if profile:
+            manifest["profile"] = profile
+        write_json(temporary / "machine.json", manifest)
         temporary.replace(target)
     finally:
         if temporary.exists():
@@ -229,6 +233,19 @@ def parse_identity(values: list[str], definition: dict[str, Any]) -> dict[str, s
     return supplied
 
 
+def parse_profile(value: str | None, definition: dict[str, Any]) -> str | None:
+    supported = definition.get("device_profiles", [])
+    if not supported:
+        if value:
+            fail("--profile is not supported by this model")
+        return None
+    if not value:
+        fail("--profile is required for this model (choose from: " + ", ".join(supported) + ")")
+    if value not in supported:
+        fail(f"unsupported profile '{value}' (choose from: {', '.join(supported)})")
+    return value
+
+
 def launch_command(args: argparse.Namespace) -> list[str]:
     directory, manifest = read_machine(args.name)
     model = manifest.get("model")
@@ -243,6 +260,12 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         fail(f"machine identity is incomplete: {args.name}")
     machine_options = [definition["qemu_machine"]]
     machine_options.extend(f"idme-{field}={identity[field]}" for field in required_identity)
+    supported_profiles = definition.get("device_profiles", [])
+    if supported_profiles:
+        profile = manifest.get("profile")
+        if profile not in supported_profiles:
+            fail(f"machine profile is missing or invalid: {args.name}")
+        machine_options.append(f"device-profile={profile}")
     if model == "kindle-paperwhite-4":
         machine_options.extend([
             f"storage-bios={artifacts['storage_bios']}",
@@ -361,10 +384,15 @@ def command_images(_: argparse.Namespace) -> None:
 
 def command_models(_: argparse.Namespace) -> None:
     rows = [
-        (name, value["description"], "yes" if value.get("idme_fields") else "no")
+        (
+            name,
+            value["description"],
+            "yes" if value.get("idme_fields") else "no",
+            " | ".join(value.get("device_profiles", [])) or "-",
+        )
         for name, value in sorted(load_catalogue().items())
     ]
-    print_table(("MODEL", "DEVICE", "IDENTITY REQUIRED"), rows)
+    print_table(("MODEL", "DEVICE", "IDENTITY REQUIRED", "PROFILES"), rows)
 
 
 def command_firmware(_: argparse.Namespace) -> None:
@@ -397,6 +425,7 @@ def parser() -> argparse.ArgumentParser:
     create = commands.add_parser("create", help="create a persistent machine")
     create.add_argument("name")
     create.add_argument("--model", required=True)
+    create.add_argument("--profile", help="hardware security profile; required for models that expose profiles")
     create.add_argument("--idme", action="append", default=[], metavar="FIELD=VALUE", help="instance identity field; repeat for every field required by the model")
     create.set_defaults(handler=command_create)
 

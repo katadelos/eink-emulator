@@ -99,3 +99,7 @@ identity fields because that platform does not use them.
 
 Identity values are stored in `machines/NAME/machine.json`, which is ignored
 by Git. Do not publish machine directories.
+
+Paperwhite 4 / Rex also requires either `--profile production` or `--profile
+dvt` at instance creation. The profile is stored with the instance and passed
+to QEMU on every launch.
