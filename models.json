@@ -1,0 +1,144 @@
+{
+  "kindle-voyage": {
+    "description": "Kindle Voyage",
+    "qemu_machine": "imx6sl-wario",
+    "memory": "512M",
+    "builder": "wario",
+    "wario_layout": "wario",
+    "drive_index": 1,
+    "network": "wifi",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "panel_flash": ["panel-flash.bin"],
+      "diagnostics_kernel": ["diags-uImage"],
+      "diagnostics": ["diags.img"],
+      "waveform_store": ["waveform-store.img"]
+    }
+  },
+  "kindle-basic-2014": {
+    "description": "Kindle Basic (2014)",
+    "qemu_machine": "imx6sl-wario",
+    "memory": "256M",
+    "builder": "wario",
+    "wario_layout": "wario",
+    "drive_index": 1,
+    "network": "wifi",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "panel_flash": ["panel-flash.bin"],
+      "diagnostics_kernel": ["diags-uImage"],
+      "diagnostics": ["diags.img"],
+      "waveform_store": ["waveform-store.img"]
+    }
+  },
+  "kindle-paperwhite-2": {
+    "description": "Kindle Paperwhite 2",
+    "qemu_machine": "imx6sl-wario",
+    "memory": "256M",
+    "builder": "wario",
+    "wario_layout": "pinot",
+    "drive_index": 1,
+    "network": "wifi",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "panel_flash": ["panel-flash.bin"],
+      "diagnostics_kernel": ["diags-uImage"],
+      "diagnostics": ["diags.img"],
+      "waveform_store": ["waveform-store.img"]
+    }
+  },
+  "kindle-paperwhite-3": {
+    "description": "Kindle Paperwhite 3",
+    "qemu_machine": "imx6sl-wario",
+    "memory": "512M",
+    "builder": "wario",
+    "wario_layout": "wario",
+    "drive_index": 1,
+    "network": "wifi",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "panel_flash": ["panel-flash.bin"],
+      "diagnostics_kernel": ["diags-uImage"],
+      "diagnostics": ["diags.img"],
+      "waveform_store": ["waveform-store.img"]
+    }
+  },
+  "kindle-paperwhite-4": {
+    "description": "Kindle Paperwhite 4",
+    "qemu_machine": "imx6sll-rex",
+    "memory": "512M",
+    "builder": "rex",
+    "drive_index": 1,
+    "network": "wifi",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "storage_bios": ["s-bios.bin"],
+      "falcon_bios": ["bios.bin"],
+      "waveform_store": ["waveform.img"]
+    }
+  },
+  "kindle-4": {
+    "description": "Kindle 4",
+    "qemu_machine": "imx50-tequila",
+    "memory": "256M",
+    "builder": "tequila",
+    "drive_index": 0,
+    "network": "wifi",
+    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    }
+  },
+  "kindle-touch": {
+    "description": "Kindle Touch",
+    "qemu_machine": "imx50-whitney",
+    "memory": "256M",
+    "builder": "whitney",
+    "drive_index": 0,
+    "network": "wifi",
+    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"]
+    }
+  },
+  "kobo-touch": {
+    "description": "Kobo Touch",
+    "qemu_machine": "imx50-kobotouch",
+    "memory": "256M",
+    "builder": "disk-copy",
+    "drive_index": 0,
+    "network": "none",
+    "idme_fields": [],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "disk": ["sd.img"]
+    }
+  }
+}

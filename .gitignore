@@ -1,0 +1,10 @@
+/build/
+/firmware/*
+!/firmware/README.md
+!/firmware/.gitkeep
+/machines/*
+!/machines/README.md
+!/machines/.gitkeep
+__pycache__/
+*.pyc
+.DS_Store
