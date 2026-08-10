@@ -20,7 +20,7 @@ firmware/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
-│   ├── panel-flash.bin     (optional)
+│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   ├── diags.img           (optional)
 │   └── waveform-store.img  (optional)
@@ -28,18 +28,21 @@ firmware/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
+│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-paperwhite-2/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
+│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-paperwhite-3/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
+│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-paperwhite-4/
@@ -48,23 +51,28 @@ firmware/
 │   ├── rootfs.img
 │   ├── s-bios.bin
 │   ├── bios.bin
+│   ├── panel-flash.bin
 │   └── waveform.img
 ├── kindle-4/
 │   ├── u-boot.bin
 │   ├── uImage
-│   └── rootfs.img
+│   ├── rootfs.img
+│   └── panel-flash.bin
 ├── kindle-touch/
 │   ├── u-boot.bin
 │   ├── uImage
-│   └── rootfs.img
+│   ├── rootfs.img
+│   └── panel-flash.bin
 └── kobo-touch/
     ├── u-boot.bin
     └── sd.img
 ```
 
-The Wario-family optional panel, waveform, diagnostics kernel, and diagnostics
-partition files use the same names for Kindle Basic (2014), Paperwhite 2, and
-Paperwhite 3 as shown for Voyage.
+Every Kindle model requires `panel-flash.bin`; it provides the panel data needed
+for graphical output. The optional Wario waveform, diagnostics kernel, and
+diagnostics partition files use the same names for Kindle Basic (2014),
+Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo Touch does not use a
+panel-flash artifact.
 
 `rootfs.img` must be a raw ext filesystem image. If an extracted firmware
 package contains `rootfs.img.gz`, decompress it before placing it here.

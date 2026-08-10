@@ -11,10 +11,10 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     },
     "optional_firmware": {
-      "panel_flash": ["panel-flash.bin"],
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"],
       "waveform_store": ["waveform-store.img"]
@@ -32,10 +32,10 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     },
     "optional_firmware": {
-      "panel_flash": ["panel-flash.bin"],
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"],
       "waveform_store": ["waveform-store.img"]
@@ -53,10 +53,10 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     },
     "optional_firmware": {
-      "panel_flash": ["panel-flash.bin"],
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"],
       "waveform_store": ["waveform-store.img"]
@@ -74,10 +74,10 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     },
     "optional_firmware": {
-      "panel_flash": ["panel-flash.bin"],
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"],
       "waveform_store": ["waveform-store.img"]
@@ -97,6 +97,7 @@
       "rootfs": ["rootfs.img"],
       "storage_bios": ["s-bios.bin"],
       "falcon_bios": ["bios.bin"],
+      "panel_flash": ["panel-flash.bin"],
       "waveform_store": ["waveform.img"]
     }
   },
@@ -111,7 +112,8 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     }
   },
   "kindle-touch": {
@@ -125,7 +127,8 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"]
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
     }
   },
   "kobo-touch": {

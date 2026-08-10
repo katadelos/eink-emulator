@@ -270,8 +270,8 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             "-netdev", f"user,id=wifi,hostfwd=tcp:127.0.0.1:{ssh_port}-:22",
             "-global", "ar6003-sdio.netdev=wifi",
         ])
-    panel = artifacts.get("panel_flash")
-    if panel:
+    if "panel_flash" in artifacts:
+        panel = artifacts["panel_flash"]
         command.extend(["-drive", f"file={panel},if=mtd,index=0,format=raw,readonly=on"])
     if args.headless:
         command.extend(["-display", "none"])
