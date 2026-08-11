@@ -1,4 +1,4 @@
-"""Create, inventory, and launch persistent e-ink emulator machines."""
+"""Create, inventory, and launch e-ink emulator machines."""
 
 from __future__ import annotations
 
@@ -317,6 +317,17 @@ def command_run(args: argparse.Namespace) -> None:
     os.execv(command[0], command)
 
 
+def command_qemu(args: argparse.Namespace) -> None:
+    if not args.qemu_args:
+        fail("QEMU arguments are required after '--'")
+    command = [str(QEMU), *args.qemu_args]
+    if args.dry_run:
+        print(shlex.join(command))
+        return
+    require_qemu_tools()
+    os.execv(command[0], command)
+
+
 def human_size(size: int | None) -> str:
     if size is None:
         return "-"
@@ -440,6 +451,10 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
     run.set_defaults(handler=command_run)
 
+    qemu = commands.add_parser("qemu", help="launch an ephemeral raw QEMU machine")
+    qemu.add_argument("--dry-run", action="store_true", help="print the QEMU command")
+    qemu.set_defaults(handler=command_qemu)
+
     machines = commands.add_parser("list", help="list persistent machines")
     machines.set_defaults(handler=command_list)
 
@@ -451,7 +466,7 @@ def parser() -> argparse.ArgumentParser:
 def main() -> None:
     args, extra = parser().parse_known_args()
     if extra:
-        if args.command != "run" or extra[0] != "--":
+        if args.command not in {"qemu", "run"} or extra[0] != "--":
             fail("unrecognized arguments: " + " ".join(extra))
         extra = extra[1:]
     args.qemu_args = extra

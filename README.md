@@ -53,6 +53,7 @@ a small writable overlay for the instance.
 ./eink firmware               Show required firmware files
 ./eink create NAME --model M  Create a persistent instance
 ./eink run NAME               Launch an instance
+./eink qemu -- ARGS           Use a raw QEMU machine
 ./eink list                   List instances
 ./eink images                 List base and instance disks
 ./eink build                  Build the QEMU fork
@@ -62,6 +63,35 @@ Use `./eink run NAME --headless` for serial-only operation,
 `--ssh-port PORT` to change the loopback SSH forwarding port, and
 `--vnc ENDPOINT` to use QEMU's VNC display. Arguments after `--` are passed
 directly to QEMU.
+
+## Using a raw QEMU machine
+
+The raw QEMU machines can be used directly for kernel and bootloader
+development. Supply the machine properties, firmware, storage, and other QEMU
+options for each run:
+
+```sh
+# Bootloader development
+./eink qemu -- \
+  -machine imx6sl-wario,idme-serial='<value>',idme-mac='<value>' \
+  -m 512M \
+  -bios path/to/u-boot.bin \
+  -serial mon:stdio \
+  -no-reboot
+
+# Direct kernel boot
+./eink qemu -- \
+  -machine imx6sl-wario,idme-serial='<value>',idme-mac='<value>' \
+  -m 512M \
+  -kernel path/to/uImage \
+  -append '<kernel command line>' \
+  -serial mon:stdio \
+  -no-reboot
+```
+
+All arguments after `--` are passed directly to QEMU. These runs are ephemeral:
+`eink` does not read the model catalogue, create an instance, or attach a
+generated disk.
 
 ## Supported models
 
