@@ -90,11 +90,14 @@ def digest_files(definition: dict[str, Any], artifacts: dict[str, Path]) -> str:
     for path in sorted(image_library.glob("*.py")):
         digest.update(path.name.encode())
         digest.update(path.read_bytes())
-    overrides = ROOT / "guest-overrides" / definition["builder"]
-    if overrides.is_dir():
-        for path in sorted(path for path in overrides.rglob("*") if path.is_file()):
-            digest.update(str(path.relative_to(overrides)).encode())
-            digest.update(path.read_bytes())
+    override_groups = definition.get("rootfs_overrides", [definition["builder"]])
+    for group in override_groups:
+        overrides = ROOT / "guest-overrides" / group
+        if overrides.is_dir():
+            for path in sorted(path for path in overrides.rglob("*") if path.is_file()):
+                digest.update(group.encode())
+                digest.update(str(path.relative_to(overrides)).encode())
+                digest.update(path.read_bytes())
     for role, path in sorted(artifacts.items()):
         digest.update(role.encode())
         digest.update(path.name.encode())

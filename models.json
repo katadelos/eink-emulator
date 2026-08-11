@@ -4,6 +4,7 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "512M",
     "builder": "wario",
+    "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
@@ -25,6 +26,7 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "256M",
     "builder": "wario",
+    "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
@@ -41,11 +43,44 @@
       "waveform_store": ["waveform-store.img"]
     }
   },
+  "kindle-basic-2016": {
+    "description": "Kindle Basic (2016)",
+    "qemu_machine": "imx6sl-heisenberg",
+    "memory": "512M",
+    "builder": "heisenberg",
+    "rootfs_overrides": ["heisenberg"],
+    "drive_index": 1,
+    "network": "none",
+    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
+    }
+  },
+  "kindle-paperwhite-1": {
+    "description": "Kindle Paperwhite 1",
+    "qemu_machine": "imx50-celeste",
+    "memory": "256M",
+    "builder": "celeste",
+    "rootfs_overrides": ["celeste"],
+    "drive_index": 0,
+    "network": "wifi",
+    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "panel_flash": ["panel-flash.bin"]
+    }
+  },
   "kindle-paperwhite-2": {
     "description": "Kindle Paperwhite 2",
     "qemu_machine": "imx6sl-wario",
     "memory": "256M",
     "builder": "wario",
+    "rootfs_overrides": ["wario"],
     "wario_layout": "pinot",
     "drive_index": 1,
     "network": "wifi",
@@ -67,6 +102,7 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "512M",
     "builder": "wario",
+    "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
