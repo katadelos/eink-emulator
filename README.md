@@ -36,11 +36,14 @@ instance manifest.
 ./eink run my-reader
 ```
 
-Kobo Touch does not use identity fields:
+Kobo devices do not use identity fields:
 
 ```sh
 ./eink create my-kobo --model kobo-touch
 ./eink run my-kobo
+
+./eink create my-mini --model kobo-mini
+./eink run my-mini
 ```
 
 When necessary, `create` builds QEMU and an immutable base image before adding
@@ -93,6 +96,20 @@ All arguments after `--` are passed directly to QEMU. These runs are ephemeral:
 `eink` does not read the model catalogue, create an instance, or attach a
 generated disk.
 
+## Taking a screenshot
+
+Use QEMU's monitor to capture the emulated framebuffer directly. While a
+machine is running, press `Ctrl-A C` to switch from its serial console to the
+monitor, then write a PNG to an absolute host path:
+
+```text
+(qemu) screendump /tmp/eink-screen.png -f png
+```
+
+Press `Ctrl-A C` again to return to the serial console. `screendump` captures
+guest pixels without window decorations, cursor state, display scaling, or
+other desktop content.
+
 ## Supported models
 
 | Full name | Abbreviation | Board name | Notes |
@@ -106,6 +123,7 @@ generated disk.
 | Kindle Paperwhite 3 | PW3 | Muscat | |
 | Kindle Basic (2016) | KT3 | Eanab | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
+| Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 
 Coloursoft machine support remains experimental and is not listed above.

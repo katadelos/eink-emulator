@@ -73,6 +73,9 @@ firmware/
 │   ├── uImage
 │   ├── rootfs.img
 │   └── panel-flash.bin
+├── kobo-mini/
+│   ├── u-boot.bin
+│   └── sd.img
 └── kobo-touch/
     ├── u-boot.bin
     └── sd.img
@@ -86,6 +89,10 @@ panel-flash artifact.
 
 `rootfs.img` must be a raw ext filesystem image. If an extracted firmware
 package contains `rootfs.img.gz`, decompress it before placing it here.
+
+For both Kobo models, `u-boot.bin` is passed directly to QEMU as the BIOS and
+`sd.img` is the complete internal-card image, including its raw boot area,
+rootfs, recoveryfs, and userstore.
 
 ## Instance identity
 
