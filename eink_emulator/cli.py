@@ -280,7 +280,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-bios", str(artifacts["bootloader"]),
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2",
     ]
-    if model == "kobo-touch":
+    if model in {"kobo-mini", "kobo-touch"}:
         command.extend([
             "-chardev", "stdio,id=console,mux=on,signal=off",
             "-mon", "chardev=console,mode=readline",

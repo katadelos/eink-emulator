@@ -180,5 +180,18 @@
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
     }
+  },
+  "kobo-mini": {
+    "description": "Kobo Mini",
+    "qemu_machine": "imx50-kobomini",
+    "memory": "256M",
+    "builder": "disk-copy",
+    "drive_index": 0,
+    "network": "none",
+    "idme_fields": [],
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "disk": ["sd.img"]
+    }
   }
 }
