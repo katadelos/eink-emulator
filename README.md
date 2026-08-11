@@ -66,9 +66,20 @@ directly to QEMU.
 
 ## Supported models
 
-The release interface supports Kindle 4, Kindle Touch, Kindle Basic (2014 and
-2016), Kindle Paperwhite 1 through 4, Kindle Voyage, and Kobo Touch. Coloursoft
-is not included because its machine support is still experimental.
+| Full name | Abbreviation | Board name | Notes |
+| --- | --- | --- | --- |
+| Kindle 4 | K4 | Tequila | |
+| Kindle Touch | K5 | Whitney | |
+| Kindle Paperwhite 1 | PW1 | Celeste | |
+| Kindle Paperwhite 2 | PW2 | Pinot | |
+| Kindle Basic (2014) | KT2 | Bourbon | |
+| Kindle Voyage | KV | Icewine | |
+| Kindle Paperwhite 3 | PW3 | Muscat | |
+| Kindle Basic (2016) | KT3 | Eanab | |
+| Kindle Paperwhite 4 | PW4 | Moonshine | |
+| Kobo Touch | N905 | E60610 | |
+
+Coloursoft is not included because its machine support is still experimental.
 
 See [firmware setup](docs/firmware.md), [guest compatibility changes](docs/guest-overrides.md),
 and [storage layout](docs/storage.md) for the workflows users normally need.
