@@ -31,6 +31,16 @@ firmware/
 │   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
+├── kindle-basic-2016/
+│   ├── u-boot.bin
+│   ├── uImage
+│   ├── rootfs.img
+│   └── panel-flash.bin
+├── kindle-paperwhite-1/
+│   ├── u-boot.bin
+│   ├── uImage
+│   ├── rootfs.img
+│   └── panel-flash.bin
 ├── kindle-paperwhite-2/
 │   ├── u-boot.bin
 │   ├── uImage
@@ -92,10 +102,13 @@ from the source device when creating an instance:
   --idme postmode='<value>'
 ```
 
-Kindle 4 and Kindle Touch additionally require `accel` and `sec`. An empty
-value is accepted when that is what the source device reports. The exact
-required set is validated before any image is built. Kobo Touch rejects
-identity fields because that platform does not use them.
+The exact required set is validated before any image is built. Kobo Touch
+rejects identity fields because that platform does not use them.
+
+The same six identity fields shown above apply to Kindle Basic (2016).
+Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
+and `sec`. An empty value is accepted when that is what the source device
+reports.
 
 Identity values are stored in `machines/NAME/machine.json`, which is ignored
 by Git. Do not publish machine directories.
