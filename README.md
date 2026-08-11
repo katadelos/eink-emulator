@@ -1,9 +1,8 @@
 # E-ink emulator
 
-This repository provides a small release-oriented interface for creating and
-running persistent virtual e-readers. It builds the project QEMU fork, keeps
-firmware supplied by the user outside Git, and stores every generated disk as
-a sparse QCOW2 image.
+This repository provides tools for creating and running persistent virtual
+e-readers with the project's QEMU fork. Firmware stays outside Git, and
+generated disks are stored as sparse QCOW2 images.
 
 No firmware, device dumps, account data, or physical-device identity values
 are distributed here. This project is not affiliated with Amazon or Rakuten
@@ -21,9 +20,9 @@ cd eink-emulator
 ```
 
 Copy firmware from a device you own into the directory shown by
-`./eink firmware`. Then create an instance. Kindle models require every
-identity field to be supplied at creation; values are written only to the
-ignored instance manifest.
+`./eink firmware`, then create an instance. Kindle models require their
+identity fields at creation; the values are stored only in the ignored
+instance manifest.
 
 ```sh
 ./eink create my-reader --model kindle-voyage \
@@ -44,19 +43,19 @@ Kobo Touch does not use identity fields:
 ./eink run my-kobo
 ```
 
-The first `create` builds QEMU when necessary, creates a cached immutable base,
-and adds a small writable overlay for the instance.
+When necessary, `create` builds QEMU and an immutable base image before adding
+a small writable overlay for the instance.
 
 ## Everyday commands
 
 ```text
-./eink models                 List supported hardware
-./eink firmware               Check bring-your-own firmware
+./eink models                 List supported models
+./eink firmware               Show required firmware files
 ./eink create NAME --model M  Create a persistent instance
 ./eink run NAME               Launch an instance
-./eink list                   Inventory instances
-./eink images                 Inventory all base and instance disks
-./eink build                  Build QEMU explicitly
+./eink list                   List instances
+./eink images                 List base and instance disks
+./eink build                  Build the QEMU fork
 ```
 
 Use `./eink run NAME --headless` for serial-only operation,
@@ -79,15 +78,16 @@ directly to QEMU.
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | Kobo Touch | N905 | E60610 | |
 
-Coloursoft is not included because its machine support is still experimental.
+Coloursoft machine support remains experimental and is not listed above.
 
-See [firmware setup](docs/firmware.md), [guest compatibility changes](docs/guest-overrides.md),
-and [storage layout](docs/storage.md) for the workflows users normally need.
+Additional documentation covers [firmware setup](docs/firmware.md),
+[guest compatibility changes](docs/guest-overrides.md), and
+[storage layout](docs/storage.md).
 
 ## Host requirements
 
 - Python 3.10 or newer
-- a C compiler and the normal QEMU build dependencies
+- a C compiler and the standard QEMU build dependencies
 - Ninja
 - `mke2fs`, `tune2fs`, and `debugfs` from e2fsprogs for Kindle image creation
 
