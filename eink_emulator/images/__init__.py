@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from . import rex, rootfs, tequila, wario, whitney
+from . import celeste, heisenberg, rex, rootfs, tequila, wario, whitney
 
 
 def build_raw_image(
@@ -31,6 +31,21 @@ def build_raw_image(
             diagnostics=artifacts.get("diagnostics"),
             waveform_store=artifacts.get("waveform_store"),
         )
+    elif builder == "heisenberg":
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_heisenberg(artifacts["rootfs"], prepared)
+        heisenberg.build(
+            output=output,
+            kernel=artifacts["kernel"],
+            rootfs=prepared,
+        )
+    elif builder == "celeste":
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_celeste(
+            artifacts["rootfs"], prepared,
+            maximum_size=celeste.ROOTFS_SIZE,
+        )
+        celeste.build(output, artifacts["kernel"], prepared)
     elif builder == "tequila":
         tequila.build(output, artifacts["kernel"], artifacts["rootfs"])
     elif builder == "whitney":
