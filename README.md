@@ -54,6 +54,7 @@ a small writable overlay for the instance.
 ```text
 ./eink models                 List supported models
 ./eink firmware               Show required firmware files
+./eink import FILE --model M  Import a supported recovery package
 ./eink create NAME --model M  Create a persistent instance
 ./eink run NAME               Launch an instance
 ./eink qemu -- ARGS           Use a raw QEMU machine
@@ -90,6 +91,14 @@ options for each run:
   -append '<kernel command line>' \
   -serial mon:stdio \
   -no-reboot
+
+# Eanab bootloader development
+./eink qemu -- \
+  -machine imx6sl-eanab,idme-serial='<value>',idme-mac='<value>' \
+  -m 512M \
+  -bios path/to/u-boot.bin \
+  -serial mon:stdio \
+  -no-reboot
 ```
 
 All arguments after `--` are passed directly to QEMU. These runs are ephemeral:
@@ -121,7 +130,7 @@ other desktop content.
 | Kindle Basic (2014) | KT2 | Bourbon | |
 | Kindle Voyage | KV | Icewine | |
 | Kindle Paperwhite 3 | PW3 | Muscat | |
-| Kindle Basic (2016) | KT3 | Eanab | |
+| Kindle Basic 2 (2016) | KT3 | Eanab | 8th Generation |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
@@ -138,6 +147,7 @@ Additional documentation covers [firmware setup](docs/firmware.md),
 - a C compiler and the standard QEMU build dependencies
 - Ninja
 - `mke2fs`, `tune2fs`, and `debugfs` from e2fsprogs for Kindle image creation
+- `kindletool` when importing supported Kindle recovery packages
 
 On macOS, Homebrew's `e2fsprogs` package supplies the filesystem tools. QEMU's
 SLIRP dependency is built from its pinned subproject when it is not installed

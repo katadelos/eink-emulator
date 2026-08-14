@@ -34,8 +34,7 @@ firmware/
 ├── kindle-basic-2016/
 │   ├── u-boot.bin
 │   ├── uImage
-│   ├── rootfs.img
-│   └── panel-flash.bin
+│   └── rootfs.img
 ├── kindle-paperwhite-1/
 │   ├── u-boot.bin
 │   ├── uImage
@@ -81,14 +80,29 @@ firmware/
     └── sd.img
 ```
 
-Every Kindle model requires `panel-flash.bin`; it provides the panel data needed
-for graphical output. The optional Wario waveform, diagnostics kernel, and
-diagnostics partition files use the same names for Kindle Basic (2014),
-Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo Touch does not use a
-panel-flash artifact.
+Every Kindle model except Kindle Basic (2016) requires `panel-flash.bin`; it
+provides the panel data needed for graphical output. Eanab removed the panel
+flash and loads its waveform from the root filesystem. The optional Wario
+waveform, diagnostics kernel, and diagnostics partition files use the same
+names for Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for
+Voyage. Kobo Touch does not use a panel-flash artifact.
 
 `rootfs.img` must be a raw ext filesystem image. If an extracted firmware
 package contains `rootfs.img.gz`, decompress it before placing it here.
+
+## Kindle Basic (2016) recovery package
+
+The Eanab firmware is distributed as a Heisenberg recovery package. Import it
+directly with KindleTool installed:
+
+```sh
+./eink import path/to/update_kindle_8th.bin --model kindle-basic-2016
+```
+
+The importer runs `kindletool extract`, validates the Heisenberg artifact
+layout, decompresses `rootfs.img.gz`, and installs `u-boot.bin`, `uImage`, and
+`rootfs.img` under `firmware/kindle-basic-2016/`. It refuses to overwrite an
+existing firmware directory.
 
 For both Kobo models, `u-boot.bin` is passed directly to QEMU as the BIOS and
 `sd.img` is the complete internal-card image, including its raw boot area,
