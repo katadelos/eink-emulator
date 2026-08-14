@@ -130,7 +130,7 @@ other desktop content.
 | Kindle Basic (2014) | KT2 | Bourbon | |
 | Kindle Voyage | KV | Icewine | |
 | Kindle Paperwhite 3 | PW3 | Muscat | |
-| Kindle Basic 2 (2016) | KT3 | Eanab | 8th Generation |
+| Kindle Basic 2 (2016) | KT3 | Eanab | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
