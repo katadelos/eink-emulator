@@ -16,6 +16,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from .firmware import import_recovery
 from .images import build_raw_image
 from .qemu import build as build_qemu
 
@@ -422,6 +423,18 @@ def command_firmware(_: argparse.Namespace) -> None:
     print_table(("MODEL", "ARTIFACT", "NEED", "STATUS", "PATH"), rows)
 
 
+def command_import(args: argparse.Namespace) -> None:
+    definition = model_definition(args.model)
+    installed = import_recovery(
+        package=Path(args.package).resolve(),
+        destination=FIRMWARE_ROOT / args.model,
+        definition=definition,
+    )
+    print(f"imported {definition['description']} firmware:")
+    for role, path in installed.items():
+        print(f"  {role}: {path.relative_to(ROOT)}")
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(prog="eink", description=__doc__)
     root.add_argument("--version", action="version", version="%(prog)s 0.1.0")
@@ -435,6 +448,13 @@ def parser() -> argparse.ArgumentParser:
 
     firmware = commands.add_parser("firmware", help="show required bring-your-own firmware")
     firmware.set_defaults(handler=command_firmware)
+
+    import_package = commands.add_parser(
+        "import", help="import a vendor recovery firmware package"
+    )
+    import_package.add_argument("package")
+    import_package.add_argument("--model", required=True)
+    import_package.set_defaults(handler=command_import)
 
     create = commands.add_parser("create", help="create a persistent machine")
     create.add_argument("name")
