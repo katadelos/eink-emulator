@@ -45,7 +45,7 @@
   },
   "kindle-basic-2016": {
     "description": "Kindle Basic (2016)",
-    "qemu_machine": "imx6sl-heisenberg",
+    "qemu_machine": "imx6sl-eanab",
     "memory": "512M",
     "builder": "heisenberg",
     "rootfs_overrides": ["heisenberg"],
@@ -55,8 +55,12 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
+    },
+    "recovery_import": {
+      "bootloader": "imx6sl_heisenberg/u-boot.bin",
+      "kernel": "imx6sl_heisenberg/uImage",
+      "rootfs": "rootfs.img.gz"
     }
   },
   "kindle-paperwhite-1": {
