@@ -33,11 +33,15 @@ HWTCON_PROPERTIES = (
     "scanout-read-failures",
 )
 MACHINE_PROPERTIES = (
+    "board",
+    "device-profile",
     "cfa-bypass",
     "cfa-bypass-applied",
     "cfa-bypass-address",
     "cfa-bypass-workers-address",
     "cfa-bypass-attempts",
+    "idme-board-id",
+    "idme-product-name",
     "idme-device-type",
 )
 
@@ -328,9 +332,9 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("cont", help="resume the VM")
     subparsers.add_parser("quit", help="shut down QEMU")
     subparsers.add_parser(
-        "display", help="Colorsoft: query HWTCON and scanout state")
+        "display", help="Bellatrix4: query HWTCON and scanout state")
     subparsers.add_parser(
-        "machine", help="Colorsoft: query runtime patch and IDME state")
+        "machine", help="Bellatrix4: query board, runtime patch, and IDME state")
 
     hmp_parser = subparsers.add_parser(
         "hmp", help="execute an arbitrary human-monitor command")
@@ -342,12 +346,12 @@ def build_parser() -> argparse.ArgumentParser:
     qmp_parser.add_argument("--arguments", type=parse_arguments, default=None)
 
     snapshot_parser = subparsers.add_parser(
-        "snapshot", help="Colorsoft: capture synchronized device state")
+        "snapshot", help="Bellatrix4: capture synchronized device state")
     snapshot_parser.add_argument("--register-text", action="store_true")
     snapshot_parser.add_argument("--output", type=Path)
 
     sample_parser = subparsers.add_parser(
-        "sample", help="Colorsoft: capture repeated synchronized snapshots")
+        "sample", help="Bellatrix4: capture repeated synchronized snapshots")
     sample_parser.add_argument("--count", type=int, default=5)
     sample_parser.add_argument("--interval", type=float, default=2.0)
     sample_parser.add_argument("--output", type=Path)
@@ -357,7 +361,7 @@ def build_parser() -> argparse.ArgumentParser:
     screen_parser.add_argument("path", type=Path)
 
     tap_parser = subparsers.add_parser(
-        "tap", help="Colorsoft: inject a panel-coordinate touch")
+        "tap", help="Bellatrix4: inject a panel-coordinate touch")
     tap_parser.add_argument("x", type=int)
     tap_parser.add_argument("y", type=int)
     tap_parser.add_argument("--hold", type=float, default=0.08)

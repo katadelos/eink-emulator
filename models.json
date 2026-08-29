@@ -2,17 +2,50 @@
   "kindle-colorsoft": {
     "description": "Kindle Colorsoft",
     "qemu_arch": "aarch64",
-    "qemu_machine": "mt8113-coloursoft",
+    "qemu_machine": "mt8113-bellatrix4",
     "memory": "2G",
-    "builder": "colorsoft",
+    "builder": "bellatrix4",
     "drive_index": 0,
     "network": "none",
+    "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
     "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
+      "board": "sangria-color",
       "boot-stage": "u-boot",
       "cfa-bypass": "on"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "waveform_store": ["waveform.img"]
+    }
+  },
+  "kindle-paperwhite-6": {
+    "description": "Kindle Paperwhite 6 (12th generation)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-bellatrix4",
+    "memory": "2G",
+    "builder": "bellatrix4",
+    "drive_index": 0,
+    "network": "none",
+    "device_profiles": ["production", "dvt", "evt", "hvt1.1", "hvt", "proto"],
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "sangria",
+      "boot-stage": "u-boot"
     },
     "machine_firmware_properties": {
       "bl2": "bl2",

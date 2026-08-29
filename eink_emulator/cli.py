@@ -583,7 +583,7 @@ def parser() -> argparse.ArgumentParser:
     create = commands.add_parser("create", help="create a persistent machine")
     create.add_argument("name")
     create.add_argument("--model", required=True)
-    create.add_argument("--profile", help="hardware security profile; required for models that expose profiles")
+    create.add_argument("--profile", help="hardware profile; required for models that expose profiles")
     create.add_argument("--idme", action="append", default=[], metavar="FIELD=VALUE", help="instance identity field; repeat for every field required by the model")
     create.set_defaults(handler=command_create)
 
