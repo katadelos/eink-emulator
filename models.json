@@ -1,4 +1,34 @@
 {
+  "kindle-colorsoft": {
+    "description": "Kindle Colorsoft",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-coloursoft",
+    "memory": "2G",
+    "builder": "colorsoft",
+    "drive_index": 0,
+    "network": "none",
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "boot-stage": "u-boot",
+      "cfa-bypass": "on"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "waveform_store": ["waveform.img"]
+    }
+  },
   "kindle-voyage": {
     "description": "Kindle Voyage",
     "qemu_machine": "imx6sl-wario",
