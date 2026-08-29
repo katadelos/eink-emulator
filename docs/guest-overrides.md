@@ -26,6 +26,20 @@ service fixes. Paperwhite 4 receives wake, first-boot, locale, and
 unavailable-service fixes. All three also receive a longer first-boot
 framework timeout for TCG execution.
 
+## Colorsoft
+
+Colorsoft preparation copies the supplied `rootfs.img` before the disk builder
+places it in the generated GPT image. It skips the stock recursive permission
+repair and absent hibernate payload, waits indefinitely for the framework
+under TCG, returns from the network/account setup application to Home, disables
+native `gdb` stack dumps, both unavailable Minerva telemetry daemons, and the
+Wi-Fi jobs whose MTK transport has no emulated hardware. This prevents the
+transport driver's power-on timeout queue from starving the guest.
+The old debug-only job which mirrored the complete system log through the
+emulated serial UART is also omitted; kernel, boot milestone, and login console
+output remain available. The remaining overrides prevent automatic suspend and
+avoid respawn loops in capability-gated services.
+
 Prepared Kindle root filesystems have the guest root password cleared so the
 serial console remains usable. This affects only generated, ignored images;
 the supplied firmware files are never modified.

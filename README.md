@@ -63,10 +63,12 @@ a small writable overlay for the instance.
 ./eink build                  Build the QEMU fork
 ```
 
-Use `./eink run NAME --headless` for serial-only operation,
-`--ssh-port PORT` to change the loopback SSH forwarding port, and
-`--vnc ENDPOINT` to use QEMU's VNC display. Arguments after `--` are passed
-directly to QEMU.
+Serial is attached to the `eink run` process by default. Use
+`--serial-socket` to put it on the instance-scoped Unix socket instead, and
+`--qmp-socket` to expose QMP for inspection or process reuse. Use
+`--headless` for serial-only operation, `--ssh-port PORT` to change the
+loopback SSH forwarding port, and `--vnc ENDPOINT` to use QEMU's VNC display.
+Arguments after `--` are passed directly to QEMU.
 
 ## Using a raw QEMU machine
 
@@ -132,14 +134,13 @@ other desktop content.
 | Kindle Paperwhite 3 | PW3 | Muscat | |
 | Kindle Basic 2 (2016) | KT3 | Eanab | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
+| [Kindle Colorsoft](docs/colorsoft.md) | CS | Bellatrix4 | |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 
-Coloursoft machine support remains experimental and is not listed above.
-
 Additional documentation covers [firmware setup](docs/firmware.md),
-[guest compatibility changes](docs/guest-overrides.md), and
-[storage layout](docs/storage.md).
+[guest compatibility changes](docs/guest-overrides.md),
+[QMP workflows](docs/qmp.md), and [storage layout](docs/storage.md).
 
 ## Host requirements
 
