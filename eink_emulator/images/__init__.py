@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from . import celeste, colorsoft, heisenberg, rex, rootfs, tequila, wario, whitney
+from . import bellatrix4, celeste, heisenberg, rex, rootfs, tequila, wario, whitney
 
 
 def build_raw_image(
@@ -19,14 +19,16 @@ def build_raw_image(
     builder = definition["builder"]
     if builder == "disk-copy":
         return artifacts["disk"]
-    if builder == "colorsoft":
+    if builder == "bellatrix4":
         prepared = output.with_name("prepared-rootfs.img")
-        rootfs.prepare_colorsoft(
+        board = definition["machine_properties"]["board"]
+        rootfs.prepare_bellatrix4(
             artifacts["rootfs"],
             prepared,
-            maximum_size=colorsoft.ROOTFS_SIZE,
+            maximum_size=bellatrix4.ROOTFS_SIZE,
+            board=board,
         )
-        colorsoft.build(
+        bellatrix4.build(
             output,
             boot_image=artifacts["boot_image"],
             rootfs_image=prepared,

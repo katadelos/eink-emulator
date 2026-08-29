@@ -16,13 +16,13 @@ OVERRIDES = ROOT / "guest-overrides"
 EXT_MAGIC_OFFSET = 1024 + 56
 FRAMEWORK_TIMEOUT_STOCK = "        TO=105\n"
 FRAMEWORK_TIMEOUT_EMULATED = "        TO=600\n"
-COLORSOFT_FRAMEWORK_MARKER = "Colorsoft QEMU: skip recursive permission repair"
-COLORSOFT_WATCHDOG_MARKER = "Colorsoft QEMU: wait indefinitely under TCG"
-COLORSOFT_STACK_DUMP_MARKER = "Colorsoft QEMU: skip native stack dumps under TCG"
-COLORSOFT_USERSTORE_MARKER = "Colorsoft QEMU: coalesce emulated userstore writes"
-COLORSOFT_VARLOCAL_MARKER = "Colorsoft QEMU: coalesce emulated var-local writes"
-COLORSOFT_JAVA_MARKER = "Colorsoft QEMU: trust the immutable firmware class path"
-COLORSOFT_HIBERNATE_MARKER = "Colorsoft QEMU: skip absent hibernate payload"
+BELLATRIX4_FRAMEWORK_MARKER = "Bellatrix4 QEMU: skip recursive permission repair"
+BELLATRIX4_WATCHDOG_MARKER = "Bellatrix4 QEMU: wait indefinitely under TCG"
+BELLATRIX4_STACK_DUMP_MARKER = "Bellatrix4 QEMU: skip native stack dumps under TCG"
+BELLATRIX4_USERSTORE_MARKER = "Bellatrix4 QEMU: coalesce emulated userstore writes"
+BELLATRIX4_VARLOCAL_MARKER = "Bellatrix4 QEMU: coalesce emulated var-local writes"
+BELLATRIX4_JAVA_MARKER = "Bellatrix4 QEMU: trust the immutable firmware class path"
+BELLATRIX4_HIBERNATE_MARKER = "Bellatrix4 QEMU: skip absent hibernate payload"
 
 
 @cache
@@ -120,8 +120,8 @@ def extend_framework_timeout(contents: str) -> str:
     return contents.replace(FRAMEWORK_TIMEOUT_STOCK, FRAMEWORK_TIMEOUT_EMULATED)
 
 
-def colorsoft_patch_framework(contents: str) -> str:
-    if COLORSOFT_FRAMEWORK_MARKER in contents:
+def bellatrix4_patch_framework(contents: str) -> str:
+    if BELLATRIX4_FRAMEWORK_MARKER in contents:
         return contents
 
     start = contents.find("  set +e\n  DIRLIST=")
@@ -132,14 +132,14 @@ def colorsoft_patch_framework(contents: str) -> str:
 
     replacement = (
         "  set +e\n"
-        f"  # {COLORSOFT_FRAMEWORK_MARKER}; the prepared image already has correct ownership.\n"
+        f"  # {BELLATRIX4_FRAMEWORK_MARKER}; the prepared image already has correct ownership.\n"
         "  set -e\n"
     )
     return contents[:start] + replacement + contents[end + len("  set -e\n") :]
 
 
-def colorsoft_patch_framework_setup(contents: str) -> str:
-    if COLORSOFT_WATCHDOG_MARKER in contents:
+def bellatrix4_patch_framework_setup(contents: str) -> str:
+    if BELLATRIX4_WATCHDOG_MARKER in contents:
         return contents
     old = "        TO=105\n"
     if contents.count(old) != 1:
@@ -148,28 +148,28 @@ def colorsoft_patch_framework_setup(contents: str) -> str:
         )
     return contents.replace(
         old,
-        f"        TO=0  # {COLORSOFT_WATCHDOG_MARKER}\n",
+        f"        TO=0  # {BELLATRIX4_WATCHDOG_MARKER}\n",
         1,
     )
 
 
-def colorsoft_patch_dump_stack(contents: str) -> str:
-    if COLORSOFT_STACK_DUMP_MARKER in contents:
+def bellatrix4_patch_dump_stack(contents: str) -> str:
+    if BELLATRIX4_STACK_DUMP_MARKER in contents:
         return contents
     shebang = "#!/bin/sh\n"
     if not contents.startswith(shebang):
         raise SystemExit("unexpected /usr/bin/dump-stack interpreter")
     replacement = (
         shebang
-        + f"# {COLORSOFT_STACK_DUMP_MARKER}; guest gdb can monopolize an "
+        + f"# {BELLATRIX4_STACK_DUMP_MARKER}; guest gdb can monopolize an "
         "emulated CPU for minutes.\n"
         + "exit 0\n"
     )
     return replacement + contents[len(shebang) :]
 
 
-def colorsoft_patch_userstore_mount(contents: str) -> str:
-    if COLORSOFT_USERSTORE_MARKER in contents:
+def bellatrix4_patch_userstore_mount(contents: str) -> str:
+    if BELLATRIX4_USERSTORE_MARKER in contents:
         return contents
     old = (
         "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
@@ -178,44 +178,44 @@ def colorsoft_patch_userstore_mount(contents: str) -> str:
     if contents.count(old) != 1:
         raise SystemExit("stock userstore ext4 mount command was not found exactly once")
     new = (
-        f"        # {COLORSOFT_USERSTORE_MARKER}.\n"
+        f"        # {BELLATRIX4_USERSTORE_MARKER}.\n"
         "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
         "-o defaults,errors=remount-ro,noatime,nodiratime,nobarrier,commit=60\n"
     )
     return contents.replace(old, new, 1)
 
 
-def colorsoft_patch_varlocal_mount(contents: str) -> str:
-    if COLORSOFT_VARLOCAL_MARKER in contents:
+def bellatrix4_patch_varlocal_mount(contents: str) -> str:
+    if BELLATRIX4_VARLOCAL_MARKER in contents:
         return contents
     old = "     mount -t ext4 -o rw $local $mount_point\n"
     if contents.count(old) != 1:
         raise SystemExit("stock var-local ext4 mount command was not found exactly once")
     new = (
-        f"     # {COLORSOFT_VARLOCAL_MARKER}.\n"
+        f"     # {BELLATRIX4_VARLOCAL_MARKER}.\n"
         "     mount -t ext4 -o rw,noatime,nodiratime,nobarrier,commit=60 "
         "$local $mount_point\n"
     )
     return contents.replace(old, new, 1)
 
 
-def colorsoft_patch_java_verification(contents: str) -> str:
-    if COLORSOFT_JAVA_MARKER in contents:
+def bellatrix4_patch_java_verification(contents: str) -> str:
+    if BELLATRIX4_JAVA_MARKER in contents:
         return contents
     old = 'else\n  VERIFY="-Xverify:remote"\nfi\n'
     if contents.count(old) != 1:
         raise SystemExit("stock framework Java verification setting was not found exactly once")
     new = (
         "else\n"
-        f"  # {COLORSOFT_JAVA_MARKER}.\n"
+        f"  # {BELLATRIX4_JAVA_MARKER}.\n"
         '  VERIFY="-Xverify:none"\n'
         "fi\n"
     )
     return contents.replace(old, new, 1)
 
 
-def colorsoft_patch_filesystems_setup(contents: str) -> str:
-    if COLORSOFT_HIBERNATE_MARKER in contents:
+def bellatrix4_patch_filesystems_setup(contents: str) -> str:
+    if BELLATRIX4_HIBERNATE_MARKER in contents:
         return contents
     old = (
         "  if [[ -e $FIRST_BOOT_AFTER_UPDATE_FILE ]]; then\n"
@@ -223,10 +223,10 @@ def colorsoft_patch_filesystems_setup(contents: str) -> str:
         "  fi\n"
     )
     if contents.count(old) != 1:
-        raise SystemExit("stock Colorsoft hibernate blast block was not found exactly once")
+        raise SystemExit("stock Bellatrix4 hibernate blast block was not found exactly once")
     new = (
         "  if [[ -e $FIRST_BOOT_AFTER_UPDATE_FILE ]]; then\n"
-        f"    f_log I filesystems_setup \"{COLORSOFT_HIBERNATE_MARKER}\"\n"
+        f"    f_log I filesystems_setup \"{BELLATRIX4_HIBERNATE_MARKER}\"\n"
         "  fi\n"
     )
     return contents.replace(old, new, 1)
@@ -324,38 +324,46 @@ def prepare_rex(source: Path, output: Path) -> None:
     })
 
 
-def prepare_colorsoft(source: Path, output: Path, *, maximum_size: int) -> None:
+def prepare_bellatrix4(
+    source: Path, output: Path, *, maximum_size: int, board: str
+) -> None:
+    if board not in {"sangria", "sangria-color"}:
+        raise ValueError(f"unsupported Bellatrix4 board: {board}")
     copy_source(source, output, maximum_size=maximum_size)
-    transforms = (
-        ("/etc/upstart/framework.conf", "0100644", colorsoft_patch_framework),
+    transforms = [
+        ("/etc/upstart/framework.conf", "0100644", bellatrix4_patch_framework),
         (
             "/etc/upstart/framework_setup.conf",
             "0100644",
-            colorsoft_patch_framework_setup,
+            bellatrix4_patch_framework_setup,
         ),
-        ("/usr/bin/dump-stack", "0100755", colorsoft_patch_dump_stack),
         (
             "/usr/sbin/mntus_functions_ext4",
             "0100755",
-            colorsoft_patch_userstore_mount,
+            bellatrix4_patch_userstore_mount,
         ),
         (
             "/etc/upstart/varlocal_functions",
             "0100755",
-            colorsoft_patch_varlocal_mount,
+            bellatrix4_patch_varlocal_mount,
         ),
-        ("/etc/upstart/framework", "0100755", colorsoft_patch_java_verification),
+        ("/etc/upstart/framework", "0100755", bellatrix4_patch_java_verification),
         (
             "/etc/upstart/filesystems_setup.conf",
             "0100644",
-            colorsoft_patch_filesystems_setup,
+            bellatrix4_patch_filesystems_setup,
         ),
         ("/etc/shadow", "0100600", blank_root_password),
-    )
+    ]
+    if board == "sangria-color":
+        transforms.insert(
+            2,
+            ("/usr/bin/dump-stack", "0100755", bellatrix4_patch_dump_stack),
+        )
     for destination, mode, transform in transforms:
         transform_file(output, destination, mode, transform)
 
-    install_overrides(image=output, group="colorsoft", replacements={
+    install_overrides(image=output, group="bellatrix4", replacements={
         "/etc/upstart/prevent-screensaver.conf": (
             "prevent-screensaver.conf",
             "0100644",

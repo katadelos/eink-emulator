@@ -1,4 +1,4 @@
-"""Build a sparse Colorsoft eMMC user area from firmware components."""
+"""Build a sparse Bellatrix4 disk image from firmware components."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ def partition_layout(size: int) -> list[tuple[str, int, int]]:
         layout.append((name, cursor, sectors))
         cursor += sectors
     if cursor > last_usable:
-        raise SystemExit("image is too small for the Colorsoft partition layout")
+        raise SystemExit("image is too small for the Bellatrix4 partition layout")
     layout.append(("userstore", cursor, last_usable - cursor + 1))
     return layout
 
@@ -100,7 +100,7 @@ def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
 
     entries = bytearray(ENTRY_COUNT * ENTRY_SIZE)
     for index, (name, start, count) in enumerate(layout):
-        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-colorsoft-{name}")
+        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-bellatrix4-{name}")
         encoded_name = name.encode("utf-16-le")
         struct.pack_into(
             "<16s16sQQQ72s",
@@ -115,7 +115,7 @@ def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
         )
 
     entries_crc = zlib.crc32(entries)
-    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, "eink-emulator-colorsoft")
+    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, "eink-emulator-bellatrix4")
     primary = make_header(
         1,
         sectors - 1,
@@ -249,7 +249,7 @@ def create_userstore(
     mke2fs = find_tool("mke2fs")
     tune2fs = find_tool("tune2fs")
     with tempfile.TemporaryDirectory(
-        prefix="colorsoft-userstore-", dir=image_path.parent
+        prefix="bellatrix4-userstore-", dir=image_path.parent
     ) as temporary:
         filesystem = Path(temporary) / "userstore.ext4"
         with filesystem.open("wb") as image:
@@ -303,7 +303,7 @@ def build(
     waveform_image: Path,
     size: int = 8 * 1024**3,
 ) -> None:
-    """Compose the QEMU disk; no complete physical eMMC dump is an input."""
+    """Compose the QEMU disk from the supplied firmware components."""
     if size % SECTOR_SIZE or size < 4 * 1024**3:
         raise SystemExit("image size must be sector-aligned and at least 4 GiB")
     for payload in (boot_image, rootfs_image, waveform_image):
