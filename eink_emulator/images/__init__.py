@@ -5,7 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from . import celeste, heisenberg, rex, rootfs, tequila, wario, whitney
+from . import celeste, colorsoft, heisenberg, rex, rootfs, tequila, wario, whitney
 
 
 def build_raw_image(
@@ -19,7 +19,20 @@ def build_raw_image(
     builder = definition["builder"]
     if builder == "disk-copy":
         return artifacts["disk"]
-    if builder == "wario":
+    if builder == "colorsoft":
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_colorsoft(
+            artifacts["rootfs"],
+            prepared,
+            maximum_size=colorsoft.ROOTFS_SIZE,
+        )
+        colorsoft.build(
+            output,
+            boot_image=artifacts["boot_image"],
+            rootfs_image=prepared,
+            waveform_image=artifacts["waveform_store"],
+        )
+    elif builder == "wario":
         prepared = output.with_name("prepared-rootfs.img")
         rootfs.prepare_wario(artifacts["rootfs"], prepared)
         wario.build(
