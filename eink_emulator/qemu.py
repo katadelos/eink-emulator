@@ -12,7 +12,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 QEMU_ROOT = ROOT / "qemu"
 BUILD_ROOT = QEMU_ROOT / "build"
-TARGETS = ("qemu-system-arm", "qemu-img")
+TARGETS = ("qemu-system-arm", "qemu-system-aarch64", "qemu-img")
 
 
 def run(command: list[str], *, cwd: Path | None = None, env: dict[str, str] | None = None) -> None:
@@ -26,11 +26,13 @@ def configure() -> None:
             environment[variable] = candidate
     run([
         "./configure",
-        "--target-list=arm-softmmu",
+        "--target-list=arm-softmmu,aarch64-softmmu",
         "--disable-docs",
         "--disable-werror",
         "--enable-slirp",
         "-Dforce_fallback_for=slirp",
+        "-Dqom_cast_debug=false",
+        "-Db_lto=true",
     ], cwd=QEMU_ROOT, env=environment)
 
 

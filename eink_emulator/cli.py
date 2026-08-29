@@ -9,6 +9,7 @@ import os
 import re
 import shlex
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
@@ -28,7 +29,10 @@ MACHINES_ROOT = ROOT / "machines"
 BUILD_ROOT = ROOT / "build"
 BASES_ROOT = BUILD_ROOT / "images"
 QEMU_BUILD = ROOT / "qemu" / "build"
-QEMU = QEMU_BUILD / "qemu-system-arm"
+QEMU_SYSTEMS = {
+    "arm": QEMU_BUILD / "qemu-system-arm",
+    "aarch64": QEMU_BUILD / "qemu-system-aarch64",
+}
 QEMU_IMG = QEMU_BUILD / "qemu-img"
 NAME_RE = re.compile(r"^[a-z0-9][a-z0-9_-]*$")
 
@@ -119,11 +123,19 @@ def run_checked(command: list[str], **kwargs: Any) -> None:
     subprocess.run(command, check=True, **kwargs)
 
 
-def require_qemu_tools() -> None:
-    if not QEMU.is_file() or not QEMU_IMG.is_file():
+def qemu_system(definition: dict[str, Any]) -> Path:
+    arch = definition.get("qemu_arch", "arm")
+    try:
+        return QEMU_SYSTEMS[arch]
+    except KeyError:
+        fail(f"unsupported QEMU architecture in model catalogue: {arch}")
+
+
+def require_qemu_tools(qemu: Path) -> None:
+    if not qemu.is_file() or not QEMU_IMG.is_file():
         print("QEMU is not built; building it now.")
         build_qemu()
-    if not QEMU.is_file() or not QEMU_IMG.is_file():
+    if not qemu.is_file() or not QEMU_IMG.is_file():
         fail("QEMU build completed without the required executables")
 
 
@@ -134,7 +146,7 @@ def ensure_base(model: str, definition: dict[str, Any], artifacts: dict[str, Pat
     if base.is_file() and metadata.is_file():
         return base, fingerprint
 
-    require_qemu_tools()
+    require_qemu_tools(qemu_system(definition))
     BASES_ROOT.mkdir(parents=True, exist_ok=True)
     staging_root = BUILD_ROOT / "tmp"
     staging_root.mkdir(parents=True, exist_ok=True)
@@ -263,6 +275,20 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     if not isinstance(identity, dict) or sorted(identity) != sorted(required_identity):
         fail(f"machine identity is incomplete: {args.name}")
     machine_options = [definition["qemu_machine"]]
+    machine_options.extend(
+        f"{property_name}={value}"
+        for property_name, value in definition.get("machine_properties", {}).items()
+    )
+    for property_name, artifact_role in definition.get(
+        "machine_firmware_properties", {}
+    ).items():
+        try:
+            machine_options.append(f"{property_name}={artifacts[artifact_role]}")
+        except KeyError:
+            fail(
+                f"model catalogue maps machine property '{property_name}' "
+                f"to missing firmware role '{artifact_role}'"
+            )
     machine_options.extend(f"idme-{field}={identity[field]}" for field in required_identity)
     supported_profiles = definition.get("device_profiles", [])
     if supported_profiles:
@@ -275,22 +301,41 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             f"storage-bios={artifacts['storage_bios']}",
             f"falcon-bios={artifacts['falcon_bios']}",
         ])
-    command = [
-        str(QEMU), "-machine", ",".join(machine_options),
+    command = [str(qemu_system(definition))]
+    if accel := definition.get("accel"):
+        command.extend(["-accel", accel])
+    command.extend([
+        "-machine", ",".join(machine_options),
         "-m", definition["memory"],
         "-bios", str(artifacts["bootloader"]),
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2",
-    ]
+    ])
+    runtime = runtime_paths(directory)
     if model in {"kobo-mini", "kobo-touch"}:
+        chardev = (
+            f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on"
+            if args.serial_socket
+            else "stdio,id=console,mux=on,signal=off"
+        )
         command.extend([
-            "-chardev", "stdio,id=console,mux=on,signal=off",
+            "-chardev", chardev,
             "-mon", "chardev=console,mode=readline",
             "-serial", "chardev:console",
             "-serial", "chardev:console",
-            "-no-reboot",
+        ])
+    elif args.serial_socket:
+        command.extend([
+            "-chardev",
+            f"socket,id=serial0,path={runtime['serial']},server=on,wait=off",
+            "-serial", "chardev:serial0",
+            "-monitor", "none",
         ])
     else:
-        command.extend(["-serial", "mon:stdio", "-no-reboot"])
+        command.extend(["-serial", "mon:stdio"])
+    if args.qmp_socket:
+        command.extend(["-qmp", f"unix:{runtime['qmp']},server=on,wait=off"])
+    if not definition.get("allow_reboot"):
+        command.append("-no-reboot")
     if definition.get("network") == "wifi":
         ssh_port = port(args.ssh_port)
         command.extend([
@@ -309,23 +354,102 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     return command + list(args.qemu_args)
 
 
+def runtime_paths(directory: Path) -> dict[str, Path]:
+    name = directory.name
+    return {
+        "qmp": directory / f"{name}.qmp.sock",
+        "serial": directory / f"{name}.serial.sock",
+    }
+
+
+def qmp_status(path: Path) -> dict[str, Any] | None:
+    client = socket.socket(socket.AF_UNIX)
+    client.settimeout(1.0)
+    try:
+        client.connect(str(path))
+    except (FileNotFoundError, ConnectionRefusedError):
+        client.close()
+        return None
+    except OSError as error:
+        client.close()
+        fail(f"cannot inspect existing QMP socket {path}: {error}")
+
+    stream = client.makefile("rwb", buffering=0)
+    try:
+        greeting = json.loads(stream.readline())
+        if "QMP" not in greeting:
+            fail(f"unexpected data on existing QMP socket: {path}")
+        for request_id, command in enumerate(("qmp_capabilities", "query-status"), 1):
+            stream.write(json.dumps({"execute": command, "id": request_id}).encode() + b"\n")
+            while True:
+                response = json.loads(stream.readline())
+                if response.get("id") != request_id:
+                    continue
+                if "error" in response:
+                    fail(f"existing QMP socket rejected {command}: {response['error']}")
+                if command == "query-status":
+                    result = response.get("return")
+                    return result if isinstance(result, dict) else {}
+                break
+    except (OSError, TimeoutError, json.JSONDecodeError) as error:
+        fail(f"existing QMP socket is unresponsive: {path}: {error}")
+    finally:
+        stream.close()
+        client.close()
+    return {}
+
+
+def attach_existing(directory: Path, status: dict[str, Any]) -> None:
+    state = status.get("status", "running")
+    print(f"{directory.name} is already {state}; reusing the existing QEMU process.")
+    runtime = runtime_paths(directory)
+    print(f"QMP: python3 scripts/eink-qmp.py --machine {directory.name} status")
+    if runtime["serial"].exists():
+        print(f"serial socket: {runtime['serial']}")
+    else:
+        print("serial remains attached to the original ./eink run process")
+
+
 def command_run(args: argparse.Namespace) -> None:
+    directory, manifest = read_machine(args.name)
+    runtime = runtime_paths(directory)
+    if not args.dry_run:
+        status = qmp_status(runtime["qmp"])
+        if status is not None:
+            attach_existing(directory, status)
+            return
+
     command = launch_command(args)
     if args.dry_run:
         print(shlex.join(command))
         return
-    require_qemu_tools()
+    definition = model_definition(manifest.get("model"))
+    qemu = qemu_system(definition)
+    if args.qmp_socket:
+        runtime["qmp"].unlink(missing_ok=True)
+        print(f"QMP: python3 scripts/eink-qmp.py --machine {directory.name} status")
+    if args.serial_socket:
+        if runtime["serial"].exists():
+            fail(
+                f"serial socket path already exists: {runtime['serial']}\n"
+                "Remove it only after confirming that no QEMU process is using it."
+            )
+        print(f"serial socket: {runtime['serial']}")
+    if args.qmp_socket or args.serial_socket:
+        sys.stdout.flush()
+    require_qemu_tools(qemu)
     os.execv(command[0], command)
 
 
 def command_qemu(args: argparse.Namespace) -> None:
     if not args.qemu_args:
         fail("QEMU arguments are required after '--'")
-    command = [str(QEMU), *args.qemu_args]
+    qemu = QEMU_SYSTEMS[args.arch]
+    command = [str(qemu), *args.qemu_args]
     if args.dry_run:
         print(shlex.join(command))
         return
-    require_qemu_tools()
+    require_qemu_tools(qemu)
     os.execv(command[0], command)
 
 
@@ -468,10 +592,13 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--headless", action="store_true", help="disable graphical output")
     run.add_argument("--vnc", metavar="ENDPOINT", help="use QEMU's VNC display")
     run.add_argument("--ssh-port", type=int, default=2222, help="host SSH forwarding port (default: 2222)")
+    run.add_argument("--serial-socket", action="store_true", help="expose serial on an instance-scoped Unix socket instead of this process")
+    run.add_argument("--qmp-socket", action="store_true", help="expose QMP on an instance-scoped Unix socket")
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
     run.set_defaults(handler=command_run)
 
     qemu = commands.add_parser("qemu", help="launch an ephemeral raw QEMU machine")
+    qemu.add_argument("--arch", choices=sorted(QEMU_SYSTEMS), default="arm")
     qemu.add_argument("--dry-run", action="store_true", help="print the QEMU command")
     qemu.set_defaults(handler=command_qemu)
 
