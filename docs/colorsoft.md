@@ -5,7 +5,7 @@ persistent machine once:
 
 ```sh
 ./eink build
-./eink create colorsoft --model kindle-colorsoft
+./eink create colorsoft --model kindle-colorsoft --profile production
 ./eink run colorsoft --qmp-socket
 ```
 
@@ -44,3 +44,7 @@ FT5536G controller, its I2C reports, and its interrupt line before reaching the
 stock kernel input driver. See [QMP workflows](qmp.md) for synchronized device
 snapshots and [guest compatibility changes](guest-overrides.md) for the rootfs
 preparation applied to generated images.
+
+Development hardware can instead select `dvt`, `evt`, `hvt`, or `proto` at
+creation time. The selected profile is stored in the instance manifest and
+controls the emulated board tattoo.

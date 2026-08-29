@@ -135,6 +135,7 @@ other desktop content.
 | Kindle Basic 2 (2016) | KT3 | Eanab | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Bellatrix4 | |
+| [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Bellatrix4 | 12th generation |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 

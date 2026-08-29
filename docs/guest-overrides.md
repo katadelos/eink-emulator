@@ -26,15 +26,17 @@ service fixes. Paperwhite 4 receives wake, first-boot, locale, and
 unavailable-service fixes. All three also receive a longer first-boot
 framework timeout for TCG execution.
 
-## Colorsoft
+## Bellatrix4
 
-Colorsoft preparation copies the supplied `rootfs.img` before the disk builder
-places it in the generated GPT image. It skips the stock recursive permission
-repair and absent hibernate payload, waits indefinitely for the framework
-under TCG, returns from the network/account setup application to Home, disables
-native `gdb` stack dumps, both unavailable Minerva telemetry daemons, and the
+Colorsoft and Paperwhite 6 preparation copies the supplied `rootfs.img` before
+the disk builder places it in the generated GPT image. It skips the stock
+recursive permission repair and absent hibernate payload, waits indefinitely
+for the framework under TCG, returns from the network/account setup application
+to Home, disables both unavailable Minerva telemetry daemons, and omits the
 Wi-Fi jobs whose MTK transport has no emulated hardware. This prevents the
-transport driver's power-on timeout queue from starving the guest.
+transport driver's power-on timeout queue from starving the guest. Colorsoft
+also disables native `gdb` stack dumps which can monopolize an emulated CPU;
+the Paperwhite 6 rootfs does not require that change.
 The old debug-only job which mirrored the complete system log through the
 emulated serial UART is also omitted; kernel, boot milestone, and login console
 output remain available. The remaining overrides prevent automatic suspend and
