@@ -16,6 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 HWTCON_QOM_PATH = "/machine/soc/hwtcon"
 HWTCON_PROPERTIES = (
     "scanout-iova",
+    "scanout-base-iova",
     "scanout-guest-va",
     "scanout-width",
     "scanout-height",
@@ -24,11 +25,41 @@ HWTCON_PROPERTIES = (
     "scanout-pitch",
     "scanout-format",
     "scanout-rotation",
+    "last-update-x",
+    "last-update-y",
+    "last-update-width",
+    "last-update-height",
     "mdp-transactions",
+    "mdp-writebacks",
+    "mdp-writeback-skips",
+    "mdp-writeback-failures",
+    "pipeline-triggers",
+    "pipeline-voids",
+    "last-pipeline-flags",
+    "last-pipeline-lut",
+    "last-frame-min",
+    "last-frame-max",
+    "waveform-triggers",
+    "boot-handoff-arms",
+    "boot-blank-retentions",
     "cfa-source-reports",
     "cfa-fault-va",
     "cfa-fault-cpu",
     "scanout-captures",
+    "scanout-refreshes",
+    "scanout-read-failures",
+)
+OBSERVE_HWTCON_PROPERTIES = (
+    "scanout-iova",
+    "pipeline-triggers",
+    "pipeline-voids",
+    "last-pipeline-flags",
+    "last-pipeline-lut",
+    "last-frame-min",
+    "last-frame-max",
+    "waveform-triggers",
+    "boot-handoff-arms",
+    "boot-blank-retentions",
     "scanout-refreshes",
     "scanout-read-failures",
 )
@@ -218,23 +249,41 @@ def virtual_memory_map(client: QMPClient, address: int, size: int,
     return ranges
 
 
-def query_hwtcon(client: QMPClient) -> dict[str, int]:
+def query_hwtcon_properties(client: QMPClient,
+                             properties: tuple[str, ...],
+                             available: set[str] | None = None
+                             ) -> dict[str, int]:
+    if available is None:
+        available = {
+            item["name"] for item in client.execute("qom-list", {
+                "path": HWTCON_QOM_PATH,
+            })
+        }
     return {
         name: client.execute("qom-get", {
             "path": HWTCON_QOM_PATH,
             "property": name,
         })
-        for name in HWTCON_PROPERTIES
+        for name in properties if name in available
     }
 
 
+def query_hwtcon(client: QMPClient) -> dict[str, int]:
+    return query_hwtcon_properties(client, HWTCON_PROPERTIES)
+
+
 def query_machine(client: QMPClient) -> dict[str, Any]:
+    available = {
+        item["name"] for item in client.execute("qom-list", {
+            "path": "/machine",
+        })
+    }
     return {
         name: client.execute("qom-get", {
             "path": "/machine",
             "property": name,
         })
-        for name in MACHINE_PROPERTIES
+        for name in MACHINE_PROPERTIES if name in available
     }
 
 
@@ -332,9 +381,9 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers.add_parser("cont", help="resume the VM")
     subparsers.add_parser("quit", help="shut down QEMU")
     subparsers.add_parser(
-        "display", help="Bellatrix4: query HWTCON and scanout state")
+        "display", help="query Bellatrix HWTCON and scanout state")
     subparsers.add_parser(
-        "machine", help="Bellatrix4: query board, runtime patch, and IDME state")
+        "machine", help="query Bellatrix board, patch, and IDME state")
 
     hmp_parser = subparsers.add_parser(
         "hmp", help="execute an arbitrary human-monitor command")
@@ -346,22 +395,33 @@ def build_parser() -> argparse.ArgumentParser:
     qmp_parser.add_argument("--arguments", type=parse_arguments, default=None)
 
     snapshot_parser = subparsers.add_parser(
-        "snapshot", help="Bellatrix4: capture synchronized device state")
+        "snapshot", help="capture synchronized Bellatrix device state")
     snapshot_parser.add_argument("--register-text", action="store_true")
     snapshot_parser.add_argument("--output", type=Path)
 
     sample_parser = subparsers.add_parser(
-        "sample", help="Bellatrix4: capture repeated synchronized snapshots")
+        "sample", help="capture repeated synchronized Bellatrix snapshots")
     sample_parser.add_argument("--count", type=int, default=5)
     sample_parser.add_argument("--interval", type=float, default=2.0)
     sample_parser.add_argument("--output", type=Path)
+
+    observe_parser = subparsers.add_parser(
+        "observe-display",
+        help="sample live display state without pausing the VM")
+    observe_parser.add_argument("--count", type=int, default=20)
+    observe_parser.add_argument("--interval", type=float, default=0.5)
+    observe_parser.add_argument("--screenshots", type=Path)
+    observe_parser.add_argument("--output", type=Path)
+    observe_parser.add_argument(
+        "--changes-only", action="store_true",
+        help="poll cheaply and capture only pipeline-trigger transitions")
 
     screen_parser = subparsers.add_parser(
         "screendump", help="save the active QEMU scanout as PNG or PPM")
     screen_parser.add_argument("path", type=Path)
 
     tap_parser = subparsers.add_parser(
-        "tap", help="Bellatrix4: inject a panel-coordinate touch")
+        "tap", help="inject a Bellatrix panel-coordinate touch")
     tap_parser.add_argument("x", type=int)
     tap_parser.add_argument("y", type=int)
     tap_parser.add_argument("--hold", type=float, default=0.08)
@@ -437,6 +497,49 @@ def main() -> int:
                 samples = []
                 for index in range(args.count):
                     samples.append(synchronized_snapshot(client, False))
+                    if index + 1 < args.count:
+                        time.sleep(args.interval)
+                emit_json(samples, args.output)
+            elif args.action == "observe-display":
+                if args.count < 1 or args.interval < 0:
+                    raise QMPError(
+                        "sample count must be positive and interval nonnegative")
+                if args.screenshots is not None:
+                    args.screenshots.mkdir(parents=True, exist_ok=True)
+                samples = []
+                available = {
+                    item["name"] for item in client.execute("qom-list", {
+                        "path": HWTCON_QOM_PATH,
+                    })
+                }
+                previous_trigger = None
+                for index in range(args.count):
+                    if args.changes_only:
+                        trigger = client.execute("qom-get", {
+                            "path": HWTCON_QOM_PATH,
+                            "property": "pipeline-triggers",
+                        })
+                        if trigger == previous_trigger:
+                            if index + 1 < args.count:
+                                time.sleep(args.interval)
+                            continue
+                        previous_trigger = trigger
+                    sample = {
+                        "captured-monotonic": time.monotonic(),
+                        "status": client.execute("query-status"),
+                        "hwtcon-state": query_hwtcon_properties(
+                            client, OBSERVE_HWTCON_PROPERTIES, available),
+                    }
+                    if args.screenshots is not None:
+                        screen_path = (
+                            args.screenshots / f"display-{index:04d}.png"
+                        ).resolve()
+                        client.execute("screendump", {
+                            "filename": str(screen_path),
+                            "format": "png",
+                        })
+                        sample["screendump"] = str(screen_path)
+                    samples.append(sample)
                     if index + 1 < args.count:
                         time.sleep(args.interval)
                 emit_json(samples, args.output)
