@@ -1,7 +1,7 @@
 # Kindle Paperwhite 6
 
-Paperwhite 6 is the 12th-generation Paperwhite, also referred to as PW12. It
-uses the monochrome Sangria board on the shared MT8113 Bellatrix4 platform.
+Paperwhite 6, also referred to as PW12, uses the monochrome Sangria board on
+the shared MT8113 Bellatrix4 platform.
 
 Follow the component checklist in [firmware setup](firmware.md), then create a
 persistent machine once:

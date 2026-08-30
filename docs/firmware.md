@@ -16,6 +16,22 @@ Each model has its own flat directory:
 
 ```text
 firmware/
+├── kindle-basic-2022/
+│   ├── u-boot.bin
+│   ├── bl2.img
+│   ├── tee.img
+│   ├── quickboot.img
+│   ├── boot.img
+│   ├── rootfs.img
+│   └── waveform.img  (optional)
+├── kindle-basic-2024/
+│   ├── u-boot.bin
+│   ├── bl2.img
+│   ├── tee.img
+│   ├── quickboot.img
+│   ├── boot.img
+│   ├── rootfs.img
+│   └── waveform.img  (optional)
 ├── kindle-colorsoft/
 │   ├── u-boot.bin
 │   ├── bl2.img
@@ -97,19 +113,19 @@ firmware/
 ```
 
 The models which list `panel-flash.bin` use it for panel data. Eanab instead
-loads its waveform from the root filesystem. Bellatrix4 devices use a
+loads its waveform from the root filesystem. Bellatrix devices use a
 standalone `waveform.img`, described below. The optional Wario waveform,
 diagnostics kernel, and diagnostics partition files use the same names for
 Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo
 Touch does not use a panel-flash artifact.
 
-Colorsoft and Paperwhite 6 follow the component-image flow used by the other
-Kindles. Supply the matching Bellatrix4 boot components, `boot.img`, and
-`rootfs.img`; the builder creates a sparse disk with the required GPT layout
-and a fresh fscrypt-capable userstore. A complete device storage image is
-neither required nor used.
+Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6 follow the
+component-image flow used by the other Kindles. Supply the matching Bellatrix
+boot components, `boot.img`, and `rootfs.img`; the builder creates a sparse
+disk with the required GPT layout and a board-appropriate fresh userstore. A
+complete device storage image is neither required nor used.
 
-`waveform.img` is the raw FAT image written to the Bellatrix4 `wfm` partition.
+`waveform.img` is the raw FAT image written to the Bellatrix `wfm` partition.
 It is separate from the root filesystem. The examined Colorsoft and
 Paperwhite 6 recovery payloads contain the boot components, `boot.img`, and
 `rootfs.img.gz`, but no waveform payload; their root filesystems only contain
@@ -158,8 +174,8 @@ The exact required set is validated before any image is built. Kobo Touch
 rejects identity fields because that platform does not use them.
 
 The same six identity fields shown above apply to Kindle Basic (2016).
-Colorsoft and Paperwhite 6 use the development identity defaults built into
-their QEMU machine and therefore do not accept `--idme` fields.
+Bellatrix models use the development identity defaults built into their QEMU
+machine and therefore do not accept `--idme` fields.
 Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
 and `sec`. An empty value is accepted when that is what the source device
 reports.
@@ -171,7 +187,7 @@ Paperwhite 4 / Rex also requires either `--profile production` or `--profile
 dvt` at instance creation. The profile is stored with the instance and passed
 to QEMU on every launch.
 
-Bellatrix4 instances also require a profile. Colorsoft accepts `production`,
-`dvt`, `evt`, `hvt`, or `proto`; Paperwhite 6 additionally accepts `hvt1.1`.
-The profile selects the stock board tattoo exposed to U-Boot, the kernel, and
-userspace capability detection.
+Bellatrix instances also require a profile. Kindle Basic 5, Kindle Basic 6,
+and Colorsoft accept `production`, `dvt`, `evt`, `hvt`, or `proto`;
+Paperwhite 6 additionally accepts `hvt1.1`. The profile selects the stock
+board tattoo exposed to U-Boot, the kernel, and userspace capability detection.

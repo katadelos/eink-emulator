@@ -31,6 +31,13 @@ python3 scripts/eink-qmp.py --machine colorsoft screendump /tmp/colorsoft.png
 python3 scripts/eink-qmp.py --machine colorsoft tap 950 1540
 ```
 
+The Cocoa surface follows HWTCON waveform commits, not uncommitted writes to
+the mapped CFA framebuffer. During the bootloader-to-framework handoff it also
+retains the splash across the single uniform staging update, matching the
+stateful e-ink panel instead of briefly showing the guest's scratch frame.
+`display` exposes the waveform, refresh, handoff-arm, and blank-retention
+counters used to distinguish those states.
+
 To detach serial from the launch terminal and expose the instance-scoped
 serial endpoint, use:
 
