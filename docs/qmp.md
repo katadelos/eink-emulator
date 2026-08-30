@@ -77,12 +77,12 @@ python3 scripts/eink-qmp.py --machine NAME dump 0xADDRESS 0xSIZE /tmp/region.bin
 related manual reads, issue `stop`, collect the state, and always issue `cont`
 afterward. Do not leave a machine paused unintentionally.
 
-## Bellatrix4 hardware state
+## Bellatrix hardware state
 
-The remaining commands understand the shared MT8113 Bellatrix4 model used by
-Colorsoft and Paperwhite 6. They were the most effective probes during bring-up
-because they expose device contracts directly rather than inferring them from
-delayed serial output.
+The remaining commands understand the shared MT8110/MT8113 Bellatrix device
+models used by Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6.
+They were the most effective probes during bring-up because they expose device
+contracts directly rather than inferring them from delayed serial output.
 
 ```sh
 python3 scripts/eink-qmp.py --machine pw12 display
@@ -91,15 +91,37 @@ python3 scripts/eink-qmp.py --machine pw12 snapshot \
   --output /tmp/pw12-state.json
 python3 scripts/eink-qmp.py --machine pw12 sample \
   --count 3 --interval 2 --output /tmp/pw12-samples.json
+python3 scripts/eink-qmp.py --machine kt5 observe-display \
+  --changes-only --count 1200 --interval 0.05 \
+  --screenshots /tmp/kt5-display-events \
+  --output /tmp/kt5-display-events.json
 ```
 
-`display` reports the active scanout address, guest virtual address, source and
-output dimensions, pitch, pixel format, rotation, MDP transaction count, CFA
-source reports, refresh and capture counts, and scanout read failures. This is
-the quickest way to distinguish a bad framebuffer address or layout from a UI
-that simply has not drawn yet. In particular, an advancing refresh count with
-zero read failures confirms that QEMU can read the guest buffer; width, pitch,
-format, and rotation then explain wrapping or distortion.
+`display` reports the active and base scanout addresses, guest virtual address,
+source and output dimensions, pitch, pixel format, rotation, MDP transaction
+and writeback counts, writeback failures, CFA source reports, refresh and
+capture counts, and scanout read failures. This is the quickest way to
+distinguish a bad framebuffer address or layout from a UI that simply has not
+drawn yet. `mdp-transactions` should equal `mdp-writebacks` plus
+`mdp-writeback-skips` plus `mdp-writeback-failures`. Monochrome devices normally
+write back every Y8 transaction; Colorsoft legitimately counts its RGBA/CFA
+source transactions as skips because Cocoa presents the CFA source directly.
+Zero failures is the important contract check. Width, pitch, format, and
+rotation then explain wrapping or distortion.
+
+`observe-display` leaves the VM running while correlating HWTCON pipeline and
+waveform counters with screendumps. Use `--changes-only` for boot transitions:
+it polls only `pipeline-triggers` between updates, then captures the full small
+display-state set and a screenshot when that counter changes. This perturbs TCG
+far less than taking a screendump and querying every property on every sample.
+The last pipeline flags use the driver contract (`0x1` full update, `0x2` Y5
+input, `0x8000` working-buffer clear); the last LUT and frame minimum/maximum
+show whether an update was ordinary artwork, uniform staging content, or a
+clear. `boot-handoff-arms` and `boot-blank-retentions` make MT8110 splash
+retention and Colorsoft's CFA handoff directly observable. On Colorsoft,
+`scanout-refreshes` advances on waveform commits rather than continuously;
+that distinction is useful when a guest staging framebuffer differs from the
+image retained by the physical e-ink panel.
 
 `machine` reports the selected board and hardware profile, its board ID,
 product name, and device type. On Colorsoft it also reports whether the CFA
@@ -129,18 +151,36 @@ For unexpectedly slow boot or long pauses:
 1. Use `sample` to determine whether CPUs and device counters are progressing.
 2. Run `hmp info jit` to inspect TCG code-cache use, flushes, and direct block
    chaining. This previously identified code-cache pressure and justified the
-   larger Bellatrix4 translation-block cache.
+   larger Bellatrix translation-block cache.
 3. Check timer, DVFSRC, GCE, interrupt, and device state in the synchronized
    snapshots before treating a delay as inherent TCG performance. A stable
    wait can be a missed driver contract or timeout rather than expensive guest
    work.
 
 For touch diagnosis, `tap X Y` injects one QEMU absolute-pointer click through
-the emulated Bellatrix4 FT5536G controller. Compare device counters and a
-subsequent screendump to separate input delivery from UI redraw. Use actual
-Cocoa clicks for the final host-input test; an injected QMP tap proves the
-guest hardware path, not the Cocoa event path.
+the selected Bellatrix model's emulated touchscreen controller. Compare device
+counters and a subsequent screendump to separate input delivery from UI
+redraw. Use actual Cocoa clicks for the final host-input test; an injected QMP
+tap proves the guest hardware path, not the Cocoa event path.
+
+Lines such as `[HWTCON ERR] wait marker[...] mdp submit timeout` come from the
+guest kernel, not QEMU tracing. The stock marker wait is only 100 ms. If the
+marker still reports state `0`, QMP counters later advance, and writeback
+failures remain zero, the task missed that advisory deadline before entering
+MDP; it does not establish a lost emulated interrupt. When the distinction is
+unclear, enable the existing GCE and MDP tracepoints on the running process and
+correlate them with the serial timestamp:
+
+```sh
+python3 scripts/eink-qmp.py --machine NAME qmp trace-event-set-state \
+  --arguments '{"name":"mt8113_gce_*","enable":true}'
+python3 scripts/eink-qmp.py --machine NAME qmp trace-event-set-state \
+  --arguments '{"name":"mt8113_hwtcon_mdp_source","enable":true}'
+```
+
+Disable the same events with `"enable":false` after collecting the relevant
+burst. This keeps tracing attached to the existing slow-to-boot process.
 
 Keep the slow machine alive while investigating. QMP status, snapshots, memory
 inspection, screen capture, and input injection all operate on the existing
-process, which avoids repeating the roughly minute-long Bellatrix4 boot.
+process, which avoids repeating the roughly minute-long Bellatrix boot.
