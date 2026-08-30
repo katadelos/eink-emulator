@@ -16,13 +16,14 @@ OVERRIDES = ROOT / "guest-overrides"
 EXT_MAGIC_OFFSET = 1024 + 56
 FRAMEWORK_TIMEOUT_STOCK = "        TO=105\n"
 FRAMEWORK_TIMEOUT_EMULATED = "        TO=600\n"
-BELLATRIX4_FRAMEWORK_MARKER = "Bellatrix4 QEMU: skip recursive permission repair"
-BELLATRIX4_WATCHDOG_MARKER = "Bellatrix4 QEMU: wait indefinitely under TCG"
-BELLATRIX4_STACK_DUMP_MARKER = "Bellatrix4 QEMU: skip native stack dumps under TCG"
-BELLATRIX4_USERSTORE_MARKER = "Bellatrix4 QEMU: coalesce emulated userstore writes"
-BELLATRIX4_VARLOCAL_MARKER = "Bellatrix4 QEMU: coalesce emulated var-local writes"
-BELLATRIX4_JAVA_MARKER = "Bellatrix4 QEMU: trust the immutable firmware class path"
-BELLATRIX4_HIBERNATE_MARKER = "Bellatrix4 QEMU: skip absent hibernate payload"
+BELLATRIX_FRAMEWORK_MARKER = "Bellatrix QEMU: skip recursive permission repair"
+BELLATRIX_WATCHDOG_MARKER = "Bellatrix QEMU: wait indefinitely under TCG"
+BELLATRIX_STACK_DUMP_MARKER = "Bellatrix QEMU: skip native stack dumps under TCG"
+BELLATRIX_USERSTORE_MARKER = "Bellatrix QEMU: coalesce emulated userstore writes"
+BELLATRIX_VARLOCAL_MARKER = "Bellatrix QEMU: coalesce emulated var-local writes"
+BELLATRIX_JAVA_MARKER = "Bellatrix QEMU: trust the immutable firmware class path"
+BELLATRIX_HIBERNATE_MARKER = "Bellatrix QEMU: skip absent hibernate payload"
+BELLATRIX_LOOPBACK_MARKER = "Bellatrix QEMU: create packaged loopback mountpoints"
 
 
 @cache
@@ -120,8 +121,8 @@ def extend_framework_timeout(contents: str) -> str:
     return contents.replace(FRAMEWORK_TIMEOUT_STOCK, FRAMEWORK_TIMEOUT_EMULATED)
 
 
-def bellatrix4_patch_framework(contents: str) -> str:
-    if BELLATRIX4_FRAMEWORK_MARKER in contents:
+def bellatrix_patch_framework(contents: str) -> str:
+    if BELLATRIX_FRAMEWORK_MARKER in contents:
         return contents
 
     start = contents.find("  set +e\n  DIRLIST=")
@@ -132,14 +133,14 @@ def bellatrix4_patch_framework(contents: str) -> str:
 
     replacement = (
         "  set +e\n"
-        f"  # {BELLATRIX4_FRAMEWORK_MARKER}; the prepared image already has correct ownership.\n"
+        f"  # {BELLATRIX_FRAMEWORK_MARKER}; the prepared image already has correct ownership.\n"
         "  set -e\n"
     )
     return contents[:start] + replacement + contents[end + len("  set -e\n") :]
 
 
-def bellatrix4_patch_framework_setup(contents: str) -> str:
-    if BELLATRIX4_WATCHDOG_MARKER in contents:
+def bellatrix_patch_framework_setup(contents: str) -> str:
+    if BELLATRIX_WATCHDOG_MARKER in contents:
         return contents
     old = "        TO=105\n"
     if contents.count(old) != 1:
@@ -148,28 +149,28 @@ def bellatrix4_patch_framework_setup(contents: str) -> str:
         )
     return contents.replace(
         old,
-        f"        TO=0  # {BELLATRIX4_WATCHDOG_MARKER}\n",
+        f"        TO=0  # {BELLATRIX_WATCHDOG_MARKER}\n",
         1,
     )
 
 
-def bellatrix4_patch_dump_stack(contents: str) -> str:
-    if BELLATRIX4_STACK_DUMP_MARKER in contents:
+def bellatrix_patch_dump_stack(contents: str) -> str:
+    if BELLATRIX_STACK_DUMP_MARKER in contents:
         return contents
     shebang = "#!/bin/sh\n"
     if not contents.startswith(shebang):
         raise SystemExit("unexpected /usr/bin/dump-stack interpreter")
     replacement = (
         shebang
-        + f"# {BELLATRIX4_STACK_DUMP_MARKER}; guest gdb can monopolize an "
+        + f"# {BELLATRIX_STACK_DUMP_MARKER}; guest gdb can monopolize an "
         "emulated CPU for minutes.\n"
         + "exit 0\n"
     )
     return replacement + contents[len(shebang) :]
 
 
-def bellatrix4_patch_userstore_mount(contents: str) -> str:
-    if BELLATRIX4_USERSTORE_MARKER in contents:
+def bellatrix_patch_userstore_mount(contents: str) -> str:
+    if BELLATRIX_USERSTORE_MARKER in contents:
         return contents
     old = (
         "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
@@ -178,44 +179,58 @@ def bellatrix4_patch_userstore_mount(contents: str) -> str:
     if contents.count(old) != 1:
         raise SystemExit("stock userstore ext4 mount command was not found exactly once")
     new = (
-        f"        # {BELLATRIX4_USERSTORE_MARKER}.\n"
+        f"        # {BELLATRIX_USERSTORE_MARKER}.\n"
         "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
         "-o defaults,errors=remount-ro,noatime,nodiratime,nobarrier,commit=60\n"
     )
     return contents.replace(old, new, 1)
 
 
-def bellatrix4_patch_varlocal_mount(contents: str) -> str:
-    if BELLATRIX4_VARLOCAL_MARKER in contents:
+def bellatrix_patch_varlocal_mount(contents: str) -> str:
+    if BELLATRIX_VARLOCAL_MARKER in contents:
         return contents
     old = "     mount -t ext4 -o rw $local $mount_point\n"
     if contents.count(old) != 1:
         raise SystemExit("stock var-local ext4 mount command was not found exactly once")
     new = (
-        f"     # {BELLATRIX4_VARLOCAL_MARKER}.\n"
+        f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
         "     mount -t ext4 -o rw,noatime,nodiratime,nobarrier,commit=60 "
         "$local $mount_point\n"
     )
     return contents.replace(old, new, 1)
 
 
-def bellatrix4_patch_java_verification(contents: str) -> str:
-    if BELLATRIX4_JAVA_MARKER in contents:
+def bellatrix_patch_cava_varlocal_mount(contents: str) -> str:
+    if BELLATRIX_VARLOCAL_MARKER in contents:
+        return contents
+    old = "     mount -t ext3 -o rw $local $mount_point\n"
+    if contents.count(old) != 1:
+        raise SystemExit("stock Cava var-local ext3 mount command was not found exactly once")
+    new = (
+        f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
+        "     mount -t ext3 -o rw,noatime,nodiratime,nobarrier,commit=60 "
+        "$local $mount_point\n"
+    )
+    return contents.replace(old, new, 1)
+
+
+def bellatrix_patch_java_verification(contents: str) -> str:
+    if BELLATRIX_JAVA_MARKER in contents:
         return contents
     old = 'else\n  VERIFY="-Xverify:remote"\nfi\n'
     if contents.count(old) != 1:
         raise SystemExit("stock framework Java verification setting was not found exactly once")
     new = (
         "else\n"
-        f"  # {BELLATRIX4_JAVA_MARKER}.\n"
+        f"  # {BELLATRIX_JAVA_MARKER}.\n"
         '  VERIFY="-Xverify:none"\n'
         "fi\n"
     )
     return contents.replace(old, new, 1)
 
 
-def bellatrix4_patch_filesystems_setup(contents: str) -> str:
-    if BELLATRIX4_HIBERNATE_MARKER in contents:
+def bellatrix_patch_filesystems_setup(contents: str) -> str:
+    if BELLATRIX_HIBERNATE_MARKER in contents:
         return contents
     old = (
         "  if [[ -e $FIRST_BOOT_AFTER_UPDATE_FILE ]]; then\n"
@@ -223,11 +238,27 @@ def bellatrix4_patch_filesystems_setup(contents: str) -> str:
         "  fi\n"
     )
     if contents.count(old) != 1:
-        raise SystemExit("stock Bellatrix4 hibernate blast block was not found exactly once")
+        raise SystemExit("stock Bellatrix hibernate blast block was not found exactly once")
     new = (
         "  if [[ -e $FIRST_BOOT_AFTER_UPDATE_FILE ]]; then\n"
-        f"    f_log I filesystems_setup \"{BELLATRIX4_HIBERNATE_MARKER}\"\n"
+        f"    f_log I filesystems_setup \"{BELLATRIX_HIBERNATE_MARKER}\"\n"
         "  fi\n"
+    )
+    return contents.replace(old, new, 1)
+
+
+def bellatrix_patch_loopback_mounts(contents: str) -> str:
+    if BELLATRIX_LOOPBACK_MARKER in contents:
+        return contents
+    old = "      if [ -d ${lbmountpt} ]; then\n"
+    if contents.count(old) != 1:
+        raise SystemExit("stock Bellatrix loopback mountpoint check was not found")
+    new = (
+        f"      # {BELLATRIX_LOOPBACK_MARKER}.\n"
+        "      if [ -f ${lbmountpt}.${LOOPBACKFSEXT} ]; then\n"
+        "        mkdir -p ${lbmountpt}\n"
+        "      fi\n"
+        "      if [ -d ${lbmountpt} ]; then\n"
     )
     return contents.replace(old, new, 1)
 
@@ -324,46 +355,61 @@ def prepare_rex(source: Path, output: Path) -> None:
     })
 
 
-def prepare_bellatrix4(
+def prepare_bellatrix(
     source: Path, output: Path, *, maximum_size: int, board: str
 ) -> None:
-    if board not in {"sangria", "sangria-color"}:
-        raise ValueError(f"unsupported Bellatrix4 board: {board}")
+    if board not in {"cava", "rossini", "sangria", "sangria-color"}:
+        raise ValueError(f"unsupported Bellatrix board: {board}")
     copy_source(source, output, maximum_size=maximum_size)
     transforms = [
-        ("/etc/upstart/framework.conf", "0100644", bellatrix4_patch_framework),
+        ("/etc/upstart/framework.conf", "0100644", bellatrix_patch_framework),
         (
             "/etc/upstart/framework_setup.conf",
             "0100644",
-            bellatrix4_patch_framework_setup,
-        ),
-        (
-            "/usr/sbin/mntus_functions_ext4",
-            "0100755",
-            bellatrix4_patch_userstore_mount,
+            bellatrix_patch_framework_setup,
         ),
         (
             "/etc/upstart/varlocal_functions",
             "0100755",
-            bellatrix4_patch_varlocal_mount,
+            bellatrix_patch_cava_varlocal_mount
+            if board == "cava"
+            else bellatrix_patch_varlocal_mount,
         ),
-        ("/etc/upstart/framework", "0100755", bellatrix4_patch_java_verification),
+        ("/etc/upstart/framework", "0100755", bellatrix_patch_java_verification),
         (
             "/etc/upstart/filesystems_setup.conf",
             "0100644",
-            bellatrix4_patch_filesystems_setup,
+            bellatrix_patch_filesystems_setup,
         ),
         ("/etc/shadow", "0100600", blank_root_password),
     ]
+    if board != "cava":
+        transforms.insert(
+            2,
+            (
+                "/usr/sbin/mntus_functions_ext4",
+                "0100755",
+                bellatrix_patch_userstore_mount,
+            ),
+        )
     if board == "sangria-color":
         transforms.insert(
             2,
-            ("/usr/bin/dump-stack", "0100755", bellatrix4_patch_dump_stack),
+            ("/usr/bin/dump-stack", "0100755", bellatrix_patch_dump_stack),
+        )
+    if board == "sangria":
+        transforms.insert(
+            2,
+            (
+                "/etc/upstart/system_cramfs_loopbacks.conf",
+                "0100644",
+                bellatrix_patch_loopback_mounts,
+            ),
         )
     for destination, mode, transform in transforms:
         transform_file(output, destination, mode, transform)
 
-    install_overrides(image=output, group="bellatrix4", replacements={
+    install_overrides(image=output, group="bellatrix", replacements={
         "/etc/upstart/prevent-screensaver.conf": (
             "prevent-screensaver.conf",
             "0100644",

@@ -1,4 +1,4 @@
-"""Build a sparse Bellatrix4 disk image from firmware components."""
+"""Build a sparse Bellatrix-family disk image from firmware components."""
 
 from __future__ import annotations
 
@@ -87,7 +87,7 @@ def partition_layout(size: int) -> list[tuple[str, int, int]]:
         layout.append((name, cursor, sectors))
         cursor += sectors
     if cursor > last_usable:
-        raise SystemExit("image is too small for the Bellatrix4 partition layout")
+        raise SystemExit("image is too small for the Bellatrix partition layout")
     layout.append(("userstore", cursor, last_usable - cursor + 1))
     return layout
 
@@ -100,7 +100,7 @@ def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
 
     entries = bytearray(ENTRY_COUNT * ENTRY_SIZE)
     for index, (name, start, count) in enumerate(layout):
-        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-bellatrix4-{name}")
+        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-bellatrix-{name}")
         encoded_name = name.encode("utf-16-le")
         struct.pack_into(
             "<16s16sQQQ72s",
@@ -115,7 +115,7 @@ def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
         )
 
     entries_crc = zlib.crc32(entries)
-    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, "eink-emulator-bellatrix4")
+    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, "eink-emulator-bellatrix")
     primary = make_header(
         1,
         sectors - 1,
@@ -238,7 +238,7 @@ def initialize_factory_data(
             image.write(struct.pack("<BBHBB", 0, 0, PRECHARGE_MAGIC, 0, 0))
 
 
-def create_userstore(
+def create_ext4_userstore(
     image_path: Path, layout: dict[str, tuple[int, int]]
 ) -> None:
     start, sectors = layout["userstore"]
@@ -249,7 +249,7 @@ def create_userstore(
     mke2fs = find_tool("mke2fs")
     tune2fs = find_tool("tune2fs")
     with tempfile.TemporaryDirectory(
-        prefix="bellatrix4-userstore-", dir=image_path.parent
+        prefix="bellatrix-userstore-", dir=image_path.parent
     ) as temporary:
         filesystem = Path(temporary) / "userstore.ext4"
         with filesystem.open("wb") as image:
@@ -295,24 +295,135 @@ def create_userstore(
             )
 
 
+def fat32_geometry(partition_start: int, filesystem_sectors: int) -> tuple[int, int, int]:
+    sectors_per_cluster = 16
+    fat_count = 2
+    alignment = 4 * 1024**2 // SECTOR_SIZE
+    filesystem_start = partition_start + USERSTORE_FS_OFFSET // SECTOR_SIZE
+
+    for reserved in range(32, 32 + alignment):
+        sectors_per_fat = max(
+            1,
+            (filesystem_sectors - reserved + sectors_per_cluster + 2049) // 2050,
+        )
+        clusters = (
+            filesystem_sectors - reserved - fat_count * sectors_per_fat
+        ) // sectors_per_cluster
+        while clusters > sectors_per_fat * (SECTOR_SIZE // 4) - 2:
+            sectors_per_fat += 1
+            clusters = (
+                filesystem_sectors - reserved - fat_count * sectors_per_fat
+            ) // sectors_per_cluster
+        if (
+            filesystem_start + reserved + fat_count * sectors_per_fat
+        ) % alignment == 0:
+            return reserved, sectors_per_fat, clusters
+    raise SystemExit("could not align the Cava FAT32 userstore")
+
+
+def create_vfat_userstore(
+    image_path: Path, layout: dict[str, tuple[int, int]]
+) -> None:
+    start, sectors = layout["userstore"]
+    inner_start = USERSTORE_FS_OFFSET // SECTOR_SIZE
+    filesystem_sectors = sectors - inner_start
+    reserved, sectors_per_fat, clusters = fat32_geometry(
+        start, filesystem_sectors
+    )
+    sectors_per_cluster = 16
+    fat_count = 2
+
+    inner_mbr = bytearray(SECTOR_SIZE)
+    inner_mbr[446:462] = struct.pack(
+        "<B3sB3sII",
+        0,
+        b"\0\x01\x01",
+        0x0B,
+        b"\xfe\xff\xff",
+        inner_start,
+        filesystem_sectors,
+    )
+    inner_mbr[510:512] = b"\x55\xaa"
+
+    boot = bytearray(SECTOR_SIZE)
+    boot[0:3] = b"\xeb\x58\x90"
+    boot[3:11] = b"mkdosfs\0"
+    struct.pack_into(
+        "<HBHBHHBHHHII",
+        boot,
+        11,
+        SECTOR_SIZE,
+        sectors_per_cluster,
+        reserved,
+        fat_count,
+        0,
+        0,
+        0xF8,
+        0,
+        16,
+        4,
+        start + inner_start,
+        filesystem_sectors,
+    )
+    struct.pack_into("<IHHIHH", boot, 36, sectors_per_fat, 0, 0, 2, 1, 6)
+    boot[64:67] = b"\x80\0\x29"
+    struct.pack_into("<I", boot, 67, 0x61B4AEE5)
+    boot[71:82] = b"Kindle     "
+    boot[82:90] = b"FAT32   "
+    boot[510:512] = b"\x55\xaa"
+
+    fsinfo = bytearray(SECTOR_SIZE)
+    struct.pack_into("<I", fsinfo, 0, 0x41615252)
+    struct.pack_into("<I", fsinfo, 484, 0x61417272)
+    struct.pack_into("<II", fsinfo, 488, clusters - 1, 3)
+    struct.pack_into("<I", fsinfo, 508, 0xAA550000)
+
+    fat = bytearray(sectors_per_fat * SECTOR_SIZE)
+    struct.pack_into("<III", fat, 0, 0x0FFFFFF8, 0xFFFFFFFF, 0x0FFFFFFF)
+
+    partition_offset = start * SECTOR_SIZE
+    filesystem_offset = partition_offset + USERSTORE_FS_OFFSET
+    with image_path.open("r+b") as image:
+        image.seek(partition_offset)
+        image.write(inner_mbr)
+        for sector, data in ((0, boot), (1, fsinfo), (6, boot), (7, fsinfo)):
+            image.seek(filesystem_offset + sector * SECTOR_SIZE)
+            image.write(data)
+        for index in range(fat_count):
+            image.seek(
+                filesystem_offset
+                + (reserved + index * sectors_per_fat) * SECTOR_SIZE
+            )
+            image.write(fat)
+
+
 def build(
     image: Path,
     *,
     boot_image: Path,
     rootfs_image: Path,
-    waveform_image: Path,
+    waveform_image: Path | None,
+    userstore_format: str,
     size: int = 8 * 1024**3,
 ) -> None:
     """Compose the QEMU disk from the supplied firmware components."""
     if size % SECTOR_SIZE or size < 4 * 1024**3:
         raise SystemExit("image size must be sector-aligned and at least 4 GiB")
-    for payload in (boot_image, rootfs_image, waveform_image):
+    for payload in (boot_image, rootfs_image):
         if not payload.is_file():
             raise SystemExit(f"payload does not exist: {payload}")
+    if waveform_image is not None and not waveform_image.is_file():
+        raise SystemExit(f"payload does not exist: {waveform_image}")
 
     layout = create_image(image, size)
     write_partition(image, layout, "kernel", boot_image)
     write_partition(image, layout, "rootfs", rootfs_image)
-    write_partition(image, layout, "wfm", waveform_image)
+    if waveform_image is not None:
+        write_partition(image, layout, "wfm", waveform_image)
     initialize_factory_data(image, layout)
-    create_userstore(image, layout)
+    if userstore_format == "vfat":
+        create_vfat_userstore(image, layout)
+    elif userstore_format == "ext4":
+        create_ext4_userstore(image, layout)
+    else:
+        raise ValueError(f"unsupported Bellatrix userstore format: {userstore_format}")
