@@ -1,10 +1,92 @@
 {
+  "kindle-basic-2024": {
+    "description": "Kindle Basic 6 (2024)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8110-bellatrix",
+    "memory": "1G",
+    "builder": "bellatrix",
+    "drive_index": 0,
+    "network": "none",
+    "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "rossini",
+      "boot-stage": "u-boot"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "waveform_store": ["waveform.img"]
+    },
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix/u-boot.bin",
+      "bl2": "mt8110_bellatrix/bl2.img",
+      "tee": "mt8110_bellatrix/tee.img",
+      "quickboot": "mt8110_bellatrix/quickboot.img",
+      "boot_image": "mt8110_bellatrix/boot.img",
+      "rootfs": "rootfs.img.gz"
+    }
+  },
+  "kindle-basic-2022": {
+    "description": "Kindle Basic 5 (2022)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8110-bellatrix",
+    "memory": "512M",
+    "builder": "bellatrix",
+    "drive_index": 0,
+    "network": "none",
+    "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "cava",
+      "boot-stage": "u-boot"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "waveform_store": ["waveform.img"]
+    },
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix/u-boot.bin",
+      "bl2": "mt8110_bellatrix/bl2.img",
+      "tee": "mt8110_bellatrix/tee.img",
+      "quickboot": "mt8110_bellatrix/quickboot.img",
+      "boot_image": "mt8110_bellatrix/boot.img",
+      "rootfs": "rootfs.img.gz"
+    }
+  },
   "kindle-colorsoft": {
     "description": "Kindle Colorsoft",
     "qemu_arch": "aarch64",
     "qemu_machine": "mt8113-bellatrix4",
     "memory": "2G",
-    "builder": "bellatrix4",
+    "builder": "bellatrix",
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
@@ -32,11 +114,11 @@
     }
   },
   "kindle-paperwhite-6": {
-    "description": "Kindle Paperwhite 6 (12th generation)",
+    "description": "Kindle Paperwhite 6",
     "qemu_arch": "aarch64",
     "qemu_machine": "mt8113-bellatrix4",
     "memory": "2G",
-    "builder": "bellatrix4",
+    "builder": "bellatrix",
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt1.1", "hvt", "proto"],
