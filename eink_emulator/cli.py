@@ -313,7 +313,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     runtime = runtime_paths(directory)
     if model in {"kobo-mini", "kobo-touch"}:
         chardev = (
-            f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on"
+            f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on,logfile={runtime['serial_log']}"
             if args.serial_socket
             else "stdio,id=console,mux=on,signal=off"
         )
@@ -326,7 +326,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     elif args.serial_socket:
         command.extend([
             "-chardev",
-            f"socket,id=serial0,path={runtime['serial']},server=on,wait=off",
+            f"socket,id=serial0,path={runtime['serial']},server=on,wait=off,logfile={runtime['serial_log']}",
             "-serial", "chardev:serial0",
             "-monitor", "none",
         ])
@@ -359,6 +359,7 @@ def runtime_paths(directory: Path) -> dict[str, Path]:
     return {
         "qmp": directory / f"{name}.qmp.sock",
         "serial": directory / f"{name}.serial.sock",
+        "serial_log": directory / f"{name}.serial.log",
     }
 
 
@@ -592,7 +593,7 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--headless", action="store_true", help="disable graphical output")
     run.add_argument("--vnc", metavar="ENDPOINT", help="use QEMU's VNC display")
     run.add_argument("--ssh-port", type=int, default=2222, help="host SSH forwarding port (default: 2222)")
-    run.add_argument("--serial-socket", action="store_true", help="expose serial on an instance-scoped Unix socket instead of this process")
+    run.add_argument("--serial-socket", action="store_true", help="redirect serial to an instance-scoped Unix socket and log instead of this terminal")
     run.add_argument("--qmp-socket", action="store_true", help="expose QMP on an instance-scoped Unix socket")
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
     run.set_defaults(handler=command_run)
