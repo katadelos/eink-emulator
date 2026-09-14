@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    bellatrix, bellatrix3, celeste, heisenberg, rex, rootfs,
+    bellatrix, bellatrix3, celeste, heisenberg, mt8115, rex, rootfs,
     tequila, wario, whitney,
 )
 
@@ -42,6 +42,14 @@ def build_raw_image(
         bellatrix3.build(
             output, board=definition["machine_properties"]["board"],
             boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
+            waveform_image=artifacts.get("waveform_store"),
+        )
+    elif builder == "mt8115":
+        mt8115.build(
+            output, platform=definition["image_platform"],
+            boot_image=artifacts["boot_image"],
+            firmware_image=artifacts["aux_firmware"],
+            rootfs_image=artifacts["rootfs"],
             waveform_image=artifacts.get("waveform_store"),
         )
     elif builder == "wario":
