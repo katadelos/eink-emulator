@@ -342,5 +342,176 @@
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
     }
+  },
+  "kindle-scribe-1": {
+    "description": "Kindle Scribe 1 (Barolo, bring-up)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-bellatrix3",
+    "memory": "1G",
+    "builder": "bellatrix3",
+    "drive_index": 0,
+    "network": "mtu3_g_ether",
+    "device_profiles": [
+      "production",
+      "dvt",
+      "evt",
+      "evt-doe",
+      "hvt",
+      "hvt-a",
+      "proto"
+    ],
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": false,
+    "machine_properties": {
+      "board": "barolo",
+      "boot-stage": "u-boot"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": [
+        "u-boot.bin"
+      ],
+      "bl2": [
+        "bl2.img"
+      ],
+      "tee": [
+        "tee.img"
+      ],
+      "quickboot": [
+        "quickboot.img"
+      ],
+      "boot_image": [
+        "boot.img"
+      ],
+      "bootloader_signature": [
+        "u-boot.bin.sig"
+      ],
+      "bl2_signature": [
+        "bl2.img.sig"
+      ],
+      "tee_signature": [
+        "tee.img.sig"
+      ],
+      "quickboot_signature": [
+        "quickboot.img.sig"
+      ],
+      "boot_image_signature": [
+        "boot.img.sig"
+      ],
+      "rootfs": [
+        "rootfs.img"
+      ]
+    },
+    "optional_firmware": {
+      "waveform_store": [
+        "waveform.img"
+      ]
+    },
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix3/u-boot.bin",
+      "bl2": "mt8110_bellatrix3/bl2.img",
+      "tee": "mt8110_bellatrix3/tee.img",
+      "quickboot": "mt8110_bellatrix3/quickboot.img",
+      "boot_image": "mt8110_bellatrix3/boot.img",
+      "bootloader_signature": "mt8110_bellatrix3/u-boot.bin.sig",
+      "bl2_signature": "mt8110_bellatrix3/bl2.img.sig",
+      "tee_signature": "mt8110_bellatrix3/tee.img.sig",
+      "quickboot_signature": "mt8110_bellatrix3/quickboot.img.sig",
+      "boot_image_signature": "mt8110_bellatrix3/boot.img.sig",
+      "rootfs": "rootfs.img.gz"
+    },
+    "network_service": "telnet",
+    "rootfs_overrides": [
+      "bellatrix",
+      "bellatrix3"
+    ]
+  },
+  "kindle-scribe-2": {
+    "description": "Kindle Scribe 2 (Pisco, bring-up)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-bellatrix3",
+    "memory": "1G",
+    "builder": "bellatrix3",
+    "drive_index": 0,
+    "network": "mtu3_g_ether",
+    "device_profiles": [
+      "production",
+      "dvt"
+    ],
+    "idme_fields": [],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": false,
+    "machine_properties": {
+      "board": "pisco",
+      "boot-stage": "u-boot"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": [
+        "u-boot.bin"
+      ],
+      "bl2": [
+        "bl2.img"
+      ],
+      "tee": [
+        "tee.img"
+      ],
+      "quickboot": [
+        "quickboot.img"
+      ],
+      "boot_image": [
+        "boot.img"
+      ],
+      "bootloader_signature": [
+        "u-boot.bin.sig"
+      ],
+      "bl2_signature": [
+        "bl2.img.sig"
+      ],
+      "tee_signature": [
+        "tee.img.sig"
+      ],
+      "quickboot_signature": [
+        "quickboot.img.sig"
+      ],
+      "boot_image_signature": [
+        "boot.img.sig"
+      ],
+      "rootfs": [
+        "rootfs.img"
+      ]
+    },
+    "optional_firmware": {
+      "waveform_store": [
+        "waveform.img"
+      ]
+    },
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix3/u-boot.bin",
+      "bl2": "mt8110_bellatrix3/bl2.img",
+      "tee": "mt8110_bellatrix3/tee.img",
+      "quickboot": "mt8110_bellatrix3/quickboot.img",
+      "boot_image": "mt8110_bellatrix3/boot.img",
+      "bootloader_signature": "mt8110_bellatrix3/u-boot.bin.sig",
+      "bl2_signature": "mt8110_bellatrix3/bl2.img.sig",
+      "tee_signature": "mt8110_bellatrix3/tee.img.sig",
+      "quickboot_signature": "mt8110_bellatrix3/quickboot.img.sig",
+      "boot_image_signature": "mt8110_bellatrix3/boot.img.sig",
+      "rootfs": "rootfs.img.gz"
+    },
+    "network_service": "telnet",
+    "rootfs_overrides": [
+      "bellatrix",
+      "bellatrix3"
+    ]
   }
 }
