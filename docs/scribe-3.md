@@ -1,10 +1,13 @@
-# Kindle Scribe 3 (Paloma)
+# Kindle Scribe 3
 
-This board uses `mt8115-pa6-cs8,board=paloma`, four CPUs and 4 GiB RAM.
-Its firmware platform is `platpa6`. It shares the MT8115 platform and
-storage builder with [Scribe Colorsoft](scribe-colorsoft.md).
-Support is at bring-up stage; ordinary catalogue launches have not completed
-full Home acceptance.
+Paloma uses `mt8115-pa6-cs8,board=paloma` with four CPUs and 4 GiB RAM.
+It shares the MT8115 platform with [Scribe Colorsoft](scribe-colorsoft.md).
+Import and image creation work; the standard boot path has not yet been
+verified through to a usable Home screen. Wi-Fi cannot connect to a network.
+
+## Setup
+
+Install KindleTool and e2fsprogs, then import a recovery package:
 
 ```sh
 ./eink import /path/to/update.bin --model kindle-scribe-3
@@ -12,36 +15,26 @@ full Home acceptance.
 ./eink run my-scribe-3
 ```
 
-## Firmware and profiles
+Profiles are `production` (DVT), `dvt`, `evt` and `hvt1.1`. QEMU supplies
+the board identity, so `--idme` fields are not needed.
 
-Import requires KindleTool and e2fsprogs. It installs the six original boot
-images, their signatures and decompressed rootfs under
-`firmware/kindle-scribe-3`. Touch and connectivity firmware are extracted from
-the original rootfs:
+Serial opens in the launching terminal. Use `--serial-socket` to redirect
+it to the instance's Unix socket and log file.
 
-- `/lib/firmware/touch/focaltech_ts_fw_bw5c.bin`
-- `/lib/firmware/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin`
+## Firmware and disk image
 
-The selected touch controller is FocalTech. Profiles are `production` (DVT),
-`dvt`, `evt` and `hvt1.1`. The board supplies a virtual identity;
-no physical identity or account is required. Hardware phase selection does
-not enable QEMU's separate `development-mode` property.
+The firmware platform is `platpa6`. Import saves six boot images
+under `firmware/kindle-scribe-3/boot_images`, with `rootfs.img`
+in the model directory. It also extracts these files into `peripherals/`:
 
-## Image and boot behavior
+- `focaltech_ts_fw_bw5c.bin` — FocalTech touch firmware
+- `soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin` — connectivity firmware
 
-The shared `mt8115` builder creates an 8 GiB sparse disk with the stock
-partition selectors. The original rootfs is preserved byte-for-byte, with
-its AVB footer at the end of the system partition. Kernel, auxiliary firmware
-and signatures are retained; userdata is fresh. No rootfs boot modifications,
-Java tuning, OOBE provisioning or development-console bootstrap is installed.
+The builder creates an 8 GiB sparse disk with fresh user storage. It copies
+the original kernel and rootfs, keeping the rootfs AVB footer at the end of
+the system partition. Guest startup scripts, Java settings and initial
+setup are unchanged. See the [partition layout](storage.md#scribe-partitions).
 
-If `firmware/kindle-scribe-3/waveform.img` is absent, the builder creates a
-synthetic PA6 V5 waveform partition. A supplied waveform store is used
-directly. Synthetic waveforms are emulator input, not factory calibration.
-Serial uses the launching terminal; `--serial-socket` redirects it to the
-instance socket and serial log.
-
-The QEMU platform models display pipelines, fitted touch/sensor devices,
-power controls and connectivity interfaces. WLAN association and network
-traffic are unavailable. Earlier Home and suspend experiments depended on
-local development boot scripts that are outside this core support set.
+Supply `firmware/kindle-scribe-3/waveform.img` to use a device waveform.
+Otherwise, the builder generates a synthetic PA6 V5 waveform for display
+emulation. It does not reproduce physical panel calibration.

@@ -1,8 +1,12 @@
-# Kindle Scribe 2 (Pisco)
+# Kindle Scribe 2
 
-Pisco uses `mt8113-bellatrix3,board=pisco`, 1 GiB RAM and the same storage and
-[guest setup as Scribe 1](scribe-1.md). Support is at bring-up stage;
-complete Home, touch and suspend acceptance remains pending.
+Pisco uses `mt8113-bellatrix3,board=pisco` with 1 GiB RAM. Its image layout
+and guest setup are shared with [Scribe 1](scribe-1.md). Home, touch and
+suspend still need testing with the standard images.
+
+## Setup
+
+Install KindleTool and e2fsprogs, then import a recovery package:
 
 ```sh
 ./eink import /path/to/update.bin --model kindle-scribe-2
@@ -10,23 +14,24 @@ complete Home, touch and suspend acceptance remains pending.
 ./eink run my-scribe-2
 ```
 
-Only `production` and `dvt` are exposed; both select the source-confirmed DVT
-configuration. Import retains the original five boot images, signatures and
-768 MiB rootfs under `firmware/kindle-scribe-2`. The original kernel FIT and
-board DT are used without replacement-kernel boot support.
+Profiles are `production` and `dvt`; both select the DVT hardware. QEMU
+supplies the board identity, so `--idme` fields are not needed.
 
-Generated images include synthetic waveform support unless `waveform.img`
-is supplied, a supervised serial shell, USB Ethernet/telnet, one-time local
-OOBE/locale setup, permission initialization and a bounded keep-awake job.
-The stock device-type override is seeded with `A3TY6T3X94EBV6` because the
-firmware's production lookup table omits the DVT serial tattoo. Valid existing
-overrides are retained. Java verification and compilation remain unchanged.
+Firmware is stored in `firmware/kindle-scribe-2`. Images use the original
+kernel and device tree. Stock SBIOS storage requests can time out when the
+host delays execution.
 
-Serial uses the launching terminal by default; opt into socket/log redirection
-with `--serial-socket`. Telnet forwards from `127.0.0.1:2323`; use `--telnet-port`
-to select another host port. Native WLAN is incomplete.
+## Guest behavior
 
-The partition selectors and ext4 userstore layout match Barolo. Normal eMMC
-TRIM supports stock hibernate-partition cleanup. Stock SBIOS deadlines can
-still produce storage errors under host scheduling delays. The excluded
-development-kernel recovery path is not required or automatically selected.
+The image includes a serial shell, USB Ethernet/telnet, initial setup skip,
+British English locale, permission fixes and a two-hour keep-awake job.
+Java settings remain unchanged. The device-type override accounts for the
+DVT board ID missing from the firmware's production lookup table.
+
+Serial opens in the launching terminal. `--serial-socket` redirects it to
+a Unix socket and log file. Telnet is available at `127.0.0.1:2323`; change
+the host port with `--telnet-port PORT`. Native Wi-Fi is not available.
+
+The builder uses `firmware/kindle-scribe-2/waveform.img` when supplied,
+or generates a synthetic waveform. See [Scribe 1](scribe-1.md) for display
+setup and [storage](storage.md#scribe-partitions) for the partition layout.

@@ -1,8 +1,7 @@
 # E-ink emulator
 
-This repository provides tools for creating and running persistent virtual
-e-readers with the project's QEMU fork. Firmware stays outside Git, and
-generated disks are stored as sparse QCOW2 images.
+Run Kindle and Kobo firmware in QEMU, with a persistent disk for each
+emulated device. Firmware and generated disk images stay outside Git.
 
 No firmware, device dumps, account data, or physical-device identity values
 are distributed here. This project is not affiliated with Amazon or Rakuten
@@ -19,10 +18,9 @@ cd eink-emulator
 ./eink firmware
 ```
 
-Copy firmware from a device you own into the directory shown by
-`./eink firmware`, then create an instance. Kindle models require their
-identity fields at creation; the values are stored only in the ignored
-instance manifest.
+Use `./eink firmware` to find the files needed for your model. Some Kindles
+also need device identity fields when you create an instance. For example,
+to create a Voyage:
 
 ```sh
 ./eink create my-reader --model kindle-voyage \
@@ -36,6 +34,15 @@ instance manifest.
 ./eink run my-reader
 ```
 
+The Scribes use built-in virtual identities and require a hardware profile.
+Import a recovery package, then create an instance:
+
+```sh
+./eink import /path/to/update.bin --model kindle-scribe-1
+./eink create my-scribe --model kindle-scribe-1 --profile dvt
+./eink run my-scribe
+```
+
 Kobo devices do not use identity fields:
 
 ```sh
@@ -46,8 +53,8 @@ Kobo devices do not use identity fields:
 ./eink run my-mini
 ```
 
-When necessary, `create` builds QEMU and an immutable base image before adding
-a small writable overlay for the instance.
+`create` builds QEMU if needed, prepares a shared base image, and adds a
+small writable disk for the instance.
 
 ## Everyday commands
 
@@ -63,19 +70,16 @@ a small writable overlay for the instance.
 ./eink build                  Build the QEMU fork
 ```
 
-Serial input and output use the launching terminal by default. Use
-`--serial-socket` to redirect serial to the instance-scoped Unix socket
-and serial log instead, and
-`--qmp-socket` to expose QMP for inspection or process reuse. Use
-`--headless` for serial-only operation, `--ssh-port PORT` to change the
-loopback SSH forwarding port, and `--vnc ENDPOINT` to use QEMU's VNC display.
+Serial uses the launching terminal. Add `--serial-socket` to send it to the
+instance's Unix socket and log file, or `--qmp-socket` to enable QMP control.
+Use `--headless` to disable the display, or `--vnc ENDPOINT` for VNC.
+`--ssh-port PORT` changes SSH forwarding; Scribe 1 and 2 use telnet instead,
+with `--telnet-port PORT` to change its default port of 2323.
 Arguments after `--` are passed directly to QEMU.
 
 ## Using a raw QEMU machine
 
-The raw QEMU machines can be used directly for kernel and bootloader
-development. Supply the machine properties, firmware, storage, and other QEMU
-options for each run:
+For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
 
 ```sh
 # Bootloader development
@@ -104,9 +108,8 @@ options for each run:
   -no-reboot
 ```
 
-All arguments after `--` are passed directly to QEMU. These runs are ephemeral:
-`eink` does not read the model catalogue, create an instance, or attach a
-generated disk.
+These commands run QEMU directly. Supply any disk images and machine
+properties yourself; `eink qemu` does not create or load a saved instance.
 
 ## Taking a screenshot
 
@@ -136,9 +139,13 @@ other desktop content.
 | Kindle Basic 2 (2016) | KT3 | Eanab | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
+| [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
 | Kindle Basic 6 (2024) | KT6 | Rossini | |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Sangria Color | |
 | [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Sangria | |
+| [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | Experimental |
+| [Kindle Scribe 3](docs/scribe-3.md) | KS3 | Paloma | Experimental |
+| [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | Experimental |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 
@@ -157,12 +164,3 @@ Additional documentation covers [firmware setup](docs/firmware.md),
 On macOS, Homebrew's `e2fsprogs` package supplies the filesystem tools. QEMU's
 SLIRP dependency is built from its pinned subproject when it is not installed
 on the host.
-
-## Scribe models
-
-The catalogue supports [Scribe 1 (Barolo)](docs/scribe-1.md),
-[Scribe 2 (Pisco)](docs/scribe-2.md), [Scribe 3 (Paloma)](docs/scribe-3.md)
-and [Scribe Colorsoft (Calvados)](docs/scribe-colorsoft.md).
-Each model imports its official recovery package and creates a persistent
-instance with a selected hardware profile. See the model pages for boot
-requirements, guest setup and current limitations.

@@ -1,47 +1,54 @@
 # Guest compatibility changes
 
-Firmware inputs are treated as immutable. Image creation makes a temporary
-rootfs copy and applies the small guest-side changes required by the emulated
-hardware before converting the completed disk to QCOW2.
+Some models need guest startup changes to run on the emulated hardware.
+The image builder applies them to a copy of the rootfs using `debugfs`;
+imported firmware files are kept intact. The files are grouped by platform
+under `guest-overrides/`.
 
-The committed files under `guest-overrides/` are grouped by platform. The
-shared Python rootfs component installs them with `debugfs`; board image
-modules do not contain their own copies of filesystem-editing logic.
+| Devices | Guest setup |
+| --- | --- |
+| Basic (2014), Paperwhite 2 and 3, Voyage | Wario service, keyboard, wake and suspend fixes |
+| Basic (2016) | Heisenberg service and offline-mode fixes |
+| Paperwhite 1, Kindle Touch | Wake and optional text-to-speech fixes |
+| Paperwhite 4 | Wake, first-boot, locale and service fixes |
+| Basic 5 and 6, Colorsoft, Paperwhite 6 | Bellatrix startup and service fixes |
+| [Scribe 1](scribe-1.md), [Scribe 2](scribe-2.md) | Serial shell, USB networking, initial setup skip, permissions and keep-awake |
+| [Scribe 3](scribe-3.md), [Scribe Colorsoft](scribe-colorsoft.md) | Original rootfs, including AVB metadata |
 
-## Wario and Heisenberg
+## Older Kindle models
 
-Wario models receive service fixes for the GUI keyboard process, the
-unavailable performance daemon, wake handling, and automatic suspend. These
-apply to Kindle Basic (2014), Paperwhite 2, Paperwhite 3, and Voyage.
-
-Heisenberg has its own complete override set for Kindle Basic (2016). It also
-disables services which rely on unmodelled device backends and keeps the guest
-in its supported offline mode. Files are intentionally kept separate where
-their current behavior matches Wario so each platform can evolve independently.
-
-## Celeste, Kindle Touch, and Paperwhite 4
-
-Celeste and Kindle Touch each keep separate wake and optional text-to-speech
-service fixes. Paperwhite 4 receives wake, first-boot, locale, and
-unavailable-service fixes. All three also receive a longer first-boot
-framework timeout for TCG execution.
+Wario and Heisenberg receive fixes for the GUI keyboard process, unavailable
+services, wake handling and automatic suspend. Celeste and Kindle Touch have
+separate wake and optional text-to-speech fixes. Paperwhite 4 also receives
+first-boot and locale setup. Prepared images for these models clear the root
+password for serial access.
 
 ## Bellatrix
 
-Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6 preparation copies
-the supplied `rootfs.img` before the disk builder places it in the generated
-GPT image. It skips the stock recursive permission repair and absent hibernate
-payload, waits indefinitely for the framework under TCG, marks account setup
-complete before Home is selected, disables both unavailable Minerva telemetry
-daemons, and omits the Wi-Fi jobs whose MTK transport has no emulated hardware.
-This prevents the transport driver's power-on timeout queue from starving the
-guest. Colorsoft also disables native `gdb` stack dumps which can monopolize an
-emulated CPU; the other Bellatrix root filesystems do not require that change.
-The old debug-only job which mirrored the complete system log through the
-emulated serial UART is also omitted; kernel, boot milestone, and login console
-output remain available. The remaining overrides prevent automatic suspend and
-avoid respawn loops in capability-gated services.
+Basic 5 and 6, Colorsoft and Paperwhite 6 skip recursive permission repair
+and the absent hibernate payload, wait longer for the framework, and skip
+initial account setup before opening Home. Minerva and unsupported Wi-Fi
+jobs are disabled. Other overrides prevent automatic suspend and service
+respawn loops.
 
-Prepared Kindle root filesystems have the guest root password cleared so the
-serial console remains usable. This affects only generated, ignored images;
-the supplied firmware files are never modified.
+Colorsoft also skips native debugger stack dumps that can occupy an emulated
+CPU. The job that copies the entire system log to serial is removed; kernel
+output, boot messages and the login console remain available.
+
+## Scribe 1 and 2
+
+Barolo and Pisco provide a supervised serial shell and USB Ethernet/telnet.
+On first boot, they skip OOBE, select British English and set the device type
+needed for DVT boards. Existing preferences are backed up. Shared directory
+permissions are set before services start, and a keep-awake job runs for up
+to two hours while the display is active.
+
+The original display module uses a supplied waveform or a generated
+synthetic waveform. Java settings stay unchanged. See
+[the Bellatrix3 files](../guest-overrides/bellatrix3/README.md) for details.
+
+## Scribe 3 and Colorsoft
+
+Paloma and Calvados use the original AVB-protected rootfs. Their image
+builder prepares storage and a waveform partition without changing guest
+startup scripts, Java settings or initial setup.

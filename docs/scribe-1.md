@@ -1,8 +1,12 @@
-# Kindle Scribe 1 (Barolo)
+# Kindle Scribe 1
 
-Barolo uses `mt8113-bellatrix3,board=barolo`, 1 GiB RAM and the Bellatrix3
-storage builder. Support is at bring-up stage; complete Home, touch and
-suspend acceptance for this image configuration remains pending.
+Barolo uses the `mt8113-bellatrix3` machine with `board=barolo` and 1 GiB
+RAM. It shares the Bellatrix3 platform with [Scribe 2](scribe-2.md).
+Home, touch and suspend still need testing with the standard images.
+
+## Setup
+
+Install KindleTool and e2fsprogs, then import a recovery package:
 
 ```sh
 ./eink import /path/to/update.bin --model kindle-scribe-1
@@ -10,54 +14,45 @@ suspend acceptance for this image configuration remains pending.
 ./eink run my-scribe
 ```
 
-Import requires KindleTool and e2fsprogs. It retains the original bootloader,
-BL2, TEE, quickboot, kernel FIT, signatures and decompressed rootfs in
-`firmware/kindle-scribe-1`. The image uses the original kernel and board DT.
-No replacement kernel or automatic U-Boot console setup is included.
-
 Profiles are `production` (DVT), `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`
-and `proto` (Proto2). The machine supplies a virtual board identity;
-no physical device identity or account is required.
+and `proto` (Proto2). QEMU supplies the board identity, so `--idme` fields
+are not needed.
 
-## Storage and display
+The importer saves the boot images and decompressed rootfs in
+`firmware/kindle-scribe-1`. Images use the original kernel and device tree.
+Stock SBIOS storage requests can time out when the host delays execution.
 
-The builder creates an 8 GiB sparse disk, preserving the stock partition
-selectors: kernel p1, waveform p2, keys p3, pdata p5, snapshot p6,
-hibernate metadata p7, rootfs p8, varlocal p9 and userstore p10. Intermediate
-partition sizes and the unused p4 reservation are emulator geometry.
+## Display and storage
 
-The imported rootfs remains unchanged. A temporary 768 MiB copy receives
-[the guest setup](../guest-overrides/bellatrix3/README.md) before installation.
-The host initializes pdata, varlocal and the ext4 userstore with compatible
-filesystem features and initialized inode tables. The eMMC model supports
-normal TRIM for stock hibernate-partition cleanup.
+The builder creates an 8 GiB sparse disk with a prepared rootfs and fresh
+persistent filesystems. See the [partition layout](storage.md#scribe-partitions).
+The imported firmware files are kept intact.
 
-Without `firmware/kindle-scribe-1/waveform.img`, the builder generates an
-explicitly synthetic HWTCON v2 waveform and installs it in FAT p2 and at
-`/data/init_bin/wf_lut.gz`. A supplied waveform partition is used directly.
-The display job preserves an already loaded stock HWTCON module; otherwise,
-it loads the module with the selected waveform. These fixtures enable
-emulated display updates and do not represent physical panel calibration.
+If `firmware/kindle-scribe-1/waveform.img` is present, the builder uses it
+for the waveform partition. Otherwise it generates a synthetic HWTCON v2
+waveform. The display job loads the original HWTCON module with the selected
+waveform, unless the module is already running. Synthetic waveforms enable
+emulated display updates; they do not reproduce a physical panel's response.
 
 ## Guest setup
 
-Generated images provide a supervised serial shell, USB Ethernet and telnet.
-Serial uses the launching terminal; `--serial-socket` redirects it to the
-instance socket and serial log. Connect to telnet at `127.0.0.1:2323`, or
-select another forwarding port with `--telnet-port`. MTP is disabled because
-it competes for the same USB gadget controller.
+The generated rootfs provides a serial shell and USB Ethernet with telnet.
+Serial opens in the launching terminal. Use `--serial-socket` to redirect
+it to the instance's Unix socket and log file.
 
-The setup initializes local OOBE completion and British English locale once,
-with backups, and supplies the stock device-type override for the DVT board.
-It creates no account registration. Permission initialization is moved before
-services create shared files; existing persistent permissions migrate once.
-A bounded keep-awake job refreshes the idle timer while the display is active
-and preserves manual sleep. Java verification and compilation settings stay
-as shipped. The framework readiness timeout is extended for TCG.
+```sh
+telnet 127.0.0.1 2323
+```
 
-The timezone/registration capability gates are reused, and unavailable native
-wireless and Minerva jobs are disabled. USB Ethernet supplies networking.
-Stock SBIOS transfer deadlines can still cause storage errors under host
-scheduling delays; replacement-kernel recovery is outside this support set.
+Use `--telnet-port PORT` to change the host port. MTP is disabled so it does
+not take over the USB controller. Native Wi-Fi is not available.
 
-[Scribe 2 (Pisco)](scribe-2.md) shares the platform with separate fitted hardware.
+On first boot, the guest skips initial setup (OOBE), selects British English,
+and sets the device type needed for the DVT board. It backs up existing
+preferences and leaves later user choices alone. No Amazon account is created.
+
+Shared directory permissions are set before services start, avoiding repeated
+recursive changes during framework restarts. The guest stays awake for up
+to two hours while its display is active; the power button still allows sleep.
+The framework gets 600 seconds to start. Java settings remain unchanged.
+See [guest setup details](../guest-overrides/bellatrix3/README.md).

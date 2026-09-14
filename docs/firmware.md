@@ -1,10 +1,9 @@
-# Bring your own firmware
+# Firmware
 
-Firmware is never downloaded by this project and every file below
-`firmware/` is ignored by Git. Only use material obtained from hardware or
-software that you are entitled to use.
+Supply firmware from hardware or recovery packages you are entitled to use.
+The emulator does not download firmware, and Git ignores imported files.
 
-Run this command at any time for an authoritative checklist:
+List the required files for each model:
 
 ```sh
 ./eink firmware
@@ -12,7 +11,10 @@ Run this command at any time for an authoritative checklist:
 
 ## Directory layout
 
-Each model has its own flat directory:
+Each model has a directory under `firmware/`. Older models keep their files
+directly in that directory; Scribe 3 and Scribe Colorsoft also use
+`boot_images/` and `peripherals/` subdirectories. The older layouts are shown
+below; see [Scribe recovery packages](#scribe-recovery-packages) for the Scribes.
 
 ```text
 firmware/
@@ -137,6 +139,31 @@ exact panel data.
 `rootfs.img` must be a raw ext filesystem image. If an extracted firmware
 package contains `rootfs.img.gz`, decompress it before placing it here.
 
+## Scribe recovery packages
+
+All four Scribes can import a recovery package. Install KindleTool and
+e2fsprogs, then select the matching model:
+
+```sh
+./eink import /path/to/update.bin --model kindle-scribe-1
+```
+
+| Device | Model ID | Firmware layout |
+| --- | --- | --- |
+| [Scribe 1](scribe-1.md) | `kindle-scribe-1` | Boot files and rootfs in the model directory |
+| [Scribe 2](scribe-2.md) | `kindle-scribe-2` | Boot files and rootfs in the model directory |
+| [Scribe 3](scribe-3.md) | `kindle-scribe-3` | Boot files in `boot_images/`, extracted firmware in `peripherals/` |
+| [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` | Boot files in `boot_images/`, extracted firmware in `peripherals/` |
+
+The importer decompresses `rootfs.img.gz` and refuses to overwrite an
+existing firmware directory. Scribe 3 and Colorsoft also extract touch and
+connectivity firmware from the rootfs. Their rootfs images keep the AVB
+footer used for verified boot.
+
+Place an optional `waveform.img` in the model directory to use a device
+waveform partition. Without one, Scribe image creation generates a synthetic
+waveform for display emulation. This does not reproduce panel calibration.
+
 ## Kindle Basic (2016) recovery package
 
 The Eanab firmware is distributed as a Heisenberg recovery package. Import it
@@ -157,8 +184,8 @@ rootfs, recoveryfs, and userstore.
 
 ## Instance identity
 
-Kindle identity data is not part of the firmware catalogue. Supply the fields
-from the source device when creating an instance:
+Older Kindle models require identity fields from the source device when
+creating an instance:
 
 ```sh
 ./eink create NAME --model MODEL \
@@ -174,8 +201,8 @@ The exact required set is validated before any image is built. Kobo Touch
 rejects identity fields because that platform does not use them.
 
 The same six identity fields shown above apply to Kindle Basic (2016).
-Bellatrix models use the development identity defaults built into their QEMU
-machine and therefore do not accept `--idme` fields.
+Bellatrix models and all four Scribes use identities supplied by QEMU and
+do not accept `--idme` fields.
 Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
 and `sec`. An empty value is accepted when that is what the source device
 reports.
@@ -191,3 +218,14 @@ Bellatrix instances also require a profile. Kindle Basic 5, Kindle Basic 6,
 and Colorsoft accept `production`, `dvt`, `evt`, `hvt`, or `proto`;
 Paperwhite 6 additionally accepts `hvt1.1`. The profile selects the stock
 board tattoo exposed to U-Boot, the kernel, and userspace capability detection.
+
+Scribes also require `--profile`:
+
+| Device | Profiles |
+| --- | --- |
+| Scribe 1 | `production`, `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`, `proto` |
+| Scribe 2 | `production`, `dvt` |
+| Scribe 3, Scribe Colorsoft | `production`, `dvt`, `evt`, `hvt1.1` |
+
+For the Scribes, `production` selects the DVT configuration. Profile selection
+is saved in the instance and passed to QEMU on each launch.
