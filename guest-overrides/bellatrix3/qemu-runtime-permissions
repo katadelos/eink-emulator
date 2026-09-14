@@ -1,0 +1,66 @@
+#!/bin/sh
+# Stock framework permission policy, applied before producers create their
+# files. /etc/upstart/env already uses umask 002; setgid supplies javausers.
+set -e
+
+shared_top()
+{
+    mkdir -p "$@"
+    chgrp javausers "$@"
+    chmod g=u,g+s "$@"
+}
+
+repair_tree()
+{
+    chgrp -R javausers "$1"
+    chmod -R g=u "$1"
+    find "$1" -type d -exec chmod g+s '{}' +
+}
+
+private_top()
+{
+    mkdir -p /var/local/root
+    chown root:root /var/local/root
+    chmod g=u,g+s /var/local/root
+}
+
+case "$1" in
+    runtime)
+        # Called after /var has moved to tmpfs, before system starts services.
+        # This small seed tree is new each boot, not the later daemon/log tree.
+        for dir in /var/log /var/lock /var/run; do
+            repair_tree "$dir"
+        done
+        shared_top /var/tmp
+        find /var/tmp -mindepth 1 -maxdepth 1 \( -name chroot -prune \) -o \
+            -exec chgrp -R javausers '{}' + -exec chmod -R g=u '{}' +
+        find /var/tmp \( -type d -name chroot -prune \) -o \
+            -type d -exec chmod g+s '{}' +
+        ;;
+    persistent)
+        # Keys and /var/local are mounted before the display starting event.
+        # A reset/new userdata naturally has no marker; initialized disks only
+        # need their top-level inheritance restored on later boots.
+        private_top
+        marker=/var/local/root/qemu-permissions-v1
+        if [ ! -e "$marker" ]; then
+            # Never temporarily grant javausers access to the private tree.
+            find /var/local -path /var/local/root -prune -o \
+                ! -type l -exec chgrp javausers '{}' + -exec chmod g=u '{}' +
+            find /var/local -path /var/local/root -prune -o \
+                -type d -exec chmod g+s '{}' +
+            chown -R root:root /var/local/root
+            chmod -R g=u /var/local/root
+            find /var/local/root -type d -exec chmod g+s '{}' +
+            touch "$marker"
+            chmod 0600 "$marker"
+        fi
+        shared_top /var/local /var/local/log /var/local/java /var/local/java/prefs
+        ;;
+    framework)
+        # Framework restarts must not rewrite every database/log/socket inode.
+        shared_top /var/local /var/log /var/lock /var/run /var/tmp
+        private_top
+        ;;
+    *) exit 2 ;;
+esac

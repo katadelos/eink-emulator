@@ -16,6 +16,7 @@ OVERRIDES = ROOT / "guest-overrides"
 EXT_MAGIC_OFFSET = 1024 + 56
 FRAMEWORK_TIMEOUT_STOCK = "        TO=105\n"
 FRAMEWORK_TIMEOUT_EMULATED = "        TO=600\n"
+BELLATRIX3_FRAMEWORK_MARKER = "Bellatrix3 QEMU: inherit initialized runtime permissions"
 BELLATRIX_FRAMEWORK_MARKER = "Bellatrix QEMU: skip recursive permission repair"
 BELLATRIX_WATCHDOG_MARKER = "Bellatrix QEMU: wait indefinitely under TCG"
 BELLATRIX_STACK_DUMP_MARKER = "Bellatrix QEMU: skip native stack dumps under TCG"
@@ -445,3 +446,132 @@ def prepare_bellatrix(
             "0100644",
         ),
     })
+
+
+def bellatrix3_patch_framework(contents: str) -> str:
+    """Move stock permission setup before producers; keep restarts constant cost."""
+    if BELLATRIX3_FRAMEWORK_MARKER in contents:
+        return contents
+    start = contents.find("  set +e\n  DIRLIST=")
+    end = contents.find("  set -e\n  f_log I framework starting", start)
+    if start < 0 or end < 0:
+        raise SystemExit("stock Bellatrix3 runtime permission block was not found")
+    if contents[start:end].count("'{}' \\;") != 5:
+        raise SystemExit("expected five stock Bellatrix3 find -exec actions")
+    replacement = (
+        f"  # {BELLATRIX3_FRAMEWORK_MARKER}.\n"
+        "  /usr/sbin/qemu-runtime-permissions framework\n"
+    )
+    return contents[:start] + replacement + contents[end:]
+
+
+def bellatrix3_patch_system_permissions(contents: str) -> str:
+    marker = "  f_log I sytem mounted_tmpfs\n"
+    if contents.count(marker) != 1:
+        raise SystemExit("stock Bellatrix3 tmpfs readiness boundary was not found")
+    return contents.replace(
+        marker, "  /usr/sbin/qemu-runtime-permissions runtime\n" + marker, 1,
+    )
+
+
+def bellatrix3_patch_varlocal_permissions(contents: str) -> str:
+    old = "  chgrp -R javausers /var/local/ || true\n"
+    if contents.count(old) != 1:
+        raise SystemExit("stock Bellatrix3 var-local ownership boundary was not found")
+    return contents.replace(
+        old,
+        "  # Display's starting job migrates existing descendants once.\n"
+        "  chgrp javausers /var/local/ || true\n"
+        "  chmod g=u,g+s /var/local/ || true\n",
+        1,
+    )
+
+
+def prepare_bellatrix3(
+    source: Path, output: Path, *, board: str, waveform: Path | None,
+) -> None:
+    """Install the Scribe development boot jobs in a generated rootfs copy.
+
+    These Linux 4.9 roots have no dm-verity. Keep their stock storage cleanup
+    and account identity handling intact; USB Ethernet is
+    the development network while unsupported radio services are excluded.
+    """
+    if board not in {"barolo", "pisco"}:
+        raise ValueError(f"unsupported Bellatrix3 board: {board}")
+    copy_source(source, output, maximum_size=768 * 1024**2)
+    # Published /etc/deviceTypes.conf maps production serial codes to these
+    # product types. DVT serial tattoos are absent; liblab126utils supports
+    # /var/local/deviceType.txt as its explicit override before serial lookup.
+    product_type = {
+        "barolo": "A12KI9K1KHHBVF",
+        "pisco": "A3TY6T3X94EBV6",
+    }[board]
+    with tempfile.NamedTemporaryFile("w", prefix="eink-device-type-") as device_type:
+        device_type.write(product_type)
+        device_type.flush()
+        replace_file(
+            output, Path(device_type.name), "/etc/qemu-device-type", "0100644",
+        )
+    transform_file(
+        output, "/etc/upstart/framework.conf", "0100644",
+        bellatrix3_patch_framework,
+    )
+    transform_file(
+        output, "/etc/upstart/system.conf", "0100644",
+        bellatrix3_patch_system_permissions,
+    )
+    transform_file(
+        output, "/etc/upstart/filesystems_var_local.conf", "0100644",
+        bellatrix3_patch_varlocal_permissions,
+    )
+    transform_file(
+        output, "/etc/upstart/framework_setup.conf", "0100644",
+        extend_framework_timeout,
+    )
+
+    def stop_successful_sysctl(contents: str) -> str:
+        old = "\nrespawn\n"
+        if contents.count(old) != 1:
+            raise SystemExit("stock sysctl respawn declaration was not found exactly once")
+        return contents.replace(old, "\nrespawn\nnormal exit 0\n", 1)
+
+    transform_file(
+        output, "/etc/upstart/sysctl.conf", "0100644",
+        stop_successful_sysctl,
+    )
+    install_overrides(image=output, group="bellatrix3", replacements={
+        "/usr/sbin/qemu-runtime-permissions": (
+            "qemu-runtime-permissions", "0100755",
+        ),
+        "/etc/upstart/console.conf": ("console.conf", "0100644"),
+        "/etc/upstart/display": ("display", "0100755"),
+        "/etc/upstart/qemu-development-state.conf": (
+            "qemu-development-state.conf", "0100644",
+        ),
+        "/etc/upstart/qemu-usb-network.conf": (
+            "qemu-usb-network.conf", "0100644",
+        ),
+        "/etc/upstart/qemu-telnet.conf": ("qemu-telnet.conf", "0100644"),
+        "/etc/upstart/qemu-review-awake.conf": (
+            "qemu-review-awake.conf", "0100644",
+        ),
+        "/etc/upstart/mtp.conf": ("mtp.conf", "0100644"),
+    })
+    install_overrides(image=output, group="bellatrix", replacements={
+        "/etc/upstart/tzd.conf": ("tzd.conf", "0100644"),
+        "/etc/upstart/registrationd.conf": ("registrationd.conf", "0100644"),
+        **{
+            f"/etc/upstart/{service}.conf": (
+                "qemu-disabled-service.conf", "0100644",
+            )
+            for service in (
+                "minerva_service", "minervad", "wmt", "wifid", "wifim", "wifis",
+            )
+        },
+    })
+    if waveform is not None:
+        run_many(output, [
+            "mkdir /data/init_bin",
+            "set_inode_field /data/init_bin mode 040755",
+        ], writable=True)
+        replace_file(output, waveform, "/data/init_bin/wf_lut.gz", "0100644")
