@@ -63,8 +63,9 @@ a small writable overlay for the instance.
 ./eink build                  Build the QEMU fork
 ```
 
-Serial is attached to the `eink run` process by default. Use
-`--serial-socket` to put it on the instance-scoped Unix socket instead, and
+Serial input and output use the launching terminal by default. Use
+`--serial-socket` to redirect serial to the instance-scoped Unix socket
+and serial log instead, and
 `--qmp-socket` to expose QMP for inspection or process reuse. Use
 `--headless` for serial-only operation, `--ssh-port PORT` to change the
 loopback SSH forwarding port, and `--vnc ENDPOINT` to use QEMU's VNC display.
@@ -156,3 +157,12 @@ Additional documentation covers [firmware setup](docs/firmware.md),
 On macOS, Homebrew's `e2fsprogs` package supplies the filesystem tools. QEMU's
 SLIRP dependency is built from its pinned subproject when it is not installed
 on the host.
+
+## Scribe models
+
+The catalogue supports [Scribe 1 (Barolo)](docs/scribe-1.md),
+[Scribe 2 (Pisco)](docs/scribe-2.md), [Scribe 3 (Paloma)](docs/scribe-3.md)
+and [Scribe Colorsoft (Calvados)](docs/scribe-colorsoft.md).
+Each model imports its official recovery package and creates a persistent
+instance with a selected hardware profile. See the model pages for boot
+requirements, guest setup and current limitations.
