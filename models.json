@@ -344,7 +344,7 @@
     }
   },
   "kindle-scribe-1": {
-    "description": "Kindle Scribe 1 (Barolo, bring-up)",
+    "description": "Kindle Scribe 1",
     "qemu_arch": "aarch64",
     "qemu_machine": "mt8113-bellatrix3",
     "memory": "1G",
@@ -388,21 +388,6 @@
       "boot_image": [
         "boot.img"
       ],
-      "bootloader_signature": [
-        "u-boot.bin.sig"
-      ],
-      "bl2_signature": [
-        "bl2.img.sig"
-      ],
-      "tee_signature": [
-        "tee.img.sig"
-      ],
-      "quickboot_signature": [
-        "quickboot.img.sig"
-      ],
-      "boot_image_signature": [
-        "boot.img.sig"
-      ],
       "rootfs": [
         "rootfs.img"
       ]
@@ -418,11 +403,6 @@
       "tee": "mt8110_bellatrix3/tee.img",
       "quickboot": "mt8110_bellatrix3/quickboot.img",
       "boot_image": "mt8110_bellatrix3/boot.img",
-      "bootloader_signature": "mt8110_bellatrix3/u-boot.bin.sig",
-      "bl2_signature": "mt8110_bellatrix3/bl2.img.sig",
-      "tee_signature": "mt8110_bellatrix3/tee.img.sig",
-      "quickboot_signature": "mt8110_bellatrix3/quickboot.img.sig",
-      "boot_image_signature": "mt8110_bellatrix3/boot.img.sig",
       "rootfs": "rootfs.img.gz"
     },
     "network_service": "telnet",
@@ -432,7 +412,7 @@
     ]
   },
   "kindle-scribe-2": {
-    "description": "Kindle Scribe 2 (Pisco, bring-up)",
+    "description": "Kindle Scribe 2",
     "qemu_arch": "aarch64",
     "qemu_machine": "mt8113-bellatrix3",
     "memory": "1G",
@@ -471,21 +451,6 @@
       "boot_image": [
         "boot.img"
       ],
-      "bootloader_signature": [
-        "u-boot.bin.sig"
-      ],
-      "bl2_signature": [
-        "bl2.img.sig"
-      ],
-      "tee_signature": [
-        "tee.img.sig"
-      ],
-      "quickboot_signature": [
-        "quickboot.img.sig"
-      ],
-      "boot_image_signature": [
-        "boot.img.sig"
-      ],
       "rootfs": [
         "rootfs.img"
       ]
@@ -501,11 +466,6 @@
       "tee": "mt8110_bellatrix3/tee.img",
       "quickboot": "mt8110_bellatrix3/quickboot.img",
       "boot_image": "mt8110_bellatrix3/boot.img",
-      "bootloader_signature": "mt8110_bellatrix3/u-boot.bin.sig",
-      "bl2_signature": "mt8110_bellatrix3/bl2.img.sig",
-      "tee_signature": "mt8110_bellatrix3/tee.img.sig",
-      "quickboot_signature": "mt8110_bellatrix3/quickboot.img.sig",
-      "boot_image_signature": "mt8110_bellatrix3/boot.img.sig",
       "rootfs": "rootfs.img.gz"
     },
     "network_service": "telnet",
@@ -515,7 +475,7 @@
     ]
   },
   "kindle-scribe-3": {
-    "description": "Kindle Scribe 3 (Paloma, bring-up)",
+    "description": "Kindle Scribe 3",
     "recovery_import": {
       "bootloader": "boot_images/u-boot.bin",
       "bl2": "boot_images/bl2.img",
@@ -523,13 +483,7 @@
       "quickboot": "boot_images/quickboot.img",
       "boot_image": "boot_images/boot.img",
       "aux_firmware": "boot_images/firmware.img",
-      "rootfs": "rootfs.img.gz",
-      "u_boot_bin_signature": "boot_images/u-boot.bin.sig",
-      "bl2_img_signature": "boot_images/bl2.img.sig",
-      "tee_img_signature": "boot_images/tee.img.sig",
-      "quickboot_img_signature": "boot_images/quickboot.img.sig",
-      "boot_img_signature": "boot_images/boot.img.sig",
-      "firmware_img_signature": "boot_images/firmware.img.sig"
+      "rootfs": "rootfs.img.gz"
     },
     "rootfs_extract": {
       "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_bw5c.bin",
@@ -589,24 +543,6 @@
       ],
       "rootfs": [
         "rootfs.img"
-      ],
-      "u_boot_bin_signature": [
-        "boot_images/u-boot.bin.sig"
-      ],
-      "bl2_img_signature": [
-        "boot_images/bl2.img.sig"
-      ],
-      "tee_img_signature": [
-        "boot_images/tee.img.sig"
-      ],
-      "quickboot_img_signature": [
-        "boot_images/quickboot.img.sig"
-      ],
-      "boot_img_signature": [
-        "boot_images/boot.img.sig"
-      ],
-      "firmware_img_signature": [
-        "boot_images/firmware.img.sig"
       ]
     },
     "optional_firmware": {
@@ -616,7 +552,7 @@
     }
   },
   "kindle-scribe-colorsoft": {
-    "description": "Kindle Scribe Colorsoft (bring-up)",
+    "description": "Kindle Scribe Colorsoft",
     "recovery_import": {
       "bootloader": "boot_images/u-boot.bin",
       "bl2": "boot_images/bl2.img",
@@ -624,13 +560,7 @@
       "quickboot": "boot_images/quickboot.img",
       "boot_image": "boot_images/boot.img",
       "aux_firmware": "boot_images/firmware.img",
-      "rootfs": "rootfs.img.gz",
-      "u_boot_bin_signature": "boot_images/u-boot.bin.sig",
-      "bl2_img_signature": "boot_images/bl2.img.sig",
-      "tee_img_signature": "boot_images/tee.img.sig",
-      "quickboot_img_signature": "boot_images/quickboot.img.sig",
-      "boot_img_signature": "boot_images/boot.img.sig",
-      "firmware_img_signature": "boot_images/firmware.img.sig"
+      "rootfs": "rootfs.img.gz"
     },
     "rootfs_extract": {
       "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_cp5d.bin",
@@ -690,24 +620,6 @@
       ],
       "rootfs": [
         "rootfs.img"
-      ],
-      "u_boot_bin_signature": [
-        "boot_images/u-boot.bin.sig"
-      ],
-      "bl2_img_signature": [
-        "boot_images/bl2.img.sig"
-      ],
-      "tee_img_signature": [
-        "boot_images/tee.img.sig"
-      ],
-      "quickboot_img_signature": [
-        "boot_images/quickboot.img.sig"
-      ],
-      "boot_img_signature": [
-        "boot_images/boot.img.sig"
-      ],
-      "firmware_img_signature": [
-        "boot_images/firmware.img.sig"
       ]
     },
     "optional_firmware": {
