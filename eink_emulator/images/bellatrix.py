@@ -78,29 +78,34 @@ def make_header(
     return bytes(header)
 
 
-def partition_layout(size: int) -> list[tuple[str, int, int]]:
+def partition_layout(
+    size: int, partitions: list[tuple[str, int]] = PARTITIONS
+) -> list[tuple[str, int, int]]:
     last_usable = size // SECTOR_SIZE - 34
     cursor = 2048
     layout: list[tuple[str, int, int]] = []
-    for name, byte_size in PARTITIONS:
+    for name, byte_size in partitions:
         sectors = byte_size // SECTOR_SIZE
         layout.append((name, cursor, sectors))
         cursor += sectors
     if cursor > last_usable:
-        raise SystemExit("image is too small for the Bellatrix partition layout")
+        raise SystemExit("image is too small for the partition layout")
     layout.append(("userstore", cursor, last_usable - cursor + 1))
     return layout
 
 
-def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
+def create_image(
+    path: Path, size: int, *, partitions: list[tuple[str, int]] = PARTITIONS,
+    namespace: str = "bellatrix",
+) -> dict[str, tuple[int, int]]:
     sectors = size // SECTOR_SIZE
     first_usable = 34
     last_usable = sectors - 34
-    layout = partition_layout(size)
+    layout = partition_layout(size, partitions)
 
     entries = bytearray(ENTRY_COUNT * ENTRY_SIZE)
     for index, (name, start, count) in enumerate(layout):
-        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-bellatrix-{name}")
+        unique = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-{namespace}-{name}")
         encoded_name = name.encode("utf-16-le")
         struct.pack_into(
             "<16s16sQQQ72s",
@@ -115,7 +120,7 @@ def create_image(path: Path, size: int) -> dict[str, tuple[int, int]]:
         )
 
     entries_crc = zlib.crc32(entries)
-    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, "eink-emulator-bellatrix")
+    disk_guid = uuid.uuid5(uuid.NAMESPACE_DNS, f"eink-emulator-{namespace}")
     primary = make_header(
         1,
         sectors - 1,
@@ -239,7 +244,8 @@ def initialize_factory_data(
 
 
 def create_ext4_userstore(
-    image_path: Path, layout: dict[str, tuple[int, int]]
+    image_path: Path, layout: dict[str, tuple[int, int]], *,
+    eager_inode_init: bool = False,
 ) -> None:
     start, sectors = layout["userstore"]
     filesystem_size = sectors * SECTOR_SIZE - USERSTORE_FS_OFFSET
@@ -267,6 +273,7 @@ def create_ext4_userstore(
                 "encrypt,^metadata_csum_seed,^orphan_file",
                 "-b",
                 "4096",
+                *(["-E", "lazy_itable_init=0"] if eager_inode_init else []),
                 filesystem,
             ],
             check=True,
