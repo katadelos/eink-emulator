@@ -1,0 +1,13 @@
+#!/bin/sh
+# Installed only for --sideloaded, and run before Hindenburg and Nickel.
+config='/mnt/onboard/.kobo/Kobo/Kobo eReader.conf'
+[ -e "$config" ] && exit 0
+mkdir -p "$(dirname "$config")"
+cat > "$config" <<'CONFIG'
+[ApplicationPreferences]
+SideloadedMode=true
+CurrentLocale=en_US
+
+[DeveloperSettings]
+EnableDebugServices=true
+CONFIG

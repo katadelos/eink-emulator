@@ -1,5 +1,6 @@
 /build/
 /kobo-forma-work/
+/elipsa2e-work/
 /firmware/*
 !/firmware/README.md
 !/firmware/.gitkeep

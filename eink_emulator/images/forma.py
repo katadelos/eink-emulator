@@ -33,9 +33,9 @@ def boot_environment(region: bytes, *, sideloaded: bool) -> bytes:
     return struct.pack('<I', zlib.crc32(data)) + data
 
 
-def write_userstore(disk) -> None:
-    """Write a plain FAT32 p3, keeping the on-device partition start."""
-    sectors = DISK_SIZE // 512 - USER_START
+def write_userstore(disk, *, start: int = USER_START, end: int = DISK_SIZE // 512) -> None:
+    """Write a fresh FAT32 userstore within the supplied sector range."""
+    sectors = end - start
     cluster_sectors, reserved = 8, 32
     fat_sectors = 1
     while True:
@@ -47,7 +47,7 @@ def write_userstore(disk) -> None:
     boot = bytearray(512)
     boot[:11] = b'\xeb\x58\x90MSDOS5.0'
     struct.pack_into('<HBHBHHBHHHII', boot, 11, 512, cluster_sectors, reserved,
-                     2, 0, 0, 0xf8, 0, 63, 255, USER_START, sectors)
+                     2, 0, 0, 0xf8, 0, 63, 255, start, sectors)
     struct.pack_into('<IHHIHH', boot, 36, fat_sectors, 0, 0, 2, 1, 6)
     boot[64:67] = b'\x80\0\x29'
     struct.pack_into('<I', boot, 67, 0x464f524d)
@@ -59,10 +59,10 @@ def write_userstore(disk) -> None:
     struct.pack_into('<III', info, 484, 0x61417272, clusters - 1, 3)
     struct.pack_into('<I', info, 508, 0xaa550000)
     for sector, data in ((0, boot), (6, boot), (1, info), (7, info)):
-        disk.seek((USER_START + sector) * 512)
+        disk.seek((start + sector) * 512)
         disk.write(data)
     for index in range(2):
-        disk.seek((USER_START + reserved + index * fat_sectors) * 512)
+        disk.seek((start + reserved + index * fat_sectors) * 512)
         disk.write(struct.pack('<III', 0xffffff8, 0xffffffff, 0xfffffff))
 
 
