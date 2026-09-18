@@ -54,6 +54,9 @@ Kobo devices do not use identity fields:
 
 ./eink create my-forma --model kobo-forma --sideloaded
 ./eink run my-forma
+
+./eink create my-elipsa --model kobo-elipsa-2e --sideloaded
+./eink run my-elipsa
 ```
 
 `create` builds QEMU if needed, prepares a shared base image, and adds a
@@ -152,6 +155,7 @@ other desktop content.
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 | [Kobo Forma](docs/kobo-forma.md) | Forma | E80K02 | Stock UI, offline sideloaded mode |
+| [Kobo Elipsa 2E](docs/kobo-elipsa-2e.md) | N605 | EA0T00 | Stock UI, offline sideloaded mode |
 
 Additional documentation covers [firmware setup](docs/firmware.md),
 [guest compatibility changes](docs/guest-overrides.md),
@@ -162,7 +166,7 @@ Additional documentation covers [firmware setup](docs/firmware.md),
 - Python 3.10 or newer
 - a C compiler and the standard QEMU build dependencies
 - Ninja
-- `mke2fs`, `tune2fs`, and `debugfs` from e2fsprogs for Kindle image creation
+- `mke2fs`, `e2fsck`, `tune2fs`, and `debugfs` from e2fsprogs for image creation
 - `kindletool` when importing supported Kindle recovery packages
 
 On macOS, Homebrew's `e2fsprogs` package supplies the filesystem tools. QEMU's

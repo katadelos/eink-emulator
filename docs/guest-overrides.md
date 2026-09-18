@@ -14,6 +14,7 @@ under `guest-overrides/`.
 | Basic 5 and 6, Colorsoft, Paperwhite 6 | Bellatrix startup and service fixes |
 | [Scribe 1](scribe-1.md), [Scribe 2](scribe-2.md) | Serial shell, USB networking, initial setup skip, permissions and keep-awake |
 | [Scribe 3](scribe-3.md), [Scribe Colorsoft](scribe-colorsoft.md) | Original rootfs, including AVB metadata |
+| [Kobo Elipsa 2E](kobo-elipsa-2e.md) | Optional offline sideloaded mode before Hindenburg starts; serial root shell |
 
 ## Older Kindle models
 

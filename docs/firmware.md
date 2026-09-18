@@ -130,6 +130,11 @@ Touch does not use a panel-flash artifact.
 with the U-Boot image from a Forma firmware update. Its builder preserves
 the boot offsets and creates a fresh userstore within a 2 GiB eMMC image.
 
+[Kobo Elipsa 2E](kobo-elipsa-2e.md) combines its partition dumps with the
+compiled U-Boot, kernel and TEE from a mark 11 update. Its 2 GiB GPT disk
+retains the original system partition offsets and has a fresh FAT32 userstore.
+See the model page for the complete firmware file list.
+
 Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6 follow the
 component-image flow used by the other Kindles. Supply the matching Bellatrix
 boot components, `boot.img`, and `rootfs.img`; the builder creates a sparse
