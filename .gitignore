@@ -1,4 +1,5 @@
 /build/
+/kobo-forma-work/
 /firmware/*
 !/firmware/README.md
 !/firmware/.gitkeep

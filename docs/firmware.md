@@ -106,6 +106,11 @@ firmware/
 │   ├── uImage
 │   ├── rootfs.img
 │   └── panel-flash.bin
+├── kobo-forma/
+│   ├── u-boot.imx
+│   ├── boot-region.img
+│   ├── rootfs.img
+│   └── recoveryfs.img
 ├── kobo-mini/
 │   ├── u-boot.bin
 │   └── sd.img
@@ -120,6 +125,10 @@ standalone `waveform.img`, described below. The optional Wario waveform,
 diagnostics kernel, and diagnostics partition files use the same names for
 Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo
 Touch does not use a panel-flash artifact.
+
+[Kobo Forma](kobo-forma.md) uses its live boot-region and partition dumps
+with the U-Boot image from a Forma firmware update. Its builder preserves
+the boot offsets and creates a fresh userstore within a 2 GiB eMMC image.
 
 Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6 follow the
 component-image flow used by the other Kindles. Supply the matching Bellatrix

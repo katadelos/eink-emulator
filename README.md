@@ -51,6 +51,9 @@ Kobo devices do not use identity fields:
 
 ./eink create my-mini --model kobo-mini
 ./eink run my-mini
+
+./eink create my-forma --model kobo-forma --sideloaded
+./eink run my-forma
 ```
 
 `create` builds QEMU if needed, prepares a shared base image, and adds a
@@ -148,6 +151,7 @@ other desktop content.
 | [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | Experimental |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
+| [Kobo Forma](docs/kobo-forma.md) | Forma | E80K02 | Stock UI, offline sideloaded mode |
 
 Additional documentation covers [firmware setup](docs/firmware.md),
 [guest compatibility changes](docs/guest-overrides.md),
