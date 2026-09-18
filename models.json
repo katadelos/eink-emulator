@@ -650,5 +650,29 @@
         "recoveryfs.img"
       ]
     }
+  },
+  "kobo-elipsa-2e": {
+    "description": "Kobo Elipsa 2E",
+    "qemu_machine": "mt8113-kobo-elipsa2e",
+    "qemu_arch": "aarch64",
+    "memory": "1G",
+    "builder": "elipsa2e",
+    "drive_index": 0,
+    "network": "none",
+    "idme_fields": [],
+    "firmware": {
+      "bootloader": ["u-boot-mtk-fit.bin"],
+      "boot_region": ["boot-region.img"],
+      "bl2": ["mmcblk0p1.img"],
+      "nvram": ["mmcblk0p3.img"],
+      "boot_image": ["boot.img"],
+      "tee": ["tee.img"],
+      "hwcfg": ["mmcblk0p6.img"],
+      "ntxfw": ["mmcblk0p7.img"],
+      "waveform": ["mmcblk0p8.img"],
+      "vendor": ["mmcblk0p9.img"],
+      "rootfs": ["mmcblk0p10.img"],
+      "recoveryfs": ["mmcblk0p11.img"]
+    }
   }
 }

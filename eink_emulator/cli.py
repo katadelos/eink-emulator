@@ -176,8 +176,8 @@ def machine_directory(name: str) -> Path:
 def command_create(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     if args.sideloaded:
-        if definition["builder"] != "forma":
-            fail("--sideloaded is only supported by Kobo Forma")
+        if definition["builder"] not in {"forma", "elipsa2e"}:
+            fail("--sideloaded is only supported by Kobo Forma and Elipsa 2E")
         definition["sideloaded"] = True
     identity = parse_identity(args.idme, definition)
     profile = parse_profile(args.profile, definition)
@@ -610,7 +610,7 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--profile", help="hardware profile; required for models that expose profiles")
     create.add_argument(
         "--sideloaded", action="store_true",
-        help="initialize Kobo Forma in offline sideloaded mode, skipping setup",
+        help="initialize Kobo Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
     )
     create.add_argument("--idme", action="append", default=[], metavar="FIELD=VALUE", help="instance identity field; repeat for every field required by the model")
     create.set_defaults(handler=command_create)
