@@ -627,5 +627,28 @@
         "waveform.img"
       ]
     }
+  },
+  "kobo-forma": {
+    "description": "Kobo Forma",
+    "qemu_machine": "imx6sll-kobo-forma",
+    "memory": "512M",
+    "builder": "forma",
+    "drive_index": 0,
+    "network": "none",
+    "idme_fields": [],
+    "firmware": {
+      "bootloader": [
+        "u-boot.imx"
+      ],
+      "boot_region": [
+        "boot-region.img"
+      ],
+      "rootfs": [
+        "rootfs.img"
+      ],
+      "recoveryfs": [
+        "recoveryfs.img"
+      ]
+    }
   }
 }
