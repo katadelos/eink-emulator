@@ -1,0 +1,17 @@
+#!/bin/sh
+# Opt in through U-Boot's kernel command line; initialize once per userstore.
+case " $(cat /proc/cmdline) " in
+    *' eink.sideloaded=1 '*) ;;
+    *) exit 0 ;;
+esac
+config='/mnt/onboard/.kobo/Kobo/Kobo eReader.conf'
+[ -e "$config" ] && exit 0
+mkdir -p "$(dirname "$config")"
+cat > "$config" <<'CONFIG'
+[ApplicationPreferences]
+SideloadedMode=true
+CurrentLocale=en_US
+
+[DeveloperSettings]
+EnableDebugServices=true
+CONFIG

@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    bellatrix, bellatrix3, celeste, heisenberg, mt8115, rex, rootfs,
+    bellatrix, bellatrix3, celeste, forma, heisenberg, mt8115, rex, rootfs,
     tequila, wario, whitney,
 )
 
@@ -22,7 +22,9 @@ def build_raw_image(
     builder = definition["builder"]
     if builder == "disk-copy":
         return artifacts["disk"]
-    if builder == "bellatrix":
+    if builder == "forma":
+        forma.build(output, artifacts, sideloaded=definition.get("sideloaded", False))
+    elif builder == "bellatrix":
         prepared = output.with_name("prepared-rootfs.img")
         board = definition["machine_properties"]["board"]
         rootfs.prepare_bellatrix(
