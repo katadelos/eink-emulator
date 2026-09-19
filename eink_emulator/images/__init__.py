@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, mt8115, oasis,
+    bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kt4, mt8115, oasis,
     rex, rootfs, tequila, wario, whitney,
 )
 
@@ -68,6 +68,10 @@ def build_raw_image(
             diagnostics=artifacts.get("diagnostics"),
             waveform_store=artifacts.get("waveform_store"),
         )
+    elif builder == "jaeger":
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_kt4(artifacts["rootfs"], prepared)
+        kt4.build(output, boot_image=artifacts["boot_image"], rootfs_image=prepared)
     elif builder in {"oasis-duet", "oasis-zelda"}:
         prepared = output.with_name("prepared-rootfs.img")
         rootfs.prepare_oasis(artifacts["rootfs"], prepared, wifi=builder == "oasis-duet")
