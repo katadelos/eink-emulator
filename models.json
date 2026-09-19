@@ -144,6 +144,63 @@
       "waveform_store": ["waveform.img"]
     }
   },
+  "kindle-oasis-1": {
+    "description": "Kindle Oasis 1",
+    "qemu_machine": "imx6sl-duet",
+    "memory": "512M",
+    "builder": "oasis-duet",
+    "rootfs_overrides": ["oasis"],
+    "drive_index": 1,
+    "network": "bcm4343w",
+    "idme_fields": [],
+    "machine_firmware_properties": {
+      "storage-bios": "storage_bios",
+      "falcon-bios": "falcon_bios"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "storage_bios": ["s-bios.bin"],
+      "falcon_bios": ["bios.bin"]
+    },
+    "recovery_import": {
+      "bootloader": "imx60_duet/u-boot.bin",
+      "kernel": "imx60_duet/uImage",
+      "rootfs": "rootfs.img.gz",
+      "storage_bios": "imx60_duet/s-bios.bin",
+      "falcon_bios": "imx60_duet/bios.bin"
+    }
+  },
+  "kindle-oasis-2": {
+    "description": "Kindle Oasis 2",
+    "qemu_machine": "imx7d-zelda",
+    "accel": "tcg,thread=multi",
+    "memory": "512M",
+    "builder": "oasis-zelda",
+    "rootfs_overrides": ["oasis"],
+    "drive_index": 2,
+    "network": "none",
+    "idme_fields": [],
+    "machine_firmware_properties": {
+      "storage-bios": "storage_bios",
+      "falcon-bios": "falcon_bios"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "storage_bios": ["s-bios.bin"],
+      "falcon_bios": ["bios.bin"]
+    },
+    "recovery_import": {
+      "bootloader": "imx7d_zelda/u-boot.bin",
+      "boot_image": "imx7d_zelda/boot.img",
+      "rootfs": "rootfs.img.gz",
+      "storage_bios": "imx7d_zelda/s-bios.bin",
+      "falcon_bios": "imx7d_zelda/bios.bin"
+    }
+  },
   "kindle-voyage": {
     "description": "Kindle Voyage",
     "qemu_machine": "imx6sl-wario",

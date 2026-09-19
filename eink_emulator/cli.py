@@ -347,6 +347,11 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             "-netdev", f"user,id=wifi,hostfwd=tcp:127.0.0.1:{ssh_port}-:22",
             "-global", "ar6003-sdio.netdev=wifi",
         ])
+    elif definition.get("network") == "bcm4343w":
+        command.extend([
+            "-netdev", "user,id=wifi",
+            "-global", "bcm4343w-sdio.netdev=wifi",
+        ])
     elif definition.get("network") == "mtu3_g_ether":
         if definition.get("network_service") == "telnet":
             forwarded_port = port(args.telnet_port)
