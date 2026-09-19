@@ -72,6 +72,14 @@ has 512 MiB and local settings have 64 MiB; userstore fills the remaining
 space. The emulated eMMC boot areas hold vendor BIOS and synthetic IDME
 separately from the user-area GPT.
 
+## KOA3 partitions
+
+[KOA3](koa3.md) uses a sparse 2 GiB disk. Stinger retains the Zelda platform's
+system p5, local settings p6 and userstore p7, as well as its absolute
+hibernation and key regions. The stock rootfs has 512 MiB and local settings
+have 64 MiB; userstore fills the remaining space. The emulated eMMC boot areas
+hold vendor BIOS and synthetic IDME separately from the user-area GPT.
+
 ## Inventory and backups
 
 `./eink list` shows the instances and whether their disks and bases exist.

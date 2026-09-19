@@ -147,6 +147,7 @@ other desktop content.
 | [Kindle Oasis 2](docs/oasis.md) | KOA2 | Cognac / Zelda | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | [KT4](docs/kt4.md) | KT4 | Jaeger | |
+| [KOA3](docs/koa3.md) | KOA3 | Stinger | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
 | [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
 | Kindle Basic 6 (2024) | KT6 | Rossini | |

@@ -11,6 +11,7 @@ under `guest-overrides/`.
 | Basic (2016) | Heisenberg service and offline-mode fixes |
 | [Oasis 1 and 2](oasis.md) | Offline setup, keeps the screen awake, serial console |
 | [KT4](kt4.md) | Locale, setup, wake and serial console |
+| [KOA3](koa3.md) | Locale, setup, wake and serial console |
 | Paperwhite 1, Kindle Touch | Wake and optional text-to-speech fixes |
 | Paperwhite 4 | Wake, first-boot, locale and service fixes |
 | Basic 5 and 6, Colorsoft, Paperwhite 6 | Bellatrix startup and service fixes |
