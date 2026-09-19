@@ -1,10 +1,13 @@
-# E-ink emulator
+<div align="center">
+  <h1>E-ink emulator</h1>
+  <i>Run virtual Kindle and Kobo e-readers in QEMU!</i>
+  <img src="images/header.png" alt="E-ink emulator">
+</div>
 
-Run Kindle and Kobo firmware in QEMU, with a persistent disk for each
-emulated device. Firmware and generated disk images stay outside Git.
 
-No firmware, device dumps, account data, or physical-device identity values
-are distributed here. This project is not affiliated with Amazon or Rakuten
+Run Kindle and Kobo firmware in QEMU with a persistent disk for each emulated device.
+
+No firmware, device dumps, account data, or physical-device identity values are distributed here. This project is not affiliated with Amazon or Rakuten
 Kobo.
 
 ## Quick start
