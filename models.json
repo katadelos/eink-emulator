@@ -265,6 +265,35 @@
       "rootfs": "rootfs.img.gz"
     }
   },
+  "kindle-kt4": {
+    "description": "Kindle KT4",
+    "qemu_machine": "imx6sll-jaeger",
+    "memory": "512M",
+    "builder": "jaeger",
+    "rootfs_package": "com.lab126.eink.jaeger.os",
+    "rootfs_overrides": ["oasis", "rex", "bellatrix"],
+    "drive_index": 1,
+    "network": "bcm4343w",
+    "idme_fields": [],
+    "machine_firmware_properties": {
+      "storage-bios": "storage_bios",
+      "falcon-bios": "falcon_bios"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "storage_bios": ["s-bios.bin"],
+      "falcon_bios": ["bios.bin"]
+    },
+    "recovery_import": {
+      "bootloader": "imx6sll_rex/u-boot.bin",
+      "boot_image": "imx6sll_rex/boot.img",
+      "rootfs": "rootfs.img.gz",
+      "storage_bios": "imx6sll_rex/s-bios.bin",
+      "falcon_bios": "imx6sll_rex/bios.bin"
+    }
+  },
   "kindle-paperwhite-1": {
     "description": "Kindle Paperwhite 1",
     "qemu_machine": "imx50-celeste",
