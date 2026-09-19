@@ -323,6 +323,23 @@ def prepare_kt4(source: Path, output: Path) -> None:
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
 
 
+def prepare_koa3(source: Path, output: Path) -> None:
+    copy_source(source, output, maximum_size=512 * 1024**2)
+    install_overrides(image=output, group="oasis", replacements={
+        "/etc/upstart/console.conf": ("console.conf", "0100644"),
+        "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
+        "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
+        "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
+    })
+    install_overrides(image=output, group="rex", replacements={
+        "/etc/upstart/qemu-seed-locale.conf": ("qemu-seed-locale.conf", "0100644"),
+    })
+    install_overrides(image=output, group="bellatrix", replacements={
+        "/etc/upstart/qemu-skip-oobe.conf": ("qemu-skip-oobe.conf", "0100644"),
+    })
+    transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+
+
 def prepare_oasis(source: Path, output: Path, *, wifi: bool) -> None:
     copy_source(source, output)
     install_overrides(image=output, group="oasis", replacements={

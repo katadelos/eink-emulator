@@ -72,6 +72,10 @@ def build_raw_image(
         prepared = output.with_name("prepared-rootfs.img")
         rootfs.prepare_kt4(artifacts["rootfs"], prepared)
         kt4.build(output, boot_image=artifacts["boot_image"], rootfs_image=prepared)
+    elif builder == "stinger":
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_koa3(artifacts["rootfs"], prepared)
+        oasis.build_zelda(output, boot_image=artifacts["boot_image"], rootfs=prepared)
     elif builder in {"oasis-duet", "oasis-zelda"}:
         prepared = output.with_name("prepared-rootfs.img")
         rootfs.prepare_oasis(artifacts["rootfs"], prepared, wifi=builder == "oasis-duet")
