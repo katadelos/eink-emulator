@@ -64,6 +64,14 @@ the same size, keeping its AVB footer at the partition boundary. Both use a
 fresh ext4 userstore. On all four Scribes, the userstore filesystem starts
 8 KiB into its partition, as expected by the guest's loop device.
 
+## KT4 partitions
+
+[KT4](kt4.md) uses a sparse 2 GiB disk. Jaeger retains rootfs p8, varlocal p9
+and userstore p10, plus its keys and hibernation partitions. The stock rootfs
+has 512 MiB and local settings have 64 MiB; userstore fills the remaining
+space. The emulated eMMC boot areas hold vendor BIOS and synthetic IDME
+separately from the user-area GPT.
+
 ## Inventory and backups
 
 `./eink list` shows the instances and whether their disks and bases exist.

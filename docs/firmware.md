@@ -196,6 +196,20 @@ layout, decompresses `rootfs.img.gz`, and installs `u-boot.bin`, `uImage`, and
 `rootfs.img` under `firmware/kindle-basic-2016/`. It refuses to overwrite an
 existing firmware directory.
 
+## KT4 recovery package
+
+[KT4](kt4.md) imports its 5.18.1.1.1 recovery package directly:
+
+```sh
+./eink import /path/to/update_kindle_10th_5.18.1.1.1.bin --model kindle-kt4
+```
+
+The package contains the `imx6sll_rex` boot platform. Import checks the rootfs
+identity `com.lab126.eink.jaeger.os`, then installs stock U-Boot, `boot.img`,
+rootfs, storage BIOS and Falcon BIOS under `firmware/kindle-kt4/`. The emulator
+selects the Jaeger board. Matching Wi-Fi firmware and NVRAM are already in the
+rootfs; no separate radio download is needed.
+
 ## Kindle Oasis recovery packages
 
 Download the matching Oasis update from
@@ -228,7 +242,7 @@ The exact required set is validated before any image is built. Kobo Touch
 rejects identity fields because that platform does not use them.
 
 The same six identity fields shown above apply to Kindle Basic (2016).
-Bellatrix models, Oasis 1 and 2, and all four Scribes do not require
+Bellatrix models, Oasis 1 and 2, KT4, and all four Scribes do not require
 `--idme` fields.
 Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
 and `sec`. An empty value is accepted when that is what the source device
