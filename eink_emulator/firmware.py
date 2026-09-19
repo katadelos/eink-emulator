@@ -77,8 +77,22 @@ def import_recovery(
                 role: destination / required[role][0] for role in rootfs_extract
             })
 
+        if expected_package := definition.get("rootfs_package"):
+            validate_rootfs_package(prepared / required["rootfs"][0], expected_package)
+
         prepared.replace(destination)
     return installed
+
+
+def validate_rootfs_package(image: Path, expected: str) -> None:
+    """Distinguish retail boards that share a recovery platform directory."""
+    from .images.rootfs import run
+
+    with tempfile.TemporaryDirectory(prefix="eink-firmware-identity-") as temporary:
+        version = Path(temporary) / "version.txt"
+        run(image, f"dump /etc/version.txt {version}")
+        if not version.is_file() or expected not in version.read_text().splitlines():
+            raise SystemExit(f"firmware rootfs does not identify the selected board ({expected})")
 
 
 def extract_rootfs_firmware(directory: Path, definition: dict[str, Any]) -> None:
