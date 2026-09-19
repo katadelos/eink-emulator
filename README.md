@@ -12,14 +12,18 @@ Kobo.
 
 ## Quick start
 
-Clone with submodules and inspect the supported models:
+Clone and inspect the supported models:
 
 ```sh
-git clone --recurse-submodules git@github.com:katadelos/eink-emulator.git
+git clone git@github.com:katadelos/eink-emulator.git
 cd eink-emulator
 ./eink models
 ./eink firmware
 ```
+
+The first command that needs QEMU initializes the QEMU checkout and fetches
+its pinned SLIRP fallback. QEMU's unrelated firmware and test submodules are
+not needed.
 
 Use `./eink firmware` to find the files needed for your model. Some Kindles
 also need device identity fields when you create an instance. For example,
