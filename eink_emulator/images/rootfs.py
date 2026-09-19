@@ -306,6 +306,28 @@ def prepare_heisenberg(source: Path, output: Path) -> None:
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
 
 
+def prepare_oasis(source: Path, output: Path, *, wifi: bool) -> None:
+    copy_source(source, output)
+    install_overrides(image=output, group="oasis", replacements={
+        "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
+        "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
+        "/etc/upstart/console.conf": ("console.conf", "0100644"),
+        "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
+        "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
+    })
+    install_overrides(image=output, group="oasis", replacements={
+        "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
+        "/etc/upstart/testd.conf": ("qemu-disabled-service.conf", "0100644"),
+    })
+    if not wifi:
+        install_overrides(image=output, group="oasis", replacements={
+            "/etc/upstart/qemu-oasis-offline.conf": ("qemu-oasis-offline.conf", "0100644"),
+            "/etc/upstart/wifid.conf": ("qemu-disabled-service.conf", "0100644"),
+            "/etc/upstart/wifim.conf": ("qemu-disabled-service.conf", "0100644"),
+        })
+    transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+
+
 def prepare_whitney(source: Path, output: Path, *, maximum_size: int) -> None:
     copy_source(source, output, maximum_size=maximum_size)
     transform_file(

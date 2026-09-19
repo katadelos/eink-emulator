@@ -15,6 +15,13 @@ USER_AREA_OFFSET = 0
 KERNEL_OFFSET = 0x41000
 DIAGS_KERNEL_OFFSET = 0xE41000
 PARTITION_LAYOUTS = {
+    # Duet retains the stock system offsets, with a 2 GiB virtual eMMC.
+    "duet": (
+        (65536, 921600, 0x83, True),
+        (987136, 131072, 0x83, False),
+        (1118208, 131072, 0x83, False),
+        (1249280, 2945024, 0x0B, False),
+    ),
     "wario": (
     (65536, 921600, 0x83, True),
     (987136, 131072, 0x83, False),
@@ -201,6 +208,7 @@ def write_userstore(disk, output_offset: int, sectors: int,
     sectors_per_cluster = 16
     fat_count = 2
     geometry = {
+        2945024: (5322, 1435),
         6385664: (2134, 3115),
         6688768: (4002, 3263),
     }
@@ -526,7 +534,7 @@ def build(
             userstore,
         )
 
-        user_size = USER_AREA_SECTORS * SECTOR_SIZE
+        user_size = (4194304 if layout == "duet" else USER_AREA_SECTORS) * SECTOR_SIZE
         disk_size = USER_AREA_OFFSET + user_size
         disk.truncate(disk_size)
 
