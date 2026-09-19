@@ -9,6 +9,7 @@ under `guest-overrides/`.
 | --- | --- |
 | Basic (2014), Paperwhite 2 and 3, Voyage | Wario service, keyboard, wake and suspend fixes |
 | Basic (2016) | Heisenberg service and offline-mode fixes |
+| [Oasis 1 and 2](oasis.md) | Offline setup, keeps the screen awake, serial console |
 | Paperwhite 1, Kindle Touch | Wake and optional text-to-speech fixes |
 | Paperwhite 4 | Wake, first-boot, locale and service fixes |
 | Basic 5 and 6, Colorsoft, Paperwhite 6 | Bellatrix startup and service fixes |

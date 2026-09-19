@@ -19,6 +19,9 @@ QCOW2 overlay and uses more host space as the guest writes to it.
 Changes to firmware or image-building code produce a new base. Existing
 instances keep using the base they were created with.
 
+[Oasis 1 and 2](oasis.md) each have 2 GiB of virtual storage. Their disk
+files grow as needed rather than reserving the full amount on your Mac.
+
 ## Console sockets
 
 `./eink run NAME --qmp-socket` creates the QMP socket. `--serial-socket`

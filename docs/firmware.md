@@ -126,6 +126,10 @@ diagnostics kernel, and diagnostics partition files use the same names for
 Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo
 Touch does not use a panel-flash artifact.
 
+For Kobo Mini and Kobo Touch, `u-boot.bin` is passed directly to QEMU as
+the BIOS and `sd.img` is the complete internal-card image, including its
+raw boot area, rootfs, recoveryfs, and userstore.
+
 [Kobo Forma](kobo-forma.md) uses its live boot-region and partition dumps
 with the U-Boot image from a Forma firmware update. Its builder preserves
 the boot offsets and creates a fresh userstore within a 2 GiB eMMC image.
@@ -192,9 +196,18 @@ layout, decompresses `rootfs.img.gz`, and installs `u-boot.bin`, `uImage`, and
 `rootfs.img` under `firmware/kindle-basic-2016/`. It refuses to overwrite an
 existing firmware directory.
 
-For both Kobo models, `u-boot.bin` is passed directly to QEMU as the BIOS and
-`sd.img` is the complete internal-card image, including its raw boot area,
-rootfs, recoveryfs, and userstore.
+## Kindle Oasis recovery packages
+
+Download the matching Oasis update from
+[Amazon](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW),
+then import it with KindleTool installed:
+
+```sh
+./eink import /path/to/update_kindle_oasis_5.16.2.1.1.bin --model kindle-oasis-1
+./eink import /path/to/update_kindle_all_new_oasis_5.16.2.1.1.bin --model kindle-oasis-2
+```
+
+See [Oasis setup](oasis.md) to create and run your emulator.
 
 ## Instance identity
 
@@ -215,8 +228,8 @@ The exact required set is validated before any image is built. Kobo Touch
 rejects identity fields because that platform does not use them.
 
 The same six identity fields shown above apply to Kindle Basic (2016).
-Bellatrix models and all four Scribes use identities supplied by QEMU and
-do not accept `--idme` fields.
+Bellatrix models, Oasis 1 and 2, and all four Scribes do not require
+`--idme` fields.
 Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
 and `sec`. An empty value is accepted when that is what the source device
 reports.

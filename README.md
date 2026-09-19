@@ -143,6 +143,8 @@ other desktop content.
 | Kindle Voyage | KV | Icewine | |
 | Kindle Paperwhite 3 | PW3 | Muscat | |
 | Kindle Basic 2 (2016) | KT3 | Eanab | |
+| [Kindle Oasis 1](docs/oasis.md) | KOA1 | Whisky / Duet | |
+| [Kindle Oasis 2](docs/oasis.md) | KOA2 | Cognac / Zelda | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
 | [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
