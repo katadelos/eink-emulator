@@ -18,7 +18,7 @@ KindleTool and e2fsprogs. Replace `/path/to/` with your download location:
 ```
 
 `create` builds QEMU if needed and prepares the instance. Only the
-`production` profile is supported; device identity fields are not required.
+`production` profile is supported; QEMU supplies a synthetic device identity.
 Import and create are only needed once. To reopen the saved emulator, run
 `./eink run pw5`.
 

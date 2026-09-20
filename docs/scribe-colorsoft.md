@@ -17,7 +17,7 @@ Install KindleTool and e2fsprogs, then import a recovery package:
 ```
 
 Profiles are `production` (DVT), `dvt`, `evt` and `hvt1.1`. QEMU supplies
-the board identity, so `--idme` fields are not needed.
+the board identity.
 
 Serial opens in the launching terminal. Use `--serial-socket` to redirect
 it to the instance's Unix socket and log file.

@@ -8,7 +8,6 @@
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
@@ -49,7 +48,6 @@
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production"],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
@@ -91,7 +89,6 @@
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
@@ -132,7 +129,6 @@
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
@@ -164,7 +160,6 @@
     "drive_index": 0,
     "network": "none",
     "device_profiles": ["production", "dvt", "evt", "hvt1.1", "hvt", "proto"],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
     "machine_properties": {
@@ -194,7 +189,6 @@
     "rootfs_overrides": ["oasis"],
     "drive_index": 1,
     "network": "bcm4343w",
-    "idme_fields": [],
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -223,7 +217,6 @@
     "rootfs_overrides": ["oasis"],
     "drive_index": 2,
     "network": "none",
-    "idme_fields": [],
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -253,7 +246,6 @@
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 2,
     "network": "bcm4343w",
-    "idme_fields": [],
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -282,7 +274,6 @@
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -304,7 +295,6 @@
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -325,7 +315,6 @@
     "rootfs_overrides": ["heisenberg"],
     "drive_index": 1,
     "network": "none",
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -346,7 +335,6 @@
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 1,
     "network": "bcm4343w",
-    "idme_fields": [],
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -374,7 +362,6 @@
     "rootfs_overrides": ["celeste"],
     "drive_index": 0,
     "network": "wifi",
-    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -391,7 +378,6 @@
     "wario_layout": "pinot",
     "drive_index": 1,
     "network": "wifi",
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -413,7 +399,6 @@
     "wario_layout": "wario",
     "drive_index": 1,
     "network": "wifi",
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -434,7 +419,6 @@
     "drive_index": 1,
     "network": "wifi",
     "device_profiles": ["production", "dvt"],
-    "idme_fields": ["serial", "mac", "mfg", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "boot_image": ["boot.img"],
@@ -452,7 +436,6 @@
     "builder": "tequila",
     "drive_index": 0,
     "network": "wifi",
-    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -467,7 +450,6 @@
     "builder": "whitney",
     "drive_index": 0,
     "network": "wifi",
-    "idme_fields": ["serial", "accel", "mac", "sec", "pcbsn", "bootmode", "postmode"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -482,7 +464,6 @@
     "builder": "disk-copy",
     "drive_index": 0,
     "network": "none",
-    "idme_fields": [],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
@@ -495,7 +476,6 @@
     "builder": "disk-copy",
     "drive_index": 0,
     "network": "none",
-    "idme_fields": [],
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
@@ -518,7 +498,6 @@
       "hvt-a",
       "proto"
     ],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
     "machine_properties": {
@@ -581,7 +560,6 @@
       "production",
       "dvt"
     ],
-    "idme_fields": [],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
     "machine_properties": {
@@ -659,7 +637,6 @@
     "builder": "mt8115",
     "image_platform": "platpa6",
     "drive_index": 0,
-    "idme_fields": [],
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
@@ -736,7 +713,6 @@
     "builder": "mt8115",
     "image_platform": "platcs8",
     "drive_index": 0,
-    "idme_fields": [],
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
@@ -793,7 +769,6 @@
     "builder": "forma",
     "drive_index": 0,
     "network": "none",
-    "idme_fields": [],
     "firmware": {
       "bootloader": [
         "u-boot.imx"
@@ -817,7 +792,6 @@
     "builder": "elipsa2e",
     "drive_index": 0,
     "network": "none",
-    "idme_fields": [],
     "firmware": {
       "bootloader": ["u-boot-mtk-fit.bin"],
       "boot_region": ["boot-region.img"],

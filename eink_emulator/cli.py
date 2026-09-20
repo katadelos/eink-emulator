@@ -179,7 +179,6 @@ def command_create(args: argparse.Namespace) -> None:
         if definition["builder"] not in {"forma", "elipsa2e"}:
             fail("--sideloaded is only supported by Kobo Forma and Elipsa 2E")
         definition["sideloaded"] = True
-    identity = parse_identity(args.idme, definition)
     profile = parse_profile(args.profile, definition)
     artifacts = firmware_for(args.model, definition)
     target = machine_directory(args.name)
@@ -199,7 +198,6 @@ def command_create(args: argparse.Namespace) -> None:
             "created": datetime.now(timezone.utc).isoformat(),
             "firmware_fingerprint": fingerprint,
             "format": 1,
-            "idme": identity,
             "model": args.model,
             "name": args.name,
         }
@@ -232,27 +230,6 @@ def port(value: int) -> int:
     return value
 
 
-def parse_identity(values: list[str], definition: dict[str, Any]) -> dict[str, str]:
-    required = definition.get("idme_fields", [])
-    supplied: dict[str, str] = {}
-    for item in values:
-        if "=" not in item:
-            fail(f"invalid --idme value '{item}'; expected FIELD=VALUE")
-        field, value = item.split("=", 1)
-        if field not in required:
-            allowed = ", ".join(required) if required else "none for this model"
-            fail(f"unsupported identity field '{field}' (allowed: {allowed})")
-        if field in supplied:
-            fail(f"identity field supplied more than once: {field}")
-        if not value.isascii() or "," in value:
-            fail(f"identity field '{field}' must be ASCII and cannot contain a comma")
-        supplied[field] = value
-    missing = [field for field in required if field not in supplied]
-    if missing:
-        fail("missing required identity fields: " + ", ".join(missing) + "\nSupply each one as --idme FIELD=VALUE.")
-    return supplied
-
-
 def parse_profile(value: str | None, definition: dict[str, Any]) -> str | None:
     supported = definition.get("device_profiles", [])
     if not supported:
@@ -274,10 +251,6 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     disk = directory / "disk.qcow2"
     if not disk.is_file():
         fail(f"machine disk is missing: {disk}")
-    identity = manifest.get("idme", {})
-    required_identity = definition.get("idme_fields", [])
-    if not isinstance(identity, dict) or sorted(identity) != sorted(required_identity):
-        fail(f"machine identity is incomplete: {args.name}")
     machine_options = [definition["qemu_machine"]]
     machine_options.extend(
         f"{property_name}={value}"
@@ -293,7 +266,6 @@ def launch_command(args: argparse.Namespace) -> list[str]:
                 f"model catalogue maps machine property '{property_name}' "
                 f"to missing firmware role '{artifact_role}'"
             )
-    machine_options.extend(f"idme-{field}={identity[field]}" for field in required_identity)
     supported_profiles = definition.get("device_profiles", [])
     if supported_profiles:
         profile = manifest.get("profile")
@@ -555,12 +527,11 @@ def command_models(_: argparse.Namespace) -> None:
         (
             name,
             value["description"],
-            "yes" if value.get("idme_fields") else "no",
             " | ".join(value.get("device_profiles", [])) or "-",
         )
         for name, value in sorted(load_catalogue().items())
     ]
-    print_table(("MODEL", "DEVICE", "IDENTITY REQUIRED", "PROFILES"), rows)
+    print_table(("MODEL", "DEVICE", "PROFILES"), rows)
 
 
 def command_firmware(_: argparse.Namespace) -> None:
@@ -617,7 +588,6 @@ def parser() -> argparse.ArgumentParser:
         "--sideloaded", action="store_true",
         help="initialize Kobo Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
     )
-    create.add_argument("--idme", action="append", default=[], metavar="FIELD=VALUE", help="instance identity field; repeat for every field required by the model")
     create.set_defaults(handler=command_create)
 
     run = commands.add_parser("run", help="launch a persistent machine")

@@ -15,8 +15,7 @@ Install KindleTool and e2fsprogs, then import a recovery package:
 ```
 
 Profiles are `production` (DVT), `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`
-and `proto` (Proto2). QEMU supplies the board identity, so `--idme` fields
-are not needed.
+and `proto` (Proto2). QEMU supplies the board identity.
 
 The importer saves the boot images and decompressed rootfs in
 `firmware/kindle-scribe-1`. Images use the original kernel and device tree.

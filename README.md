@@ -25,24 +25,17 @@ The first command that needs QEMU initializes the QEMU checkout and fetches
 its pinned SLIRP fallback. QEMU's unrelated firmware and test submodules are
 not needed.
 
-Use `./eink firmware` to find the files needed for your model. Some Kindles
-also need device identity fields when you create an instance. For example,
-to create a Voyage:
+Use `./eink firmware` to find the files needed for your model. QEMU provides
+synthetic device identity defaults, so creating a Voyage needs no identity
+configuration:
 
 ```sh
-./eink create my-reader --model kindle-voyage \
-  --idme serial='<value>' \
-  --idme mac='<value>' \
-  --idme mfg='<value>' \
-  --idme pcbsn='<value>' \
-  --idme bootmode='<value>' \
-  --idme postmode='<value>'
-
+./eink create my-reader --model kindle-voyage
 ./eink run my-reader
 ```
 
-The Scribes use built-in virtual identities and require a hardware profile.
-Import a recovery package, then create an instance:
+The Scribes also require a hardware profile. Import a recovery package, then
+create an instance:
 
 ```sh
 ./eink import /path/to/update.bin --model kindle-scribe-1
@@ -50,7 +43,7 @@ Import a recovery package, then create an instance:
 ./eink run my-scribe
 ```
 
-Kobo devices do not use identity fields:
+Create Kobo devices the same way:
 
 ```sh
 ./eink create my-kobo --model kobo-touch
@@ -97,7 +90,7 @@ For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
 ```sh
 # Bootloader development
 ./eink qemu -- \
-  -machine imx6sl-wario,idme-serial='<value>',idme-mac='<value>' \
+  -machine imx6sl-wario \
   -m 512M \
   -bios path/to/u-boot.bin \
   -serial mon:stdio \
@@ -105,7 +98,7 @@ For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
 
 # Direct kernel boot
 ./eink qemu -- \
-  -machine imx6sl-wario,idme-serial='<value>',idme-mac='<value>' \
+  -machine imx6sl-wario \
   -m 512M \
   -kernel path/to/uImage \
   -append '<kernel command line>' \
@@ -114,7 +107,7 @@ For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
 
 # Eanab bootloader development
 ./eink qemu -- \
-  -machine imx6sl-eanab,idme-serial='<value>',idme-mac='<value>' \
+  -machine imx6sl-eanab \
   -m 512M \
   -bios path/to/u-boot.bin \
   -serial mon:stdio \
@@ -123,6 +116,9 @@ For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
 
 These commands run QEMU directly. Supply any disk images and machine
 properties yourself; `eink qemu` does not create or load a saved instance.
+Kindle machines use synthetic IDME defaults. Override one when needed with
+QEMU's existing flags, such as `-idme-serial VALUE` or `-idme-mac VALUE`.
+The same flags can follow `--` on `eink run`.
 
 ## Taking a screenshot
 

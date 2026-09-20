@@ -241,35 +241,22 @@ then import it with KindleTool installed:
 
 See [Oasis setup](oasis.md) to create and run your emulator.
 
-## Instance identity
+## QEMU device identity
 
-Older Kindle models require identity fields from the source device when
-creating an instance:
+Kindle QEMU machines provide synthetic IDME defaults. Instance creation does
+not request or store device identity. To override a default for a particular
+run, pass QEMU's existing `-idme-*` flags after `--`:
 
 ```sh
-./eink create NAME --model MODEL \
-  --idme serial='<value>' \
-  --idme mac='<value>' \
-  --idme mfg='<value>' \
-  --idme pcbsn='<value>' \
-  --idme bootmode='<value>' \
-  --idme postmode='<value>'
+./eink run NAME -- -idme-serial '<value>' -idme-mac '<value>'
 ```
 
-The exact required set is validated before any image is built. Kobo Touch
-rejects identity fields because that platform does not use them.
+Available flags include `-idme-serial`, `-idme-accel`, `-idme-mac`,
+`-idme-mfg`, `-idme-sec`, `-idme-pcbsn`, `-idme-bootmode`, and
+`-idme-postmode`; support varies by QEMU machine. These overrides populate
+the emulated volatile eMMC boot partition and do not change the saved disk.
 
-The same six identity fields shown above apply to Kindle Basic (2016).
-Bellatrix models, Oasis 1–3, KT4, and all four Scribes do not require
-`--idme` fields.
-Kindle Paperwhite 1, Kindle 4, and Kindle Touch additionally require `accel`
-and `sec`. An empty value is accepted when that is what the source device
-reports.
-
-Identity values are stored in `machines/NAME/machine.json`, which is ignored
-by Git. Do not publish machine directories.
-
-Paperwhite 4 / Rex also requires either `--profile production` or `--profile
+Paperwhite 4 / Rex requires either `--profile production` or `--profile
 dvt` at instance creation. The profile is stored with the instance and passed
 to QEMU on every launch.
 

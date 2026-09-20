@@ -15,7 +15,7 @@ Install KindleTool and e2fsprogs, then import a recovery package:
 ```
 
 Profiles are `production` and `dvt`; both select the DVT hardware. QEMU
-supplies the board identity, so `--idme` fields are not needed.
+supplies the board identity.
 
 Firmware is stored in `firmware/kindle-scribe-2`. Images use the original
 kernel and device tree. Stock SBIOS storage requests can time out when the
