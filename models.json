@@ -17,7 +17,8 @@
     "machine_firmware_properties": {
       "bl2": "bl2",
       "tee": "tee",
-      "quickboot": "quickboot"
+      "quickboot": "quickboot",
+      "aux-firmware": "aux_firmware"
     },
     "firmware": {
       "bootloader": ["u-boot.bin"],
@@ -120,6 +121,110 @@
       "rootfs": "rootfs.img.gz"
     }
   },
+  "kindle-scribe-colorsoft": {
+    "description": "Kindle Scribe Colorsoft",
+    "recovery_import": {
+      "bootloader": "boot_images/u-boot.bin",
+      "bl2": "boot_images/bl2.img",
+      "tee": "boot_images/tee.img",
+      "quickboot": "boot_images/quickboot.img",
+      "boot_image": "boot_images/boot.img",
+      "aux_firmware": "boot_images/firmware.img",
+      "rootfs": "rootfs.img.gz"
+    },
+    "rootfs_extract": {
+      "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_cp5d.bin",
+      "consys_firmware": "/lib/firmware/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
+    },
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8115-pa6-cs8",
+    "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
+    "memory": "4G",
+    "builder": "mt8115",
+    "image_platform": "platcs8",
+    "drive_index": 0,
+    "accel": "tcg",
+    "allow_reboot": false,
+    "machine_properties": {
+      "touch-controller": "focaltech",
+      "board": "calvados"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot",
+      "aux-firmware": "aux_firmware",
+      "touch-firmware": "touch_firmware",
+      "consys-firmware": "consys_firmware"
+    },
+    "firmware": {
+      "touch_firmware": ["peripherals/focaltech_ts_fw_cp5d.bin"],
+      "consys_firmware": ["peripherals/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"],
+      "bootloader": ["boot_images/u-boot.bin"],
+      "bl2": ["boot_images/bl2.img"],
+      "tee": ["boot_images/tee.img"],
+      "quickboot": ["boot_images/quickboot.img"],
+      "boot_image": ["boot_images/boot.img"],
+      "aux_firmware": ["boot_images/firmware.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "waveform_store": ["waveform.img"]
+    },
+    "network": "mtu3_g_ether",
+    "network_device": "mtu3"
+  },
+  "kindle-scribe-3": {
+    "description": "Kindle Scribe 3",
+    "recovery_import": {
+      "bootloader": "boot_images/u-boot.bin",
+      "bl2": "boot_images/bl2.img",
+      "tee": "boot_images/tee.img",
+      "quickboot": "boot_images/quickboot.img",
+      "boot_image": "boot_images/boot.img",
+      "aux_firmware": "boot_images/firmware.img",
+      "rootfs": "rootfs.img.gz"
+    },
+    "rootfs_extract": {
+      "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_bw5c.bin",
+      "consys_firmware": "/lib/firmware/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
+    },
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8115-pa6-cs8",
+    "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
+    "memory": "4G",
+    "builder": "mt8115",
+    "image_platform": "platpa6",
+    "drive_index": 0,
+    "accel": "tcg",
+    "allow_reboot": false,
+    "machine_properties": {
+      "touch-controller": "focaltech",
+      "board": "paloma"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot",
+      "aux-firmware": "aux_firmware",
+      "touch-firmware": "touch_firmware",
+      "consys-firmware": "consys_firmware"
+    },
+    "firmware": {
+      "touch_firmware": ["peripherals/focaltech_ts_fw_bw5c.bin"],
+      "consys_firmware": ["peripherals/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"],
+      "bootloader": ["boot_images/u-boot.bin"],
+      "bl2": ["boot_images/bl2.img"],
+      "tee": ["boot_images/tee.img"],
+      "quickboot": ["boot_images/quickboot.img"],
+      "boot_image": ["boot_images/boot.img"],
+      "aux_firmware": ["boot_images/firmware.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "optional_firmware": {
+      "waveform_store": ["waveform.img"]
+    }
+  },
   "kindle-colorsoft": {
     "description": "Kindle Colorsoft",
     "qemu_arch": "aarch64",
@@ -127,7 +232,7 @@
     "memory": "2G",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "none",
+    "network": "mtu3_g_ether",
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -149,7 +254,8 @@
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"],
       "waveform_store": ["waveform.img"]
-    }
+    },
+    "network_device": "mt8113"
   },
   "kindle-paperwhite-6": {
     "description": "Kindle Paperwhite 6",
@@ -158,7 +264,7 @@
     "memory": "2G",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "none",
+    "network": "mtu3_g_ether",
     "device_profiles": ["production", "dvt", "evt", "hvt1.1", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -179,7 +285,8 @@
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"],
       "waveform_store": ["waveform.img"]
-    }
+    },
+    "network_device": "mt8113"
   },
   "kindle-oasis-1": {
     "description": "Kindle Oasis 1",
@@ -273,7 +380,7 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "wifi",
+    "network": "g_ether",
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -294,7 +401,7 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "wifi",
+    "network": "g_ether",
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -377,7 +484,7 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "pinot",
     "drive_index": 1,
-    "network": "wifi",
+    "network": "g_ether",
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -398,7 +505,7 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "wifi",
+    "network": "g_ether",
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -489,15 +596,7 @@
     "builder": "bellatrix3",
     "drive_index": 0,
     "network": "mtu3_g_ether",
-    "device_profiles": [
-      "production",
-      "dvt",
-      "evt",
-      "evt-doe",
-      "hvt",
-      "hvt-a",
-      "proto"
-    ],
+    "device_profiles": ["production", "dvt", "evt", "evt-doe", "hvt", "hvt-a", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
     "machine_properties": {
@@ -510,29 +609,16 @@
       "quickboot": "quickboot"
     },
     "firmware": {
-      "bootloader": [
-        "u-boot.bin"
-      ],
-      "bl2": [
-        "bl2.img"
-      ],
-      "tee": [
-        "tee.img"
-      ],
-      "quickboot": [
-        "quickboot.img"
-      ],
-      "boot_image": [
-        "boot.img"
-      ],
-      "rootfs": [
-        "rootfs.img"
-      ]
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
-      "waveform_store": [
-        "waveform.img"
-      ]
+      "waveform_store": ["waveform.img"],
+      "development_kernel": ["zImage.development"]
     },
     "recovery_import": {
       "bootloader": "mt8110_bellatrix3/u-boot.bin",
@@ -543,10 +629,8 @@
       "rootfs": "rootfs.img.gz"
     },
     "network_service": "telnet",
-    "rootfs_overrides": [
-      "bellatrix",
-      "bellatrix3"
-    ]
+    "rootfs_overrides": ["bellatrix", "bellatrix3"],
+    "network_device": "mt8113"
   },
   "kindle-scribe-2": {
     "description": "Kindle Scribe 2",
@@ -556,10 +640,7 @@
     "builder": "bellatrix3",
     "drive_index": 0,
     "network": "mtu3_g_ether",
-    "device_profiles": [
-      "production",
-      "dvt"
-    ],
+    "device_profiles": ["production", "dvt"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
     "machine_properties": {
@@ -572,29 +653,16 @@
       "quickboot": "quickboot"
     },
     "firmware": {
-      "bootloader": [
-        "u-boot.bin"
-      ],
-      "bl2": [
-        "bl2.img"
-      ],
-      "tee": [
-        "tee.img"
-      ],
-      "quickboot": [
-        "quickboot.img"
-      ],
-      "boot_image": [
-        "boot.img"
-      ],
-      "rootfs": [
-        "rootfs.img"
-      ]
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
-      "waveform_store": [
-        "waveform.img"
-      ]
+      "waveform_store": ["waveform.img"],
+      "development_kernel": ["zImage.development"]
     },
     "recovery_import": {
       "bootloader": "mt8110_bellatrix3/u-boot.bin",
@@ -605,162 +673,8 @@
       "rootfs": "rootfs.img.gz"
     },
     "network_service": "telnet",
-    "rootfs_overrides": [
-      "bellatrix",
-      "bellatrix3"
-    ]
-  },
-  "kindle-scribe-3": {
-    "description": "Kindle Scribe 3",
-    "recovery_import": {
-      "bootloader": "boot_images/u-boot.bin",
-      "bl2": "boot_images/bl2.img",
-      "tee": "boot_images/tee.img",
-      "quickboot": "boot_images/quickboot.img",
-      "boot_image": "boot_images/boot.img",
-      "aux_firmware": "boot_images/firmware.img",
-      "rootfs": "rootfs.img.gz"
-    },
-    "rootfs_extract": {
-      "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_bw5c.bin",
-      "consys_firmware": "/lib/firmware/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
-    },
-    "qemu_arch": "aarch64",
-    "qemu_machine": "mt8115-pa6-cs8",
-    "device_profiles": [
-      "production",
-      "dvt",
-      "evt",
-      "hvt1.1"
-    ],
-    "memory": "4G",
-    "builder": "mt8115",
-    "image_platform": "platpa6",
-    "drive_index": 0,
-    "accel": "tcg",
-    "allow_reboot": false,
-    "machine_properties": {
-      "touch-controller": "focaltech",
-      "board": "paloma"
-    },
-    "machine_firmware_properties": {
-      "bl2": "bl2",
-      "tee": "tee",
-      "quickboot": "quickboot",
-      "aux-firmware": "aux_firmware",
-      "touch-firmware": "touch_firmware",
-      "consys-firmware": "consys_firmware"
-    },
-    "firmware": {
-      "touch_firmware": [
-        "peripherals/focaltech_ts_fw_bw5c.bin"
-      ],
-      "consys_firmware": [
-        "peripherals/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
-      ],
-      "bootloader": [
-        "boot_images/u-boot.bin"
-      ],
-      "bl2": [
-        "boot_images/bl2.img"
-      ],
-      "tee": [
-        "boot_images/tee.img"
-      ],
-      "quickboot": [
-        "boot_images/quickboot.img"
-      ],
-      "boot_image": [
-        "boot_images/boot.img"
-      ],
-      "aux_firmware": [
-        "boot_images/firmware.img"
-      ],
-      "rootfs": [
-        "rootfs.img"
-      ]
-    },
-    "optional_firmware": {
-      "waveform_store": [
-        "waveform.img"
-      ]
-    }
-  },
-  "kindle-scribe-colorsoft": {
-    "description": "Kindle Scribe Colorsoft",
-    "recovery_import": {
-      "bootloader": "boot_images/u-boot.bin",
-      "bl2": "boot_images/bl2.img",
-      "tee": "boot_images/tee.img",
-      "quickboot": "boot_images/quickboot.img",
-      "boot_image": "boot_images/boot.img",
-      "aux_firmware": "boot_images/firmware.img",
-      "rootfs": "rootfs.img.gz"
-    },
-    "rootfs_extract": {
-      "touch_firmware": "/lib/firmware/touch/focaltech_ts_fw_cp5d.bin",
-      "consys_firmware": "/lib/firmware/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
-    },
-    "qemu_arch": "aarch64",
-    "qemu_machine": "mt8115-pa6-cs8",
-    "device_profiles": [
-      "production",
-      "dvt",
-      "evt",
-      "hvt1.1"
-    ],
-    "memory": "4G",
-    "builder": "mt8115",
-    "image_platform": "platcs8",
-    "drive_index": 0,
-    "accel": "tcg",
-    "allow_reboot": false,
-    "machine_properties": {
-      "touch-controller": "focaltech",
-      "board": "calvados"
-    },
-    "machine_firmware_properties": {
-      "bl2": "bl2",
-      "tee": "tee",
-      "quickboot": "quickboot",
-      "aux-firmware": "aux_firmware",
-      "touch-firmware": "touch_firmware",
-      "consys-firmware": "consys_firmware"
-    },
-    "firmware": {
-      "touch_firmware": [
-        "peripherals/focaltech_ts_fw_cp5d.bin"
-      ],
-      "consys_firmware": [
-        "peripherals/soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin"
-      ],
-      "bootloader": [
-        "boot_images/u-boot.bin"
-      ],
-      "bl2": [
-        "boot_images/bl2.img"
-      ],
-      "tee": [
-        "boot_images/tee.img"
-      ],
-      "quickboot": [
-        "boot_images/quickboot.img"
-      ],
-      "boot_image": [
-        "boot_images/boot.img"
-      ],
-      "aux_firmware": [
-        "boot_images/firmware.img"
-      ],
-      "rootfs": [
-        "rootfs.img"
-      ]
-    },
-    "optional_firmware": {
-      "waveform_store": [
-        "waveform.img"
-      ]
-    }
+    "rootfs_overrides": ["bellatrix", "bellatrix3"],
+    "network_device": "mt8113"
   },
   "kobo-forma": {
     "description": "Kobo Forma",
@@ -770,18 +684,10 @@
     "drive_index": 0,
     "network": "none",
     "firmware": {
-      "bootloader": [
-        "u-boot.imx"
-      ],
-      "boot_region": [
-        "boot-region.img"
-      ],
-      "rootfs": [
-        "rootfs.img"
-      ],
-      "recoveryfs": [
-        "recoveryfs.img"
-      ]
+      "bootloader": ["u-boot.imx"],
+      "boot_region": ["boot-region.img"],
+      "rootfs": ["rootfs.img"],
+      "recoveryfs": ["recoveryfs.img"]
     }
   },
   "kobo-elipsa-2e": {
