@@ -40,7 +40,7 @@ def build_raw_image(
             boot_image=artifacts["boot_image"],
             rootfs_image=prepared,
             waveform_image=artifacts.get("waveform_store"),
-            userstore_format="vfat" if board == "cava" else "ext4",
+            userstore_format="vfat" if board in {"cava", "malbec"} else "ext4",
         )
     elif builder == "bellatrix3":
         bellatrix3.build(

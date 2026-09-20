@@ -201,12 +201,12 @@ def bellatrix_patch_varlocal_mount(contents: str) -> str:
     return contents.replace(old, new, 1)
 
 
-def bellatrix_patch_cava_varlocal_mount(contents: str) -> str:
+def bellatrix_patch_ext3_varlocal_mount(contents: str) -> str:
     if BELLATRIX_VARLOCAL_MARKER in contents:
         return contents
     old = "     mount -t ext3 -o rw $local $mount_point\n"
     if contents.count(old) != 1:
-        raise SystemExit("stock Cava var-local ext3 mount command was not found exactly once")
+        raise SystemExit("stock Bellatrix var-local ext3 mount command was not found exactly once")
     new = (
         f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
         "     mount -t ext3 -o rw,noatime,nodiratime,nobarrier,commit=60 "
@@ -415,7 +415,7 @@ def prepare_rex(source: Path, output: Path) -> None:
 def prepare_bellatrix(
     source: Path, output: Path, *, maximum_size: int, board: str
 ) -> None:
-    if board not in {"cava", "rossini", "sangria", "sangria-color"}:
+    if board not in {"cava", "malbec", "rossini", "sangria", "sangria-color"}:
         raise ValueError(f"unsupported Bellatrix board: {board}")
     copy_source(source, output, maximum_size=maximum_size)
     transforms = [
@@ -428,8 +428,8 @@ def prepare_bellatrix(
         (
             "/etc/upstart/varlocal_functions",
             "0100755",
-            bellatrix_patch_cava_varlocal_mount
-            if board == "cava"
+            bellatrix_patch_ext3_varlocal_mount
+            if board in {"cava", "malbec"}
             else bellatrix_patch_varlocal_mount,
         ),
         ("/etc/upstart/framework", "0100755", bellatrix_patch_java_verification),
@@ -440,7 +440,7 @@ def prepare_bellatrix(
         ),
         ("/etc/shadow", "0100600", blank_root_password),
     ]
-    if board != "cava":
+    if board not in {"cava", "malbec"}:
         transforms.insert(
             2,
             (

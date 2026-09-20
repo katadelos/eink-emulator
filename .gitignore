@@ -2,6 +2,7 @@
 /kobo-forma-work/
 /elipsa2e-work/
 /oasis-1-2-work/
+/pw5-work/
 /firmware/*
 !/firmware/README.md
 !/firmware/.gitkeep
