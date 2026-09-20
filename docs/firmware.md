@@ -139,11 +139,15 @@ compiled U-Boot, kernel and TEE from a mark 11 update. Its 2 GiB GPT disk
 retains the original system partition offsets and has a fresh FAT32 userstore.
 See the model page for the complete firmware file list.
 
-Kindle Basic 5, Kindle Basic 6, Colorsoft, and Paperwhite 6 follow the
+Kindle Basic 5, Kindle Basic 6, Paperwhite 5, Colorsoft, and Paperwhite 6 follow the
 component-image flow used by the other Kindles. Supply the matching Bellatrix
 boot components, `boot.img`, and `rootfs.img`; the builder creates a sparse
 disk with the required GPT layout and a board-appropriate fresh userstore. A
 complete device storage image is neither required nor used.
+
+For [Paperwhite 5 setup](paperwhite-5.md), import Amazon's recovery package
+with `./eink import FILE --model kindle-paperwhite-5`. The importer installs
+the required files in `firmware/kindle-paperwhite-5/`.
 
 `waveform.img` is the raw FAT image written to the Bellatrix `wfm` partition.
 It is separate from the root filesystem. The examined Colorsoft and
@@ -271,8 +275,9 @@ to QEMU on every launch.
 
 Bellatrix instances also require a profile. Kindle Basic 5, Kindle Basic 6,
 and Colorsoft accept `production`, `dvt`, `evt`, `hvt`, or `proto`;
-Paperwhite 6 additionally accepts `hvt1.1`. The profile selects the stock
-board tattoo exposed to U-Boot, the kernel, and userspace capability detection.
+Paperwhite 6 additionally accepts `hvt1.1`. Paperwhite 5 supports only
+`production`. The profile selects the stock board tattoo exposed to U-Boot,
+the kernel, and userspace capability detection.
 
 Scribes also require `--profile`:
 

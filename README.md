@@ -155,6 +155,7 @@ other desktop content.
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
 | [KT4](docs/kt4.md) | KT4 | Jaeger | |
 | [KOA3](docs/koa3.md) | KOA3 | Stinger | |
+| [Kindle Paperwhite 5](docs/paperwhite-5.md) | PW5 | Malbec | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
 | [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
 | Kindle Basic 6 (2024) | KT6 | Rossini | |
