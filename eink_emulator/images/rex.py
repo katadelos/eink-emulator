@@ -8,6 +8,8 @@ import zlib
 from pathlib import Path
 from typing import BinaryIO
 
+from . import imx6_mmc
+
 SECTOR = 512
 ENTRY_COUNT = 128
 ENTRY_SIZE = 128
@@ -154,13 +156,12 @@ def build(
     *,
     boot_image: Path,
     rootfs_image: Path,
-    waveform_image: Path,
     size: int = 8 * 1024**3,
 ) -> None:
     """Build or populate a sparse Rex eMMC image."""
     if size % SECTOR or size < 2 * 1024**3:
         raise SystemExit("image size must be sector-aligned and at least 2 GiB")
-    for payload in (boot_image, rootfs_image, waveform_image):
+    for payload in (boot_image, rootfs_image):
         if not payload.is_file():
             raise SystemExit(f"payload does not exist: {payload}")
 
@@ -170,4 +171,7 @@ def build(
         layout = create_image(image, size)
     write_partition(image, layout, "kernel", boot_image)
     write_partition(image, layout, "rootfs", rootfs_image)
-    write_partition(image, layout, "recovery", waveform_image)
+    # Like Jaeger, Rex uses the kernel's built-in waveform with an empty
+    # generated FAT store.
+    with image.open("r+b") as disk:
+        imx6_mmc.write_waveform_store(disk, layout["recovery"][0] * SECTOR)

@@ -16,7 +16,6 @@ Put these files in `firmware/kobo-elipsa-2e/`:
 | `mmcblk0p3.img` | NVRAM partition |
 | `mmcblk0p6.img` | Hardware configuration |
 | `mmcblk0p7.img` | Netronix firmware |
-| `mmcblk0p8.img` | Waveform partition |
 | `mmcblk0p9.img` | Vendor partition |
 | `mmcblk0p10.img` | Root filesystem |
 | `mmcblk0p11.img` | Recovery filesystem |
@@ -37,9 +36,11 @@ done
 ```
 
 Copy or symlink the listed dumps from `elipsa2e-work/` into the firmware
-directory. The image builder changes only copies. It clears stale ext4
-journal transactions before checking the captured rootfs, removes its
-cached device-node archive, and enables passwordless root serial access.
+directory. The builder generates an ext4 waveform partition containing a
+synthetic `wf_lut.gz` for the stock HWTCON loader. The image
+builder changes only copies. It clears stale ext4 journal transactions before
+checking the captured rootfs, removes its cached device-node archive, and
+enables passwordless root serial access.
 
 [Kobo's kernel and U-Boot sources](https://github.com/kobolabs/Kobo-Reader/tree/master/hw/mt8113-elipsa2e)
 were downloaded into `elipsa2e-work/reference/` and used to implement the

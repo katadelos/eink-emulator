@@ -544,7 +544,7 @@ def bellatrix3_patch_varlocal_permissions(contents: str) -> str:
 
 
 def prepare_bellatrix3(
-    source: Path, output: Path, *, board: str, waveform: Path | None,
+    source: Path, output: Path, *, board: str, waveform: Path,
 ) -> None:
     """Install the Scribe development boot jobs in a generated rootfs copy.
 
@@ -625,9 +625,8 @@ def prepare_bellatrix3(
             )
         },
     })
-    if waveform is not None:
-        run_many(output, [
-            "mkdir /data/init_bin",
-            "set_inode_field /data/init_bin mode 040755",
-        ], writable=True)
-        replace_file(output, waveform, "/data/init_bin/wf_lut.gz", "0100644")
+    run_many(output, [
+        "mkdir /data/init_bin",
+        "set_inode_field /data/init_bin mode 040755",
+    ], writable=True)
+    replace_file(output, waveform, "/data/init_bin/wf_lut.gz", "0100644")

@@ -47,8 +47,7 @@ needed for DVT boards. Existing preferences are backed up. Shared directory
 permissions are set before services start, and a keep-awake job runs for up
 to two hours while the display is active.
 
-The original display module uses a supplied waveform or a generated
-synthetic waveform. Java settings stay unchanged. See
+The original display module uses a generated synthetic waveform. Java settings stay unchanged. See
 [the Bellatrix3 files](../guest-overrides/bellatrix3/README.md) for details.
 
 ## Scribe 3 and Colorsoft

@@ -15,7 +15,6 @@ def build(
     layout: str,
     diagnostics_kernel: Path | None = None,
     diagnostics: Path | None = None,
-    waveform_store: Path | None = None,
 ) -> None:
     imx6_mmc.build(
         output=output,
@@ -24,5 +23,4 @@ def build(
         layout=layout,
         diagnostics_kernel=diagnostics_kernel,
         diagnostics=diagnostics,
-        waveform_store=waveform_store,
     )

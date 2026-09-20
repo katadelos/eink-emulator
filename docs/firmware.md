@@ -24,45 +24,38 @@ firmware/
 │   ├── tee.img
 │   ├── quickboot.img
 │   ├── boot.img
-│   ├── rootfs.img
-│   └── waveform.img  (optional)
+│   └── rootfs.img
 ├── kindle-basic-2024/
 │   ├── u-boot.bin
 │   ├── bl2.img
 │   ├── tee.img
 │   ├── quickboot.img
 │   ├── boot.img
-│   ├── rootfs.img
-│   └── waveform.img  (optional)
+│   └── rootfs.img
 ├── kindle-colorsoft/
 │   ├── u-boot.bin
 │   ├── bl2.img
 │   ├── tee.img
 │   ├── quickboot.img
 │   ├── boot.img
-│   ├── rootfs.img
-│   └── waveform.img
+│   └── rootfs.img
 ├── kindle-paperwhite-6/
 │   ├── u-boot.bin
 │   ├── bl2.img
 │   ├── tee.img
 │   ├── quickboot.img
 │   ├── boot.img
-│   ├── rootfs.img
-│   └── waveform.img
+│   └── rootfs.img
 ├── kindle-voyage/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
-│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
-│   ├── diags.img           (optional)
-│   └── waveform-store.img  (optional)
+│   └── diags.img           (optional)
 ├── kindle-basic-2014/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
-│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-basic-2016/
@@ -72,20 +65,17 @@ firmware/
 ├── kindle-paperwhite-1/
 │   ├── u-boot.bin
 │   ├── uImage
-│   ├── rootfs.img
-│   └── panel-flash.bin
+│   └── rootfs.img
 ├── kindle-paperwhite-2/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
-│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-paperwhite-3/
 │   ├── u-boot.bin
 │   ├── uImage
 │   ├── rootfs.img
-│   ├── panel-flash.bin
 │   ├── diags-uImage        (optional)
 │   └── diags.img           (optional)
 ├── kindle-paperwhite-4/
@@ -93,19 +83,15 @@ firmware/
 │   ├── boot.img
 │   ├── rootfs.img
 │   ├── s-bios.bin
-│   ├── bios.bin
-│   ├── panel-flash.bin
-│   └── waveform.img
+│   └── bios.bin
 ├── kindle-4/
 │   ├── u-boot.bin
 │   ├── uImage
-│   ├── rootfs.img
-│   └── panel-flash.bin
+│   └── rootfs.img
 ├── kindle-touch/
 │   ├── u-boot.bin
 │   ├── uImage
-│   ├── rootfs.img
-│   └── panel-flash.bin
+│   └── rootfs.img
 ├── kobo-forma/
 │   ├── u-boot.imx
 │   ├── boot-region.img
@@ -119,12 +105,12 @@ firmware/
     └── sd.img
 ```
 
-The models which list `panel-flash.bin` use it for panel data. Eanab instead
-loads its waveform from the root filesystem. Bellatrix devices use a
-standalone `waveform.img`, described below. The optional Wario waveform,
-diagnostics kernel, and diagnostics partition files use the same names for
-Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage. Kobo
-Touch does not use a panel-flash artifact.
+Waveforms and panel flash are managed by the emulator. Image creation uses
+synthetic or firmware-provided waveforms, and QEMU supplies synthetic panel
+flash. These are not firmware inputs.
+
+The optional diagnostics kernel and diagnostics partition files use the same
+names for Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage.
 
 For Kobo Mini and Kobo Touch, `u-boot.bin` is passed directly to QEMU as
 the BIOS and `sd.img` is the complete internal-card image, including its
@@ -149,14 +135,11 @@ For [Paperwhite 5 setup](paperwhite-5.md), import Amazon's recovery package
 with `./eink import FILE --model kindle-paperwhite-5`. The importer installs
 the required files in `firmware/kindle-paperwhite-5/`.
 
-`waveform.img` is the raw FAT image written to the Bellatrix `wfm` partition.
-It is separate from the root filesystem. The examined Colorsoft and
-Paperwhite 6 recovery payloads contain the boot components, `boot.img`, and
-`rootfs.img.gz`, but no waveform payload; their root filesystems only contain
-software which reads the mounted waveform partition at `/mnt/wfm`. Supply
-matching waveform data obtained from hardware or software that you are
-entitled to use. A donor waveform may be sufficient for bring-up but is not
-exact panel data.
+Bellatrix and Scribe image creation generates a synthetic HWTCON waveform
+and packs it into the guest's waveform partition. Paperwhite 4 and KT4 use
+the stock kernel's built-in waveform with a generated store. Kobo Elipsa 2E
+gets an ext4 waveform partition containing a generated `wf_lut.gz`.
+These waveforms provide emulator display input, not physical panel calibration.
 
 `rootfs.img` must be a raw ext filesystem image. If an extracted firmware
 package contains `rootfs.img.gz`, decompress it before placing it here.
@@ -182,9 +165,8 @@ existing firmware directory. Scribe 3 and Colorsoft also extract touch and
 connectivity firmware from the rootfs. Their rootfs images keep the AVB
 footer used for verified boot.
 
-Place an optional `waveform.img` in the model directory to use a device
-waveform partition. Without one, Scribe image creation generates a synthetic
-waveform for display emulation. This does not reproduce panel calibration.
+Scribe image creation always generates a synthetic waveform for display
+emulation. This does not reproduce panel calibration.
 
 ## Kindle Basic (2016) recovery package
 

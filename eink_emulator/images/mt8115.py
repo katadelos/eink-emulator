@@ -48,7 +48,7 @@ def initialize_factory_data(image: Path, layout: dict[str, tuple[int, int]]) -> 
 
 def build(
     image: Path, *, platform: str, boot_image: Path, firmware_image: Path,
-    rootfs_image: Path, waveform_image: Path | None = None,
+    rootfs_image: Path,
     size: int = 8 * 1024**3,
 ) -> None:
     if platform not in PLATFORM_NAMESPACES:
@@ -73,17 +73,15 @@ def build(
     bellatrix.write_partition(image, layout, "firmware", firmware_image)
     # Exact partition size keeps AVB's footer at the end of the block device.
     bellatrix.write_partition(image, layout, "system", rootfs_image)
-    if waveform_image is None:
-        # Emulator-specific stimulus, clearly named and reproducible. The
-        # stock update does not contain the factory waveform partition.
-        waveform_directory = image.parent / "synthetic-waveform"
-        waveform = scribe_waveform.write_waveform(
-            waveform_directory, product=platform.removeprefix("plat"),
-        )
-        waveform_image = image.with_suffix(".waveform.img")
-        scribe_waveform_partition.build(
-            waveform_image, waveform, partition_start=layout["wfm"][0],
-        )
+    # Emulator-specific stimulus, clearly named and reproducible.
+    waveform_directory = image.parent / "synthetic-waveform"
+    waveform = scribe_waveform.write_waveform(
+        waveform_directory, product=platform.removeprefix("plat"),
+    )
+    waveform_image = image.with_suffix(".waveform.img")
+    scribe_waveform_partition.build(
+        waveform_image, waveform, partition_start=layout["wfm"][0],
+    )
     bellatrix.write_partition(image, layout, "wfm", waveform_image)
     initialize_factory_data(image, layout)
     bellatrix.create_ext4_userstore(image, layout)

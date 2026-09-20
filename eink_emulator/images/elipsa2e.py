@@ -4,10 +4,11 @@ from __future__ import annotations
 import shutil
 import struct
 import subprocess
+import tempfile
 import zlib
 from pathlib import Path
 
-from . import rootfs
+from . import bellatrix, bellatrix_waveform, rootfs
 from .common import atomic_output
 from .forma import write_userstore
 
@@ -83,14 +84,45 @@ def write_gpt(disk, region: bytes) -> None:
         disk.write(table)
 
 
+def build_waveform_partition(output: Path) -> None:
+    """Stock rcS mounts p8 at /data/init_bin; HWTCON reads wf_lut.gz."""
+    waveform = bellatrix_waveform.write_waveform(
+        output.parent / "synthetic-waveform", product="elipsa2e",
+    )
+    sectors = next(sectors for role, _, sectors in PARTITIONS if role == "waveform")
+    with output.open("wb") as image:
+        image.truncate(sectors * 512)
+    with tempfile.TemporaryDirectory(
+        prefix=".elipsa-waveform-", dir=output.parent,
+    ) as temporary:
+        seed = Path(temporary)
+        shutil.copyfile(waveform, seed / "wf_lut.gz")
+        subprocess.run([
+            bellatrix.find_tool("mke2fs"), "-q", "-F", "-t", "ext4",
+            "-O", "^metadata_csum,^orphan_file", "-d", str(seed), str(output),
+        ], check=True)
+    rootfs.run_many(output, [
+        "set_inode_field /wf_lut.gz uid 0",
+        "set_inode_field /wf_lut.gz gid 0",
+        "set_inode_field /wf_lut.gz mode 0100644",
+    ], writable=True)
+
+
 def build(output: Path, artifacts: dict[str, Path], *, sideloaded: bool = False) -> None:
     prepared = output.with_name("prepared-rootfs.img")
     prepare_root(artifacts["rootfs"], prepared, sideloaded=sideloaded)
+    waveform = output.with_suffix(".waveform.img")
+    build_waveform_partition(waveform)
     with atomic_output(output) as staging, staging.open("wb") as disk:
         disk.truncate(DISK_SIZE)
         write_gpt(disk, artifacts["boot_region"].read_bytes())
         for role, start, sectors in PARTITIONS:
-            source = prepared if role == "rootfs" else artifacts[role]
+            if role == "rootfs":
+                source = prepared
+            elif role == "waveform":
+                source = waveform
+            else:
+                source = artifacts[role]
             if source.stat().st_size > sectors * 512:
                 raise ValueError(f"{source.name} exceeds its Elipsa 2E partition")
             disk.seek(start * 512)

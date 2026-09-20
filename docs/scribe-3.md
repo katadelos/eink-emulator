@@ -35,6 +35,4 @@ the original kernel and rootfs, keeping the rootfs AVB footer at the end of
 the system partition. Guest startup scripts, Java settings and initial
 setup are unchanged. See the [partition layout](storage.md#scribe-partitions).
 
-Supply `firmware/kindle-scribe-3/waveform.img` to use a device waveform.
-Otherwise, the builder generates a synthetic PA6 V5 waveform for display
-emulation. It does not reproduce physical panel calibration.
+The builder generates a synthetic PA6 V5 waveform for display emulation. It does not reproduce physical panel calibration.

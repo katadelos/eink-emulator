@@ -13,6 +13,7 @@ import zlib
 from pathlib import Path
 from typing import BinaryIO
 
+from . import bellatrix_waveform, scribe_waveform_partition
 
 SECTOR_SIZE = 512
 ENTRY_COUNT = 128
@@ -407,9 +408,9 @@ def create_vfat_userstore(
 def build(
     image: Path,
     *,
+    board: str,
     boot_image: Path,
     rootfs_image: Path,
-    waveform_image: Path | None,
     userstore_format: str,
     size: int = 8 * 1024**3,
 ) -> None:
@@ -419,14 +420,22 @@ def build(
     for payload in (boot_image, rootfs_image):
         if not payload.is_file():
             raise SystemExit(f"payload does not exist: {payload}")
-    if waveform_image is not None and not waveform_image.is_file():
-        raise SystemExit(f"payload does not exist: {waveform_image}")
 
     layout = create_image(image, size)
     write_partition(image, layout, "kernel", boot_image)
     write_partition(image, layout, "rootfs", rootfs_image)
-    if waveform_image is not None:
-        write_partition(image, layout, "wfm", waveform_image)
+    waveform = bellatrix_waveform.write_waveform(
+        image.parent / "synthetic-waveform", product=board,
+    )
+    with tempfile.TemporaryDirectory(
+        prefix=".bellatrix-waveform-", dir=image.parent,
+    ) as temporary:
+        partition = Path(temporary) / "waveform.img"
+        scribe_waveform_partition.build(
+            partition, waveform, partition_start=layout["wfm"][0],
+            volume_label="EINK WFM   ",
+        )
+        write_partition(image, layout, "wfm", partition)
     initialize_factory_data(image, layout)
     if userstore_format == "vfat":
         create_vfat_userstore(image, layout)

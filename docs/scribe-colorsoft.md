@@ -37,7 +37,6 @@ the original kernel and rootfs, keeping the rootfs AVB footer at the end of
 the system partition. Guest startup scripts, Java settings and initial
 setup are unchanged. See the [partition layout](storage.md#scribe-partitions).
 
-Supply `firmware/kindle-scribe-colorsoft/waveform.img` to use a device
-waveform. Otherwise, the builder generates a synthetic CS8 V5 waveform.
+The builder generates a synthetic CS8 V5 waveform.
 The display preview shows guest pixels; colour and ghosting on a physical
 panel are not reproduced.

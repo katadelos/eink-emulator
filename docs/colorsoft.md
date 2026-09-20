@@ -9,9 +9,10 @@ persistent machine once:
 ./eink run colorsoft --qmp-socket
 ```
 
-`create` composes a sparse GPT disk from `boot.img`, `rootfs.img`, and
-`waveform.img`, then caches it as an immutable base shared by instance
-overlays. It does not consume a physical or preassembled eMMC image.
+`create` composes a sparse GPT disk from `boot.img` and `rootfs.img`, then
+caches it as an immutable base shared by instance overlays. It generates the
+synthetic waveform automatically. It does not
+consume a physical or preassembled eMMC image.
 
 A newly created instance formats its persistent guest filesystems once, then
 reboots within the same QEMU process before continuing to the splash screen.

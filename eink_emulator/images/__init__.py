@@ -37,16 +37,15 @@ def build_raw_image(
         )
         bellatrix.build(
             output,
+            board=board,
             boot_image=artifacts["boot_image"],
             rootfs_image=prepared,
-            waveform_image=artifacts.get("waveform_store"),
             userstore_format="vfat" if board in {"cava", "malbec"} else "ext4",
         )
     elif builder == "bellatrix3":
         bellatrix3.build(
             output, board=definition["machine_properties"]["board"],
             boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
-            waveform_image=artifacts.get("waveform_store"),
         )
     elif builder == "mt8115":
         mt8115.build(
@@ -54,7 +53,6 @@ def build_raw_image(
             boot_image=artifacts["boot_image"],
             firmware_image=artifacts["aux_firmware"],
             rootfs_image=artifacts["rootfs"],
-            waveform_image=artifacts.get("waveform_store"),
         )
     elif builder == "wario":
         prepared = output.with_name("prepared-rootfs.img")
@@ -66,7 +64,6 @@ def build_raw_image(
             layout=definition["wario_layout"],
             diagnostics_kernel=artifacts.get("diagnostics_kernel"),
             diagnostics=artifacts.get("diagnostics"),
-            waveform_store=artifacts.get("waveform_store"),
         )
     elif builder == "jaeger":
         prepared = output.with_name("prepared-rootfs.img")
@@ -109,7 +106,6 @@ def build_raw_image(
             output,
             boot_image=artifacts["boot_image"],
             rootfs_image=prepared,
-            waveform_image=artifacts["waveform_store"],
         )
     else:
         raise ValueError(f"unknown image builder: {builder}")

@@ -90,7 +90,7 @@ def initialize_persistent_filesystems(
 
 def build(
     image: Path, *, board: str, boot_image: Path, rootfs_image: Path,
-    waveform_image: Path | None, size: int = 8 * 1024**3,
+    size: int = 8 * 1024**3,
 ) -> None:
     if board not in BOARDS:
         raise ValueError(f"unsupported Bellatrix3 board: {board}")
@@ -101,29 +101,23 @@ def build(
         raise ValueError("Bellatrix3 requires the original 768 MiB rootfs image")
     if size % 512 or size < 4 * 1024**3:
         raise ValueError("Bellatrix3 disk must be sector-aligned and at least 4 GiB")
-    if waveform_image is not None and not waveform_image.is_file():
-        raise ValueError(f"missing waveform store: {waveform_image}")
 
     layout = bellatrix.create_image(
         image, size, partitions=PARTITIONS, namespace=f"bellatrix3-{board}",
     )
     bellatrix.write_partition(image, layout, "kernel", boot_image)
-    fixture = None
-    if waveform_image is None:
-        fixture = bellatrix_waveform.write_waveform(
-            image.parent / "synthetic-waveform", product=board,
+    fixture = bellatrix_waveform.write_waveform(
+        image.parent / "synthetic-waveform", product=board,
+    )
+    with tempfile.TemporaryDirectory(
+        prefix=".bellatrix3-waveform-", dir=image.parent,
+    ) as temporary:
+        waveform_partition = Path(temporary) / "waveform.img"
+        scribe_waveform_partition.build(
+            waveform_partition, fixture, partition_start=layout["wfm"][0],
+            volume_label="SCRIBE WFM ",
         )
-        with tempfile.TemporaryDirectory(
-            prefix=".bellatrix3-waveform-", dir=image.parent,
-        ) as temporary:
-            waveform_partition = Path(temporary) / "waveform.img"
-            scribe_waveform_partition.build(
-                waveform_partition, fixture, partition_start=layout["wfm"][0],
-                volume_label="SCRIBE WFM ",
-            )
-            bellatrix.write_partition(image, layout, "wfm", waveform_partition)
-    else:
-        bellatrix.write_partition(image, layout, "wfm", waveform_image)
+        bellatrix.write_partition(image, layout, "wfm", waveform_partition)
     # Keep imported firmware immutable and discard the prepared copy as soon
     # as it has been embedded. Public CLI and local bring-up use this same path.
     with tempfile.TemporaryDirectory(

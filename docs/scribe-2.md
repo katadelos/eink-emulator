@@ -32,6 +32,5 @@ Serial opens in the launching terminal. `--serial-socket` redirects it to
 a Unix socket and log file. Telnet is available at `127.0.0.1:2323`; change
 the host port with `--telnet-port PORT`. Native Wi-Fi is not available.
 
-The builder uses `firmware/kindle-scribe-2/waveform.img` when supplied,
-or generates a synthetic waveform. See [Scribe 1](scribe-1.md) for display
+The builder generates a synthetic waveform. See [Scribe 1](scribe-1.md) for display
 setup and [storage](storage.md#scribe-partitions) for the partition layout.

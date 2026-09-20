@@ -2,22 +2,9 @@
 set -e
 # Exact Linux4.9 HWTCONv2 default filename, populated by the image builder.
 # Original recovery-util can already have loaded this module through FAT p2;
-# preserve its explicit waveform_path in that case.
+# keep that module running in that case.
 if [ ! -d /sys/module/hwtcon_v2 ]; then
-    if ! grep -q ' /mnt/wfm ' /proc/mounts; then
-        mount -t vfat -o ro /dev/mmcblk0p2 /mnt/wfm
-    fi
-    set -- /mnt/wfm/waveform_to_use/*.wrf.gz
-    if [ "$#" -eq 1 ] && [ -s "$1" ]; then
-        waveform=$1
-    elif [ ! -e "$1" ] && [ -s /data/init_bin/wf_lut.gz ]; then
-        # This rootfs fixture is present only for a generated waveform store.
-        waveform=/data/init_bin/wf_lut.gz
-    else
-        echo 'Expected exactly one selected waveform in p2' >&2
-        exit 1
-    fi
-    modprobe hwtcon_v2 waveform_path="$waveform"
+    modprobe hwtcon_v2 waveform_path=/data/init_bin/wf_lut.gz
 fi
 # Original /etc/upstart/display behavior follows only after the module exists.
 logger -t system "emitting start_mdpd"

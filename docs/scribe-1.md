@@ -27,10 +27,9 @@ The builder creates an 8 GiB sparse disk with a prepared rootfs and fresh
 persistent filesystems. See the [partition layout](storage.md#scribe-partitions).
 The imported firmware files are kept intact.
 
-If `firmware/kindle-scribe-1/waveform.img` is present, the builder uses it
-for the waveform partition. Otherwise it generates a synthetic HWTCON v2
-waveform. The display job loads the original HWTCON module with the selected
-waveform, unless the module is already running. Synthetic waveforms enable
+The builder generates a synthetic HWTCON v2 waveform. The display job loads
+the original HWTCON module with that waveform, unless the module is already
+running. Synthetic waveforms enable
 emulated display updates; they do not reproduce a physical panel's response.
 
 ## Guest setup

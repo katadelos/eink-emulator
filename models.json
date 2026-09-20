@@ -28,9 +28,6 @@
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
     },
-    "optional_firmware": {
-      "waveform_store": ["waveform.img"]
-    },
     "recovery_import": {
       "bootloader": "mt8110_bellatrix/u-boot.bin",
       "bl2": "mt8110_bellatrix/bl2.img",
@@ -67,9 +64,6 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "optional_firmware": {
-      "waveform_store": ["waveform.img"]
     },
     "rootfs_package": "com.lab126.eink.malbec.os",
     "recovery_import": {
@@ -108,9 +102,6 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "optional_firmware": {
-      "waveform_store": ["waveform.img"]
     },
     "recovery_import": {
       "bootloader": "mt8110_bellatrix/u-boot.bin",
@@ -168,9 +159,6 @@
       "aux_firmware": ["boot_images/firmware.img"],
       "rootfs": ["rootfs.img"]
     },
-    "optional_firmware": {
-      "waveform_store": ["waveform.img"]
-    },
     "network": "mtu3_g_ether",
     "network_device": "mtu3"
   },
@@ -220,9 +208,6 @@
       "boot_image": ["boot_images/boot.img"],
       "aux_firmware": ["boot_images/firmware.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "optional_firmware": {
-      "waveform_store": ["waveform.img"]
     }
   },
   "kindle-colorsoft": {
@@ -252,8 +237,7 @@
       "tee": ["tee.img"],
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
-      "rootfs": ["rootfs.img"],
-      "waveform_store": ["waveform.img"]
+      "rootfs": ["rootfs.img"]
     },
     "network_device": "mt8113"
   },
@@ -283,8 +267,7 @@
       "tee": ["tee.img"],
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
-      "rootfs": ["rootfs.img"],
-      "waveform_store": ["waveform.img"]
+      "rootfs": ["rootfs.img"]
     },
     "network_device": "mt8113"
   },
@@ -384,13 +367,11 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
-      "diagnostics": ["diags.img"],
-      "waveform_store": ["waveform-store.img"]
+      "diagnostics": ["diags.img"]
     }
   },
   "kindle-basic-2014": {
@@ -405,13 +386,11 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
-      "diagnostics": ["diags.img"],
-      "waveform_store": ["waveform-store.img"]
+      "diagnostics": ["diags.img"]
     }
   },
   "kindle-basic-2016": {
@@ -472,8 +451,7 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     }
   },
   "kindle-paperwhite-2": {
@@ -488,13 +466,11 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
-      "diagnostics": ["diags.img"],
-      "waveform_store": ["waveform-store.img"]
+      "diagnostics": ["diags.img"]
     }
   },
   "kindle-paperwhite-3": {
@@ -509,13 +485,11 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
-      "diagnostics": ["diags.img"],
-      "waveform_store": ["waveform-store.img"]
+      "diagnostics": ["diags.img"]
     }
   },
   "kindle-paperwhite-4": {
@@ -531,9 +505,7 @@
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"],
       "storage_bios": ["s-bios.bin"],
-      "falcon_bios": ["bios.bin"],
-      "panel_flash": ["panel-flash.bin"],
-      "waveform_store": ["waveform.img"]
+      "falcon_bios": ["bios.bin"]
     }
   },
   "kindle-4": {
@@ -546,8 +518,7 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     }
   },
   "kindle-touch": {
@@ -560,8 +531,7 @@
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
-      "rootfs": ["rootfs.img"],
-      "panel_flash": ["panel-flash.bin"]
+      "rootfs": ["rootfs.img"]
     }
   },
   "kobo-touch": {
@@ -617,7 +587,6 @@
       "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
-      "waveform_store": ["waveform.img"],
       "development_kernel": ["zImage.development"]
     },
     "recovery_import": {
@@ -661,7 +630,6 @@
       "rootfs": ["rootfs.img"]
     },
     "optional_firmware": {
-      "waveform_store": ["waveform.img"],
       "development_kernel": ["zImage.development"]
     },
     "recovery_import": {
@@ -707,7 +675,6 @@
       "tee": ["tee.img"],
       "hwcfg": ["mmcblk0p6.img"],
       "ntxfw": ["mmcblk0p7.img"],
-      "waveform": ["mmcblk0p8.img"],
       "vendor": ["mmcblk0p9.img"],
       "rootfs": ["mmcblk0p10.img"],
       "recoveryfs": ["mmcblk0p11.img"]

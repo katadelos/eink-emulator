@@ -44,10 +44,8 @@ Manual sleep remains available.
 ## Display and console
 
 A generated waveform is installed in FAT p2 and at
-`/data/init_bin/wf_lut.gz`. If a waveform partition is supplied, the rootfs
-default is omitted. The display job leaves an already loaded HWTCON module
-alone; otherwise, it loads the selected `.wrf.gz` file from p2, using the
-generated default if p2 has no selection. Synthetic data enables display
+`/data/init_bin/wf_lut.gz`. The display job leaves an already loaded HWTCON
+module alone; otherwise, it loads the generated file from the rootfs. Synthetic data enables display
 emulation without physical panel calibration.
 
 Serial uses the launching terminal. `--serial-socket` redirects it to the

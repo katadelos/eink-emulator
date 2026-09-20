@@ -342,9 +342,6 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             "-global", "mt8113.netdev=bellatrix-usb",
             "-global", "mt8113.mac=ee:19:00:00:00:00",
         ])
-    if "panel_flash" in artifacts:
-        panel = artifacts["panel_flash"]
-        command.extend(["-drive", f"file={panel},if=mtd,index=0,format=raw,readonly=on"])
     if args.headless:
         command.extend(["-display", "none"])
     elif args.vnc:

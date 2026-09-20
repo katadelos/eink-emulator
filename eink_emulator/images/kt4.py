@@ -38,7 +38,7 @@ def build(output: Path, *, boot_image: Path, rootfs_image: Path) -> None:
     # directory as the older i.MX Kindle store. The kernel ships a default
     # waveform for the virtual panel; no per-panel download is needed.
     with output.open("r+b") as image:
-        imx6_mmc.write_waveform_store(image, layout["recovery"][0] * 512, None)
+        imx6_mmc.write_waveform_store(image, layout["recovery"][0] * 512)
     with tempfile.TemporaryDirectory(prefix="eink-jaeger-") as directory:
         for name, label in (("keys", "keys"), ("varlocal", "LocalVars")):
             filesystem = Path(directory) / f"{name}.img"

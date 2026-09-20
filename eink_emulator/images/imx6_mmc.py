@@ -372,14 +372,8 @@ def fat_dir_entry(short_name: bytes, attributes: int, cluster: int,
     return bytes(entry)
 
 
-def write_waveform_store(disk, output_offset: int,
-                         waveform_partition: Path | None) -> None:
+def write_waveform_store(disk, output_offset: int) -> None:
     """Create the hidden FAT32 store used by /usr/sbin/wfm_mount."""
-    if waveform_partition:
-        disk.seek(output_offset)
-        with waveform_partition.open("rb") as source:
-            copy_stream(source, disk)
-        return
 
     sector_size = 1024
     sectors_per_cluster = 16
@@ -390,12 +384,6 @@ def write_waveform_store(disk, output_offset: int,
     data_start = reserved + fat_count * sectors_per_fat
     cluster_size = sector_size * sectors_per_cluster
     cluster_count = (total_sectors - data_start) // sectors_per_cluster
-
-    waveform_data = b""
-    file_clusters = 0
-    # cluster 2 is the root and cluster 3 is waveform_to_use.
-    if 2 + file_clusters > cluster_count:
-        raise SystemExit("--waveform does not fit in the hidden waveform store")
 
     boot = bytearray(sector_size)
     boot[0:3] = b"\xeb\x58\x90"
@@ -413,21 +401,17 @@ def write_waveform_store(disk, output_offset: int,
     boot[82:90] = b"FAT32   "
     boot[510:512] = b"\x55\xaa"
 
-    used_clusters = 2 + file_clusters
+    used_clusters = 2  # root directory and empty waveform_to_use directory
     fsinfo = bytearray(sector_size)
     struct.pack_into("<I", fsinfo, 0, 0x41615252)
     struct.pack_into("<I", fsinfo, 484, 0x61417272)
     struct.pack_into("<II", fsinfo, 488,
-                     cluster_count - used_clusters, 4 + file_clusters)
+                     cluster_count - used_clusters, 4)
     struct.pack_into("<I", fsinfo, 508, 0xAA550000)
 
     fat = bytearray(sector_size)
     struct.pack_into("<III", fat, 0, 0x0FFFFFF8, 0xFFFFFFFF, 0x0FFFFFFF)
     struct.pack_into("<I", fat, 3 * 4, 0x0FFFFFFF)
-    for index in range(file_clusters):
-        cluster = 4 + index
-        next_cluster = 0x0FFFFFFF if index == file_clusters - 1 else cluster + 1
-        struct.pack_into("<I", fat, cluster * 4, next_cluster)
 
     root = bytearray(cluster_size)
     directory_short = b"WAVEFO~1   "
@@ -438,11 +422,6 @@ def write_waveform_store(disk, output_offset: int,
     directory = bytearray(cluster_size)
     directory[0:32] = fat_dir_entry(b".          ", 0x10, 3)
     directory[32:64] = fat_dir_entry(b"..         ", 0x10, 2)
-    if waveform_data:
-        file_short = b"PANEL~1 GZ"
-        entries = lfn_entries("panel.wrf.gz", file_short)
-        entries.append(fat_dir_entry(file_short, 0x20, 4, len(waveform_data)))
-        directory[64:64 + 32 * len(entries)] = b"".join(entries)
 
     disk.seek(output_offset)
     disk.write(b"\0" * WAVEFORM_STORE_SIZE)
@@ -455,8 +434,6 @@ def write_waveform_store(disk, output_offset: int,
     disk.seek(output_offset + data_start * sector_size)
     disk.write(root)
     disk.write(directory)
-    if waveform_data:
-        disk.write(waveform_data)
 
 
 def build(
@@ -468,7 +445,6 @@ def build(
     diagnostics_kernel: Path | None = None,
     diagnostics: Path | None = None,
     local: Path | None = None,
-    waveform_store: Path | None = None,
     userstore: Path | None = None,
 ) -> None:
     """Build a sparse legacy i.MX6 Kindle eMMC user-area image."""
@@ -489,8 +465,6 @@ def build(
         raise SystemExit("diagnostics image must be exactly 64 MiB")
     if local and local.stat().st_size != 64 * 1024 * 1024:
         raise SystemExit("local image must be exactly 64 MiB")
-    if waveform_store and waveform_store.stat().st_size != WAVEFORM_STORE_SIZE:
-        raise SystemExit("waveform store must be exactly 3,836 KiB")
     if userstore and not userstore.is_dir():
         raise SystemExit("userstore must name a directory")
 
@@ -518,10 +492,7 @@ def build(
             with diagnostics.open("rb") as diags:
                 copy_stream(diags, disk)
 
-        write_waveform_store(
-            disk, USER_AREA_OFFSET + WAVEFORM_STORE_OFFSET,
-            waveform_store,
-        )
+        write_waveform_store(disk, USER_AREA_OFFSET + WAVEFORM_STORE_OFFSET)
 
         write_local_partition(
             disk, USER_AREA_OFFSET + partitions[2][0] * SECTOR_SIZE,
