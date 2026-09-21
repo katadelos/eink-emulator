@@ -762,7 +762,7 @@
     "network": {
       "usb": {
         "device": "mt8113",
-        "service": "telnet"
+        "service": "ssh"
       },
       "wifi": {
         "device": "mt8113",
@@ -812,7 +812,7 @@
     "network": {
       "usb": {
         "device": "mt8113",
-        "service": "telnet"
+        "service": "ssh"
       },
       "wifi": {
         "device": "mt8113",

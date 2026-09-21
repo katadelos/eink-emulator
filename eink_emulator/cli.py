@@ -20,6 +20,7 @@ from typing import Any
 from .firmware import import_recovery
 from .images import build_raw_image
 from .qemu import build as build_qemu
+from .ssh import LOGIN_KEY, ensure_login_key
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -103,6 +104,11 @@ def digest_files(definition: dict[str, Any], artifacts: dict[str, Path]) -> str:
                 digest.update(group.encode())
                 digest.update(str(path.relative_to(overrides)).encode())
                 digest.update(path.read_bytes())
+    if definition["network"].get("usb", {}).get("service") == "ssh":
+        additions = ROOT / "guest-additions"
+        for path in sorted(path for path in additions.rglob("*") if path.is_file()):
+            digest.update(str(path.relative_to(additions)).encode())
+            digest.update(path.read_bytes())
     for role, path in sorted(artifacts.items()):
         digest.update(role.encode())
         digest.update(path.name.encode())
@@ -140,6 +146,8 @@ def require_qemu_tools(qemu: Path) -> None:
 
 
 def ensure_base(model: str, definition: dict[str, Any], artifacts: dict[str, Path]) -> tuple[Path, str]:
+    if model.startswith("kindle-"):
+        artifacts = artifacts | {"ssh_authorized_keys": ensure_login_key()}
     fingerprint = digest_files(definition, artifacts)
     base = BASES_ROOT / f"{model}-{fingerprint[:16]}.qcow2"
     metadata = base.with_suffix(".json")
@@ -210,6 +218,9 @@ def command_create(args: argparse.Namespace) -> None:
             shutil.rmtree(temporary)
     print(f"created {args.name} ({definition['description']})")
     print(f"run it with: ./eink run {args.name}")
+    if args.model.startswith("kindle-"):
+        print(f"SSH over USB: ssh -i {shlex.quote(str(LOGIN_KEY))} -p 2222 root@127.0.0.1")
+        print("SSH over Wi-Fi: use port 2223 after joining Kindle-QEMU")
 
 
 def read_machine(name: str) -> tuple[Path, dict[str, Any]]:
@@ -604,7 +615,7 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--vnc", metavar="ENDPOINT", help="use QEMU's VNC display")
     run.add_argument("--ssh-port", type=int, default=2222, help="host USB SSH port, or Wi-Fi SSH port on Wi-Fi-only models (default: 2222)")
     run.add_argument("--wifi-ssh-port", type=int, default=2223, help="host Wi-Fi SSH port when USB networking is also configured (default: 2223)")
-    run.add_argument("--telnet-port", type=int, default=2323, help="host USB telnet forwarding port for Scribe 1/2 and Kobos (default: 2323)")
+    run.add_argument("--telnet-port", type=int, default=2323, help="host USB telnet forwarding port for Kobos (default: 2323)")
     run.add_argument("--serial-socket", action="store_true", help="redirect serial to an instance-scoped Unix socket and log instead of this terminal")
     run.add_argument("--qmp-socket", action="store_true", help="expose QMP on an instance-scoped Unix socket")
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
