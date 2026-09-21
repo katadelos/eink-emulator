@@ -79,8 +79,11 @@ small writable disk for the instance.
 Serial uses the launching terminal. Add `--serial-socket` to send it to the
 instance's Unix socket and log file, or `--qmp-socket` to enable QMP control.
 Use `--headless` to disable the display, or `--vnc ENDPOINT` for VNC.
-`--ssh-port PORT` changes SSH forwarding; Scribe 1 and 2 use telnet instead,
-with `--telnet-port PORT` to change its default port of 2323.
+`--ssh-port PORT` changes USB SSH forwarding, or Wi-Fi SSH forwarding on
+models with only a Wi-Fi backend. With both backends, `--wifi-ssh-port PORT`
+sets the separate Wi-Fi SSH port (default 2223). Scribe 1/2 and the Kobos use
+USB telnet instead, with `--telnet-port PORT` to change its default port of 2323.
+See the [networking guide](docs/networking.md) for addresses and guest services.
 Arguments after `--` are passed directly to QEMU.
 
 ## Using a raw QEMU machine
@@ -166,6 +169,7 @@ other desktop content.
 | [Kobo Elipsa 2E](docs/kobo-elipsa-2e.md) | N605 | EA0T00 | Stock UI, offline sideloaded mode |
 
 Additional documentation covers [firmware setup](docs/firmware.md),
+[Wi-Fi and USB networking status](docs/networking.md),
 [guest compatibility changes](docs/guest-overrides.md),
 [QMP workflows](docs/qmp.md), and [storage layout](docs/storage.md).
 

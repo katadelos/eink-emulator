@@ -4,7 +4,7 @@ Calvados uses `mt8115-pa6-cs8,board=calvados` with four CPUs and 4 GiB RAM.
 It shares the MT8115 platform with [Scribe 3](scribe-3.md), with a colour
 display and different touch firmware. Import and image creation work;
 the standard boot path has not yet been verified through to a usable Home
-screen. Wi-Fi cannot connect to a network.
+screen. Wi-Fi and USB Ethernet both carry traffic; see [networking](networking.md).
 
 ## Setup
 
@@ -32,10 +32,12 @@ under `firmware/kindle-scribe-colorsoft/boot_images`, with
 - `focaltech_ts_fw_cp5d.bin` — FocalTech touch firmware
 - `soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin` — connectivity firmware
 
-The builder creates an 8 GiB sparse disk with fresh user storage. It copies
-the original kernel and rootfs, keeping the rootfs AVB footer at the end of
-the system partition. Guest startup scripts, Java settings and initial
-setup are unchanged. See the [partition layout](storage.md#scribe-partitions).
+The builder creates an 8 GiB sparse development disk with fresh user storage.
+It prepares copies of the rootfs and boot FIT: USB Ethernet starts automatically,
+root serial login is available, and verity is disabled for the prepared rootfs.
+The catalogue enables QEMU development mode, which removes the production-key
+requirement from the in-memory U-Boot handoff. Imported firmware stays unchanged.
+See the [partition layout](storage.md#scribe-partitions).
 
 The builder generates a synthetic CS8 V5 waveform.
 The display preview shows guest pixels; colour and ghosting on a physical

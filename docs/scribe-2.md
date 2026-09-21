@@ -30,7 +30,8 @@ DVT board ID missing from the firmware's production lookup table.
 
 Serial opens in the launching terminal. `--serial-socket` redirects it to
 a Unix socket and log file. Telnet is available at `127.0.0.1:2323`; change
-the host port with `--telnet-port PORT`. Native Wi-Fi is not available.
+the host port with `--telnet-port PORT`. Native Wi-Fi connects to the open
+`Kindle-QEMU` AP; see [networking](networking.md).
 
 The builder generates a synthetic waveform. See [Scribe 1](scribe-1.md) for display
 setup and [storage](storage.md#scribe-partitions) for the partition layout.

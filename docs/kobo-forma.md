@@ -75,7 +75,8 @@ EPDC working-buffer completion precedes LUT completion. Signalling both
 in one interrupt triggers a double free in this vendor kernel's marker
 handling; the model keeps them separate without patching the kernel.
 
-Wi-Fi, automatic rotation, physical battery discharge, frontlight optics
+Native RTL8192ES Wi-Fi and automatic USB Ethernet are available; see
+[networking](networking.md). Automatic rotation, physical battery discharge, frontlight optics
 and e-ink waveform/ghosting effects are not emulated. The display uses
 the stock kernel's reserved framebuffer address; other kernel builds and
 firmware versions have not been validated.

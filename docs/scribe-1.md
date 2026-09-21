@@ -43,7 +43,8 @@ telnet 127.0.0.1 2323
 ```
 
 Use `--telnet-port PORT` to change the host port. MTP is disabled so it does
-not take over the USB controller. Native Wi-Fi is not available.
+not take over the USB controller. Native Wi-Fi connects to the open
+`Kindle-QEMU` AP; see [networking](networking.md).
 
 On first boot, the guest skips initial setup (OOBE), selects British English,
 and sets the device type needed for the DVT board. It backs up existing

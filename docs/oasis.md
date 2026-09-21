@@ -2,8 +2,8 @@
 
 Run either Oasis model in a macOS window with touchscreen and page-button
 controls. Each emulator has 2 GiB of storage and saves your settings between
-sessions. Oasis 1 can access the internet through your computer's connection;
-Oasis 2 currently runs offline.
+sessions. Both models support Wi-Fi and USB Ethernet through your computer's
+connection; see [networking](networking.md).
 
 ## Set up
 
@@ -29,7 +29,7 @@ the location of your download.
 ./eink run oasis-2
 ```
 
-On Oasis 1, select the open **Kindle-QEMU** Wi-Fi network to connect. No password
+On either model, select the open **Kindle-QEMU** Wi-Fi network to connect. No password
 is required.
 
 To continue to Home without registering, choose **Set up later**, then

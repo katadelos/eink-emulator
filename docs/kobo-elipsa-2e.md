@@ -81,6 +81,7 @@ in Nickel's portrait orientation. It handles aligned source tiles and the
 one-bit packing used for fast partial updates. The Elan model implements firmware
 queries, calibration, pen enable/status commands and single-finger reports.
 
-Wi-Fi connectivity, Bluetooth, stylus drawing, automatic rotation,
+Native MediaTek Wi-Fi and automatic USB RNDIS Ethernet are available; see
+[networking](networking.md). Bluetooth, stylus drawing, automatic rotation,
 frontlight optics and physical e-ink ghosting are not emulated. Other
 firmware versions and kernel builds have not been validated.
