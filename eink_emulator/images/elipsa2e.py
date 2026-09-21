@@ -37,6 +37,17 @@ def prepare_root(source: Path, output: Path, *, sideloaded: bool) -> None:
     if result.returncode not in (0, 1):
         raise ValueError("Could not recover the Elipsa 2E root filesystem")
     rootfs.run(output, "rm /etc/udev.tgz", writable=True)
+    rootfs.install_overrides(image=output, group="elipsa2e", replacements={
+        "/etc/init.d/qemu-usb-network": ("etc/init.d/qemu-usb-network", "0100755"),
+    })
+
+    def patch_network_startup(contents: str) -> str:
+        needle = "/usr/local/Kobo/hindenburg &"
+        if contents.count(needle) != 1:
+            raise ValueError("Unrecognized Elipsa 2E Hindenburg startup")
+        return contents.replace(needle, "/etc/init.d/qemu-usb-network\n" + needle)
+
+    rootfs.transform_file(output, "/etc/init.d/rcS", "0100755", patch_network_startup)
     if sideloaded:
         rootfs.install_overrides(image=output, group="elipsa2e", replacements={
             "/etc/init.d/eink-sideloaded": ("etc/init.d/eink-sideloaded", "0100755"),

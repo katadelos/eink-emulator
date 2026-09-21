@@ -1,0 +1,42 @@
+#!/bin/sh
+set -e
+
+# Elipsa's stock kernel provides configfs RNDIS, rather than g_ether/ECM.
+gadget=/sys/kernel/config/usb_gadget/qemu
+if [ ! -d /sys/kernel/config/usb_gadget ]; then
+    mount -t configfs none /sys/kernel/config
+fi
+if [ ! -d "$gadget" ]; then
+    mkdir "$gadget"
+    cd "$gadget"
+    echo 0x0525 > idVendor
+    echo 0xa4a2 > idProduct
+    mkdir -p strings/0x409 configs/c.1 functions/rndis.usb0
+    echo QEMU > strings/0x409/manufacturer
+    echo Elipsa-Ethernet > strings/0x409/product
+    echo qemu-elipsa > strings/0x409/serialnumber
+    echo ee:19:00:00:00:00 > functions/rndis.usb0/dev_addr
+    echo ee:49:00:00:00:00 > functions/rndis.usb0/host_addr
+    ln -s functions/rndis.usb0 configs/c.1
+fi
+if [ -z "$(cat "$gadget/UDC")" ]; then
+    echo 11211000.usb > "$gadget/UDC"
+fi
+interface=$(cat "$gadget/functions/rndis.usb0/ifname")
+ip addr replace 192.168.15.244/24 dev "$interface"
+ip link set dev "$interface" up
+ip route replace default via 192.168.15.201 dev "$interface" metric 2048
+# dhcpcd rewrites resolv.conf when the radio connects or disconnects.
+if ! grep -q '^nameserver 192.168.15.3$' /etc/resolv.conf.tail 2>/dev/null; then
+    printf 'nameserver 192.168.15.3\n' >> /etc/resolv.conf.tail
+fi
+if ! grep -q '^nameserver 192.168.15.3$' /etc/resolv.conf; then
+    printf 'nameserver 192.168.15.3\n' >> /etc/resolv.conf
+fi
+if ! grep -q ' /dev/pts devpts ' /proc/mounts; then
+    mkdir -p /dev/pts
+    mount -t devpts devpts /dev/pts
+fi
+if ! pidof telnetd >/dev/null; then
+    /bin/busybox telnetd -b 192.168.15.244 -p 23 -l /bin/sh
+fi
