@@ -6,7 +6,16 @@
     "memory": "1G",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "mt8110",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8110",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -43,7 +52,16 @@
     "memory": "512M",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "mt8110",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8110",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -81,7 +99,16 @@
     "memory": "512M",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "mt8110",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8110",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -134,6 +161,15 @@
     "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platcs8",
     "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mtu3",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8171-wlan"
+      }
+    },
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
@@ -159,9 +195,7 @@
       "boot_image": ["boot_images/boot.img"],
       "aux_firmware": ["boot_images/firmware.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "network": "mtu3_g_ether",
-    "network_device": "mtu3"
+    }
   },
   "kindle-scribe-3": {
     "description": "Kindle Scribe 3",
@@ -186,6 +220,15 @@
     "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platpa6",
     "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mtu3",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8171-wlan"
+      }
+    },
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
@@ -220,7 +263,16 @@
     "memory": "2G",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "mtu3_g_ether",
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -241,8 +293,7 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "network_device": "mt8113"
+    }
   },
   "kindle-paperwhite-6": {
     "description": "Kindle Paperwhite 6",
@@ -251,7 +302,16 @@
     "memory": "2G",
     "builder": "bellatrix",
     "drive_index": 0,
-    "network": "mtu3_g_ether",
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt", "evt", "hvt1.1", "hvt", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": true,
@@ -271,8 +331,7 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
-    },
-    "network_device": "mt8113"
+    }
   },
   "kindle-oasis-1": {
     "description": "Kindle Oasis 1",
@@ -281,7 +340,15 @@
     "builder": "oasis-duet",
     "rootfs_overrides": ["oasis"],
     "drive_index": 1,
-    "network": "bcm4343w",
+    "network": {
+      "wifi": {
+        "device": "bcm4343w-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -309,7 +376,15 @@
     "builder": "oasis-zelda",
     "rootfs_overrides": ["oasis"],
     "drive_index": 2,
-    "network": "none",
+    "network": {
+      "wifi": {
+        "device": "bcm43430-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -338,7 +413,15 @@
     "rootfs_package": "com.lab126.eink.stinger.os",
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 2,
-    "network": "bcm4343w",
+    "network": {
+      "wifi": {
+        "device": "bcm4343w-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -366,7 +449,15 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "g_ether",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -385,7 +476,15 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "g_ether",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -407,7 +506,15 @@
     "builder": "heisenberg",
     "rootfs_overrides": ["heisenberg"],
     "drive_index": 1,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "bcm43430-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -427,7 +534,15 @@
     "rootfs_package": "com.lab126.eink.jaeger.os",
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 1,
-    "network": "bcm4343w",
+    "network": {
+      "wifi": {
+        "device": "bcm4343w-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "machine_firmware_properties": {
       "storage-bios": "storage_bios",
       "falcon-bios": "falcon_bios"
@@ -454,7 +569,15 @@
     "builder": "celeste",
     "rootfs_overrides": ["celeste"],
     "drive_index": 0,
-    "network": "wifi",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -469,7 +592,15 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "pinot",
     "drive_index": 1,
-    "network": "g_ether",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -492,7 +623,15 @@
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
-    "network": "g_ether",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -513,7 +652,15 @@
     "memory": "512M",
     "builder": "rex",
     "drive_index": 1,
-    "network": "wifi",
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "bcm43430-sdio"
+      }
+    },
     "device_profiles": ["production", "dvt"],
     "firmware": {
       "bootloader": ["u-boot.bin"],
@@ -529,7 +676,15 @@
     "memory": "256M",
     "builder": "tequila",
     "drive_index": 0,
-    "network": "wifi",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -542,7 +697,15 @@
     "memory": "256M",
     "builder": "whitney",
     "drive_index": 0,
-    "network": "wifi",
+    "network": {
+      "wifi": {
+        "device": "ar6003-sdio"
+      },
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "ssh"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
@@ -555,7 +718,15 @@
     "memory": "256M",
     "builder": "disk-copy",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
@@ -567,7 +738,15 @@
     "memory": "256M",
     "builder": "disk-copy",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "disk": ["sd.img"]
@@ -580,7 +759,16 @@
     "memory": "1G",
     "builder": "bellatrix3",
     "drive_index": 0,
-    "network": "mtu3_g_ether",
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt", "evt", "evt-doe", "hvt", "hvt-a", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
@@ -612,9 +800,7 @@
       "boot_image": "mt8110_bellatrix3/boot.img",
       "rootfs": "rootfs.img.gz"
     },
-    "network_service": "telnet",
-    "rootfs_overrides": ["bellatrix", "bellatrix3"],
-    "network_device": "mt8113"
+    "rootfs_overrides": ["bellatrix", "bellatrix3"]
   },
   "kindle-scribe-2": {
     "description": "Kindle Scribe 2",
@@ -623,7 +809,16 @@
     "memory": "1G",
     "builder": "bellatrix3",
     "drive_index": 0,
-    "network": "mtu3_g_ether",
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "device_profiles": ["production", "dvt"],
     "accel": "tcg,thread=multi,tb-size=2048",
     "allow_reboot": false,
@@ -655,9 +850,7 @@
       "boot_image": "mt8110_bellatrix3/boot.img",
       "rootfs": "rootfs.img.gz"
     },
-    "network_service": "telnet",
-    "rootfs_overrides": ["bellatrix", "bellatrix3"],
-    "network_device": "mt8113"
+    "rootfs_overrides": ["bellatrix", "bellatrix3"]
   },
   "kobo-forma": {
     "description": "Kobo Forma",
@@ -665,7 +858,15 @@
     "memory": "512M",
     "builder": "forma",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "rtl8192es-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.imx"],
       "boot_region": ["boot-region.img"],
@@ -680,7 +881,16 @@
     "memory": "1G",
     "builder": "elipsa2e",
     "drive_index": 0,
-    "network": "none",
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot-mtk-fit.bin"],
       "boot_region": ["boot-region.img"],

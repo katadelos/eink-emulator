@@ -327,19 +327,16 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         command.extend(["-qmp", f"unix:{runtime['qmp']},server=on,wait=off"])
     if not definition.get("allow_reboot"):
         command.append("-no-reboot")
-    if definition.get("network") == "wifi":
-        ssh_port = port(args.ssh_port)
+    network = definition["network"]
+    if wifi := network.get("wifi"):
+        ssh_port = port(args.wifi_ssh_port if "usb" in network else args.ssh_port)
         command.extend([
             "-netdev", f"user,id=wifi,hostfwd=tcp:127.0.0.1:{ssh_port}-:22",
-            "-global", "ar6003-sdio.netdev=wifi",
+            "-global", f"{wifi['device']}.{wifi.get('netdev_property', 'netdev')}=wifi",
         ])
-    elif definition.get("network") == "bcm4343w":
-        command.extend([
-            "-netdev", "user,id=wifi",
-            "-global", "bcm4343w-sdio.netdev=wifi",
-        ])
-    elif definition.get("network") == "mtu3_g_ether":
-        if definition.get("network_service") == "telnet":
+    if usb := network.get("usb"):
+        controller = usb["device"]
+        if usb["service"] == "telnet":
             forwarded_port = port(args.telnet_port)
             guest_port = 23
         else:
@@ -348,13 +345,13 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         command.extend([
             "-netdev",
             (
-                "user,id=bellatrix-usb,net=192.168.15.0/24,"
+                "user,id=usb,net=192.168.15.0/24,"
                 "host=192.168.15.201,dns=192.168.15.3,"
                 "dhcpstart=192.168.15.244,"
                 f"hostfwd=tcp:127.0.0.1:{forwarded_port}-192.168.15.244:{guest_port}"
             ),
-            "-global", "mt8113.netdev=bellatrix-usb",
-            "-global", "mt8113.mac=ee:19:00:00:00:00",
+            "-global", f"{controller}.netdev=usb",
+            "-global", f"{controller}.mac=ee:19:00:00:00:00",
         ])
     if args.headless:
         command.extend(["-display", "none"])
@@ -605,8 +602,9 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("name")
     run.add_argument("--headless", action="store_true", help="disable graphical output")
     run.add_argument("--vnc", metavar="ENDPOINT", help="use QEMU's VNC display")
-    run.add_argument("--ssh-port", type=int, default=2222, help="host SSH forwarding port (default: 2222)")
-    run.add_argument("--telnet-port", type=int, default=2323, help="host telnet forwarding port for Bellatrix3 Scribes (default: 2323)")
+    run.add_argument("--ssh-port", type=int, default=2222, help="host USB SSH port, or Wi-Fi SSH port on Wi-Fi-only models (default: 2222)")
+    run.add_argument("--wifi-ssh-port", type=int, default=2223, help="host Wi-Fi SSH port when USB networking is also configured (default: 2223)")
+    run.add_argument("--telnet-port", type=int, default=2323, help="host USB telnet forwarding port for Scribe 1/2 and Kobos (default: 2323)")
     run.add_argument("--serial-socket", action="store_true", help="redirect serial to an instance-scoped Unix socket and log instead of this terminal")
     run.add_argument("--qmp-socket", action="store_true", help="expose QMP on an instance-scoped Unix socket")
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
