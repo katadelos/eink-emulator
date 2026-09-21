@@ -3,12 +3,14 @@
 
 import shutil
 import struct
+import subprocess
+import tempfile
 import uuid
 import zlib
 from pathlib import Path
 from typing import BinaryIO
 
-from . import imx6_mmc
+from . import bellatrix, imx6_mmc
 
 SECTOR = 512
 ENTRY_COUNT = 128
@@ -20,7 +22,7 @@ LINUX_FS = uuid.UUID("0fc63daf-8483-4772-8e79-3d69d8477de4")
 PARTITIONS = [
     ("kernel", 32 * 1024**2),
     ("recovery", 32 * 1024**2),
-    ("diags_kernel", 32 * 1024**2),
+    ("keys", 32 * 1024**2),
     ("diags", 32 * 1024**2),
     ("persist", 16 * 1024**2),
     ("miscdata", 64 * 1024**2),
@@ -175,3 +177,14 @@ def build(
     # generated FAT store.
     with image.open("r+b") as disk:
         imx6_mmc.write_waveform_store(disk, layout["recovery"][0] * SECTOR)
+    with tempfile.TemporaryDirectory(prefix="eink-rex-") as directory:
+        for name, label in (("keys", "keys"), ("varlocal", "LocalVars")):
+            filesystem = Path(directory) / f"{name}.img"
+            with filesystem.open("wb") as disk:
+                disk.truncate(layout[name][1] * SECTOR)
+            subprocess.run([
+                str(bellatrix.find_tool("mke2fs")), "-q", "-t", "ext3",
+                "-F", "-L", label, str(filesystem),
+            ], check=True)
+            write_partition(image, layout, name, filesystem)
+    bellatrix.create_vfat_userstore(image, layout)
