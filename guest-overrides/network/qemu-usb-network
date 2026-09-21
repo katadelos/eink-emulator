@@ -1,0 +1,21 @@
+#!/bin/sh
+set -e
+# Image preparation removes storage/MTP ownership of the gadget controller.
+modprobe g_ether \
+    host_addr=ee:49:00:00:00:00 dev_addr=ee:19:00:00:00:00
+ifconfig usb0 192.168.15.244 netmask 255.255.255.0 up
+
+/usr/sbin/qemu-network-routes
+# Some older guest kernels have no netfilter support.
+if grep -q '^filter$' /proc/net/ip_tables_names 2>/dev/null; then
+    iptables -I INPUT 1 -i usb0 -j ACCEPT
+fi
+
+for attempt in $(seq 1 30); do
+    if [ "$(cat /sys/class/net/usb0/carrier)" = 1 ]; then
+        exit 0
+    fi
+    sleep 1
+done
+logger -t qemu-usb-network 'USB Ethernet has no carrier'
+exit 1

@@ -75,7 +75,7 @@ def build_raw_image(
         oasis.build_zelda(output, boot_image=artifacts["boot_image"], rootfs=prepared)
     elif builder in {"oasis-duet", "oasis-zelda"}:
         prepared = output.with_name("prepared-rootfs.img")
-        rootfs.prepare_oasis(artifacts["rootfs"], prepared, wifi=builder == "oasis-duet")
+        rootfs.prepare_oasis(artifacts["rootfs"], prepared)
         if builder == "oasis-duet":
             oasis.build_duet(output, kernel=artifacts["kernel"], rootfs=prepared)
         else:
@@ -96,7 +96,9 @@ def build_raw_image(
         )
         celeste.build(output, artifacts["kernel"], prepared)
     elif builder == "tequila":
-        tequila.build(output, artifacts["kernel"], artifacts["rootfs"])
+        prepared = output.with_name("prepared-rootfs.img")
+        rootfs.prepare_tequila(artifacts["rootfs"], prepared)
+        tequila.build(output, artifacts["kernel"], prepared)
     elif builder == "whitney":
         whitney.build(output, artifacts["kernel"], artifacts["rootfs"])
     elif builder == "rex":

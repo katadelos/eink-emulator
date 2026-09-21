@@ -1,0 +1,9 @@
+#!/bin/sh
+/usr/sbin/qemu-network-routes
+lipc-wait-event -m com.lab126.wifid cmStateChange,cmConnected,cmDisconnected,cmConnectedLocal |
+while read -r event; do
+    # These events precede wifid's asynchronous route/resolver cleanup.
+    # Defer each notification; no work is scheduled while the network is idle.
+    sleep 1
+    /usr/sbin/qemu-network-routes
+done

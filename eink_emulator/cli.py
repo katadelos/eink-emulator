@@ -96,7 +96,7 @@ def digest_files(definition: dict[str, Any], artifacts: dict[str, Path]) -> str:
         digest.update(path.name.encode())
         digest.update(path.read_bytes())
     override_groups = definition.get("rootfs_overrides", [definition["builder"]])
-    for group in override_groups:
+    for group in ["network", "kobo-network", *override_groups]:
         overrides = ROOT / "guest-overrides" / group
         if overrides.is_dir():
             for path in sorted(path for path in overrides.rglob("*") if path.is_file()):

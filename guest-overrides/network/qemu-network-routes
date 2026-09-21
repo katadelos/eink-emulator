@@ -1,0 +1,15 @@
+#!/bin/sh
+# Keep USB usable while the stock connection manager owns Wi-Fi.
+[ -e /sys/class/net/usb0 ] || exit 0
+route del default gw 192.168.15.201 metric 2048 dev usb0 2>/dev/null || true
+route add default gw 192.168.15.201 metric 2048 dev usb0
+# wifid can install a DNS host route through Wi-Fi; keep USB DNS on USB.
+route del -host 192.168.15.3 2>/dev/null || true
+route add -host 192.168.15.3 dev usb0
+
+if route -n | grep -q '^0\.0\.0\.0[[:space:]].*[[:space:]]wlan0$'; then
+    grep -q '^nameserver 192.168.15.3$' /etc/resolv.conf 2>/dev/null ||
+        printf 'nameserver 192.168.15.3\n' >> /etc/resolv.conf
+else
+    printf 'nameserver 192.168.15.3\n' > /etc/resolv.conf
+fi

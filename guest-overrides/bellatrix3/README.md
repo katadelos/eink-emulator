@@ -9,9 +9,9 @@ rootfs. The imported firmware and kernel are kept intact.
 | `display` | Load HWTCON v2 with the selected waveform, then start MDP |
 | `qemu-development-state.conf` | Set the device type, skip initial setup and select British English on first boot |
 | `qemu-runtime-permissions` | Set shared directory permissions before services start |
-| `qemu-usb-network.conf` | Configure USB Ethernet with the stock g_ether driver |
+| `../network/qemu-usb-network.conf` | Configure USB Ethernet with the stock g_ether driver |
 | `qemu-telnet.conf` | Run telnet on the guest USB interface |
-| `mtp.conf` | Disable MTP so it cannot take over the USB controller |
+| `../network/disabled.conf` | Disable MTP and competing USB network jobs |
 | `qemu-review-awake.conf` | Keep the active display awake for up to two hours |
 
 ## First boot
@@ -36,8 +36,8 @@ ownership rules.
 
 The framework gets 600 seconds to start, and a successful sysctl job stops
 instead of respawning. Java settings remain unchanged. Timezone and
-registration jobs check that their required services are available; Minerva
-and native wireless jobs are disabled. The keep-awake job runs every 30
+registration jobs check that their required services are available. Minerva
+is disabled; native wireless jobs remain enabled. The keep-awake job runs every 30
 seconds for up to two hours and only refreshes an already active display.
 Manual sleep remains available.
 

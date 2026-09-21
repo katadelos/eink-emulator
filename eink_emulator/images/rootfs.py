@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 import shutil
 import subprocess
 import tempfile
@@ -277,6 +278,79 @@ def install_overrides(
     run_many(image, commands, writable=True)
 
 
+def remove_usb_storage(contents: str) -> str:
+    contents, count = re.subn(
+        r"\bmodprobe g_(?:mass|file)_storage[^\n;]*",
+        ": 'USB controller reserved for qemu-usb-network'",
+        contents,
+    )
+    if not count:
+        raise SystemExit("stock userstore USB storage module setup was not found")
+    return contents
+
+
+def prepare_network_routes(image: Path) -> None:
+    install_overrides(image=image, group="network", replacements={
+        "/usr/sbin/qemu-network-routes": ("qemu-network-routes", "0100755"),
+        "/usr/sbin/qemu-network-events": ("qemu-network-events", "0100755"),
+    })
+
+    def dhcp_complete(contents: str) -> str:
+        marker = "/usr/sbin/qemu-network-routes\n"
+        if marker in contents:
+            return contents
+        if contents.count("\nexit 0") != 1:
+            raise SystemExit("stock DHCP completion boundary was not found")
+        return contents.replace("\nexit 0", "\n" + marker + "exit 0")
+
+    transform_file(image, "/usr/share/udhcpc/default.script", "0100755", dhcp_complete)
+
+
+def prepare_usb_network(
+    image: Path, *, mass_storage: bool = True, early_gadget: bool = False,
+) -> None:
+    if early_gadget:
+        # Whitney/Celeste load the gadget in modules.conf before userstore.
+        transform_file(image, "/etc/upstart/modules.conf", "0100644", lambda text:
+                       re.sub(r"f_modprobe g_file_storage[^\n]*",
+                              "f_modprobe g_ether host_addr=ee:49:00:00:00:00 "
+                              "dev_addr=ee:19:00:00:00:00", text)
+                       .replace("loaded_g_file_storage", "loaded_g_ether"))
+        transform_file(image, "/etc/upstart/battery.conf", "0100644", lambda text:
+                       text.replace("loaded_g_file_storage", "loaded_g_ether"))
+    elif mass_storage:
+        transform_file(image, "/etc/upstart/filesystems_userstore.conf", "0100644",
+                       remove_usb_storage)
+    prepare_network_routes(image)
+    install_overrides(image=image, group="network", replacements={
+        "/usr/sbin/qemu-usb-network": ("qemu-usb-network", "0100755"),
+        "/etc/upstart/qemu-usb-network.conf": ("qemu-usb-network.conf", "0100644"),
+        "/etc/upstart/qemu-network-events.conf": ("qemu-network-events.conf", "0100644"),
+        **{f"/etc/upstart/{name}.conf": ("disabled.conf", "0100644")
+           for name in ("mtp", "usbnetd", "usbnet-autostart")},
+    })
+
+
+def prepare_tequila(source: Path, output: Path) -> None:
+    copy_source(source, output)
+    transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    transform_file(output, "/etc/modules.yoshi", "0100644", lambda text:
+                   re.sub(r"(?m)^g_file_storage[^\n]*$",
+                          "g_ether host_addr=ee:49:00:00:00:00 "
+                          "dev_addr=ee:19:00:00:00:00", text))
+    # Tequila uses SysV init; reserve its network gadget before usbnetd starts.
+    prepare_network_routes(output)
+    install_overrides(image=output, group="network", replacements={
+        "/etc/rc5.d/S82qemu-usb-network": ("qemu-usb-network", "0100755"),
+    })
+    # SysV switches runlevels after rcS; let init supervise the event listener
+    # after startup, as Upstart does on the later Kindles.
+    transform_file(output, "/etc/inittab", "0100644", lambda text:
+                   text + "\nqnet:2345:respawn:/usr/sbin/qemu-network-events\n")
+    run_many(output, ["rm /etc/rc5.d/S81usbnetd", "rm /etc/rc5.d/S82usbnet",
+                      "rm /etc/rc5.d/S62usbnet-preinit"], writable=True)
+
+
 def prepare_wario(source: Path, output: Path) -> None:
     copy_source(source, output)
     install_overrides(image=output, group="wario", replacements={
@@ -286,6 +360,7 @@ def prepare_wario(source: Path, output: Path) -> None:
         "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    prepare_usb_network(output)
 
 
 def prepare_heisenberg(source: Path, output: Path) -> None:
@@ -298,12 +373,10 @@ def prepare_heisenberg(source: Path, output: Path) -> None:
     })
     install_overrides(image=output, group="heisenberg", replacements={
         "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
-        "/etc/upstart/qemu-eanab-offline.conf": ("qemu-eanab-offline.conf", "0100644"),
         "/etc/upstart/testd.conf": ("qemu-disabled-service.conf", "0100644"),
-        "/etc/upstart/wifid.conf": ("qemu-disabled-service.conf", "0100644"),
-        "/etc/upstart/wifim.conf": ("qemu-disabled-service.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    prepare_usb_network(output)
 
 
 def prepare_kt4(source: Path, output: Path) -> None:
@@ -321,6 +394,7 @@ def prepare_kt4(source: Path, output: Path) -> None:
         "/etc/upstart/qemu-skip-oobe.conf": ("qemu-skip-oobe.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    prepare_usb_network(output)
 
 
 def prepare_koa3(source: Path, output: Path) -> None:
@@ -338,9 +412,10 @@ def prepare_koa3(source: Path, output: Path) -> None:
         "/etc/upstart/qemu-skip-oobe.conf": ("qemu-skip-oobe.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    prepare_usb_network(output)
 
 
-def prepare_oasis(source: Path, output: Path, *, wifi: bool) -> None:
+def prepare_oasis(source: Path, output: Path) -> None:
     copy_source(source, output)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
@@ -353,13 +428,8 @@ def prepare_oasis(source: Path, output: Path, *, wifi: bool) -> None:
         "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
         "/etc/upstart/testd.conf": ("qemu-disabled-service.conf", "0100644"),
     })
-    if not wifi:
-        install_overrides(image=output, group="oasis", replacements={
-            "/etc/upstart/qemu-oasis-offline.conf": ("qemu-oasis-offline.conf", "0100644"),
-            "/etc/upstart/wifid.conf": ("qemu-disabled-service.conf", "0100644"),
-            "/etc/upstart/wifim.conf": ("qemu-disabled-service.conf", "0100644"),
-        })
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    prepare_usb_network(output)
 
 
 def prepare_whitney(source: Path, output: Path, *, maximum_size: int) -> None:
@@ -375,6 +445,7 @@ def prepare_whitney(source: Path, output: Path, *, maximum_size: int) -> None:
         "/etc/upstart/ttsd.conf": ("ttsd.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100640", blank_root_password)
+    prepare_usb_network(output, early_gadget=True)
 
 
 def prepare_celeste(source: Path, output: Path, *, maximum_size: int) -> None:
@@ -390,6 +461,7 @@ def prepare_celeste(source: Path, output: Path, *, maximum_size: int) -> None:
         "/etc/upstart/ttsd.conf": ("ttsd.conf", "0100644"),
     })
     transform_file(output, "/etc/shadow", "0100640", blank_root_password)
+    prepare_usb_network(output, early_gadget=True)
 
 
 def prepare_rex(source: Path, output: Path) -> None:
@@ -406,10 +478,8 @@ def prepare_rex(source: Path, output: Path) -> None:
         "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
         "/etc/upstart/qemu-seed-locale.conf": ("qemu-seed-locale.conf", "0100644"),
         "/etc/upstart/sshd.conf": ("qemu-disabled-service.conf", "0100644"),
-        "/etc/upstart/wifid.conf": ("qemu-disabled-service.conf", "0100644"),
-        "/etc/upstart/wifim.conf": ("qemu-disabled-service.conf", "0100644"),
-        "/etc/upstart/wifis.conf": ("qemu-disabled-service.conf", "0100644"),
     })
+    prepare_usb_network(output)
 
 
 def prepare_bellatrix(
@@ -485,23 +555,8 @@ def prepare_bellatrix(
             "qemu-disabled-service.conf",
             "0100644",
         ),
-        "/etc/upstart/wmt.conf": (
-            "qemu-disabled-service.conf",
-            "0100644",
-        ),
-        "/etc/upstart/wifid.conf": (
-            "qemu-disabled-service.conf",
-            "0100644",
-        ),
-        "/etc/upstart/wifim.conf": (
-            "qemu-disabled-service.conf",
-            "0100644",
-        ),
-        "/etc/upstart/wifis.conf": (
-            "qemu-disabled-service.conf",
-            "0100644",
-        ),
     })
+    prepare_usb_network(output, mass_storage=board in {"malbec", "cava"})
 
 
 def bellatrix3_patch_framework(contents: str) -> str:
@@ -548,9 +603,8 @@ def prepare_bellatrix3(
 ) -> None:
     """Install the Scribe development boot jobs in a generated rootfs copy.
 
-    These Linux 4.9 roots have no dm-verity. Keep their stock storage cleanup
-    and account identity handling intact; USB Ethernet is
-    the development network while unsupported radio services are excluded.
+    These Linux 4.9 roots have no dm-verity. Keep their stock storage cleanup,
+    account identity handling and radio services, and add USB Ethernet access.
     """
     if board not in {"barolo", "pisco"}:
         raise ValueError(f"unsupported Bellatrix3 board: {board}")
@@ -604,14 +658,10 @@ def prepare_bellatrix3(
         "/etc/upstart/qemu-development-state.conf": (
             "qemu-development-state.conf", "0100644",
         ),
-        "/etc/upstart/qemu-usb-network.conf": (
-            "qemu-usb-network.conf", "0100644",
-        ),
         "/etc/upstart/qemu-telnet.conf": ("qemu-telnet.conf", "0100644"),
         "/etc/upstart/qemu-review-awake.conf": (
             "qemu-review-awake.conf", "0100644",
         ),
-        "/etc/upstart/mtp.conf": ("mtp.conf", "0100644"),
     })
     install_overrides(image=output, group="bellatrix", replacements={
         "/etc/upstart/tzd.conf": ("tzd.conf", "0100644"),
@@ -621,7 +671,7 @@ def prepare_bellatrix3(
                 "qemu-disabled-service.conf", "0100644",
             )
             for service in (
-                "minerva_service", "minervad", "wmt", "wifid", "wifim", "wifis",
+                "minerva_service", "minervad",
             )
         },
     })
@@ -630,3 +680,4 @@ def prepare_bellatrix3(
         "set_inode_field /data/init_bin mode 040755",
     ], writable=True)
     replace_file(output, waveform, "/data/init_bin/wf_lut.gz", "0100644")
+    prepare_usb_network(output, mass_storage=False)
