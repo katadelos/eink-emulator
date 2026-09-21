@@ -390,6 +390,10 @@
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"]
+    },
+    "machine_properties": {
+      "idme-serial": "90D4000000000001",
+      "idme-pcbsn": "0510300000000001"
     }
   },
   "kindle-basic-2016": {
@@ -470,6 +474,10 @@
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"]
+    },
+    "machine_properties": {
+      "idme-serial": "B0D4000000000001",
+      "idme-pcbsn": "0271600000000001"
     }
   },
   "kindle-paperwhite-3": {
@@ -489,6 +497,10 @@
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"]
+    },
+    "machine_properties": {
+      "idme-serial": "G090G10500000000",
+      "idme-pcbsn": "0670400000000001"
     }
   },
   "kindle-paperwhite-4": {
