@@ -1,16 +1,15 @@
-# KOA3
+# Kindle Oasis 3 (KOA3)
 
-Run KOA3, the 10th generation Kindle Oasis, in a macOS window with touchscreen
-and page-button controls. The emulator has 2 GiB of storage, saves your
-settings between sessions and connects through your computer's internet
-connection.
+KOA3 is the 10th generation Oasis, board name Stinger. The emulator has touch
+and page-button controls, 2 GiB of persistent storage, Wi-Fi and USB Ethernet.
+It can occasionally exit during startup.
 
-## Set up
+## Setup
 
-Download firmware **5.18.2.1.1** from
-[Amazon's firmware page](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW).
-Install [KindleTool](https://github.com/NiLuJe/KindleTool) if it is not already
-available, then replace `/path/to/` with the location of your download:
+Supply firmware **5.18.2.1.1** from
+[Amazon's firmware page](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW)
+and install the [host requirements](../README.md#host-requirements).
+Replace `/path/to/` with the package location:
 
 ```sh
 ./eink import /path/to/update_kindle_all_new_oasis_v2_5.18.2.1.1.bin --model kindle-oasis-3
@@ -18,23 +17,24 @@ available, then replace `/path/to/` with the location of your download:
 ./eink run koa3
 ```
 
-Select the open **Kindle-QEMU** Wi-Fi network to connect. No password is
-required.
+See [networking](networking.md) for Wi-Fi and SSH access.
 
 ## Controls
 
 | Action | Control |
 | --- | --- |
-| Tap | Click the screen |
-| Previous-page button | `Page Up` or `[` |
-| Next-page button | `Page Down` or `]` |
-| Stop the emulator | Close its window |
+| Tap | Click the display |
+| Previous page | `Page Up` or `[` |
+| Next page | `Page Down` or `]` |
+| Stop QEMU | Close the window |
 
-The display does not reproduce frontlight brightness or color temperature.
-To save pending warmth settings before stopping, log in as `root` in the
-launching terminal (no password) and run `sync; shutdown -r now`.
+The display does not reproduce frontlight brightness or colour temperature.
+To save pending warmth settings before stopping, log in as `root` from serial
+without a password and run:
 
-To open the saved emulator again, run `./eink run koa3`. Import and create are
-only needed during initial setup.
+```sh
+sync
+shutdown -r now
+```
 
-KOA3 can occasionally exit during startup.
+The launcher uses `-no-reboot`, so the guest reboot request exits QEMU.

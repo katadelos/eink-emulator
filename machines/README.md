@@ -1,8 +1,7 @@
 # Machine state
 
-`./eink create` stores each persistent machine in a subdirectory here. The
-contents are runtime state and are ignored by Git. Each directory contains a
-small JSON manifest and a sparse QCOW2 overlay.
+`./eink create` makes one directory here per instance. Each directory contains
+`machine.json` and a sparse QCOW2 overlay. Git ignores this runtime state.
 
-Use `./eink list` for the machine inventory and `./eink images` for the full
-disk-image inventory.
+Use `./eink list` to list instances and `./eink images` to list disks. See
+[storage](../docs/storage.md) before moving or backing up an instance.

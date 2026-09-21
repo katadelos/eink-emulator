@@ -1,37 +1,20 @@
 # Kindle Paperwhite 6
 
-Paperwhite 6, also referred to as PW12, uses the monochrome Sangria board on
-the shared MT8113 Bellatrix4 platform.
+Paperwhite 6 (PW12) uses the monochrome Sangria board on MT8113 Bellatrix4.
+It skips account setup and opens Home without registration.
 
-Follow the component checklist in [firmware setup](firmware.md), then create a
-persistent machine once:
+## Setup
+
+Supply the files listed by `./eink firmware`:
 
 ```sh
-./eink build
 ./eink create pw12 --model kindle-paperwhite-6 --profile production
-./eink run pw12 --qmp-socket
+./eink run pw12
 ```
 
-The normal run flow opens the Cocoa display and keeps serial attached to its
-terminal. The first boot initializes persistent filesystems, shows the Kindle
-splash, and reaches Home after roughly a minute. A guest bootmod closes the
-network/account setup application without inventing registration data.
+Click the display to tap. Touch passes through the emulated FT5536G controller
+and stock kernel driver. See [hardware profiles](firmware.md#hardware-profiles)
+for development boards and [networking](networking.md) for SSH and Wi-Fi.
 
-The instance reuses its writable overlay on subsequent launches. When QMP is
-enabled, another `run` invocation detects the live process instead of starting
-a second QEMU process:
-
-```sh
-python3 scripts/eink-qmp.py --machine pw12 machine
-python3 scripts/eink-qmp.py --machine pw12 display
-python3 scripts/eink-qmp.py --machine pw12 screendump /tmp/pw12.png
-```
-
-Cocoa pointer input enters through the emulated FT5536G controller, its I2C
-reports, and interrupt line before reaching the stock kernel input driver.
-Use `--serial-socket` only when the console must be detached from the launch
-terminal.
-
-Development units can select `dvt`, `evt`, `hvt1.1`, `hvt`, or `proto` instead
-of `production` at creation time. The profile is stored with the instance and
-selects the matching stock board tattoo.
+[Guest changes](guest-overrides.md#bellatrix) describes the startup modifications.
+Use [QMP](qmp.md#bellatrix-hardware-state) to inspect a slow boot or blank display.

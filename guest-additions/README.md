@@ -1,40 +1,31 @@
 # Kindle guest additions
 
-Every Kindle image receives a Dropbear SSH server, key generator, client and
-SCP executable. The image builder installs these in `/usr/sbin` and `/usr/bin`;
-the source firmware is never changed.
+Each Kindle image receives Dropbear SSH, a key generator, an SSH client and
+SCP, installed under `/usr/sbin` and `/usr/bin`. See
+[networking](../docs/networking.md#kindle-ssh) for login and service commands.
 
 ## Binaries
 
-`dropbear/` contains Dropbear 2026.94 binaries for the supported Kindle ABIs.
-Each architecture directory includes its `LICENSE`.
+`dropbear/` contains Dropbear 2026.94. Each directory includes its licence.
+The builder selects binaries for the guest userspace ABI:
 
 | Directory | Guest userspace |
 | --- | --- |
 | `kindle5` | ARMv7 soft float: Kindle 4, Touch and Paperwhite 1 |
-| `kindlepw2` | ARMv7 soft float: Paperwhite 2 and later with older firmware |
-| `kindlehf` | ARMv7 hard float: firmware with `/lib/ld-linux-armhf.so.3` |
+| `kindlepw2` | ARMv7 soft float: later models without the hard-float loader |
+| `kindlehf` | ARMv7 hard float: rootfs contains `/lib/ld-linux-armhf.so.3` |
 
-Selection follows the rootfs ABI, not the QEMU CPU architecture. The MediaTek
-Kindles use the ARMv7 hard-float build even though QEMU emulates an ARM64 CPU.
-These are dynamically linked binaries using the guest's matching loader/libc.
-They support public-key authentication and SCP; password authentication and
-SFTP are disabled in the supplied build.
+MediaTek guests use the ARMv7 hard-float build even on an emulated ARM64 CPU.
+The binaries link to the guest loader and C library. They support public-key
+authentication and SCP. Password authentication and SFTP are disabled.
 
-## Startup and identity
+## Startup and keys
 
-`ssh/sshd.conf` replaces the stock Upstart SSH job. Kindle 4 instead receives
-an init-supervised `sshd` entry in `/etc/inittab`. Both run `ssh/qemu-sshd`
-in the foreground after persistent storage is available. Dropbear listens on
-port 22 on all guest interfaces. The image builder permits incoming SSH in
-the USB and Wi-Fi firewall rules.
+`ssh/sshd.conf` replaces the stock Upstart SSH job. Kindle 4 uses a respawning
+`/etc/inittab` entry. Both run `ssh/qemu-sshd` after persistent storage is
+available. Dropbear listens on port 22; guest firewall rules allow USB and
+Wi-Fi SSH traffic.
 
-The host generates one login identity at `build/ssh/id_ed25519`, shared by all
-Kindles. Only the public key is embedded at `/etc/eink-ssh/authorized_keys`.
-No private key is stored in this directory or committed to the repository.
-Each guest generates its own persistent Ed25519 host key in
-`/var/local/eink-ssh`. Framework permission changes exclude this directory.
-
-See [networking](../docs/networking.md#kindle-ssh) for login commands, host port
-options and service diagnostics. New additions and login keys participate in
-the base-image cache key; existing saved disks remain unchanged.
+The login public key is installed at `/etc/eink-ssh/authorized_keys`. Each
+guest creates its own server key in `/var/local/eink-ssh`. Framework permission
+changes exclude that directory to keep the key private.

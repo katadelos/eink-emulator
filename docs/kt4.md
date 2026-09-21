@@ -1,15 +1,14 @@
-# KT4
+# Kindle Basic 4 (2019)
 
-Run KT4, the 10th generation basic Kindle, in a macOS window with touchscreen
-controls. The emulator has 2 GiB of storage, saves your settings between
-sessions and connects through your computer's internet connection.
+KT4 is the 10th generation basic Kindle, board name Jaeger. The emulator has
+touch controls, 2 GiB of persistent storage, Wi-Fi and USB Ethernet.
 
-## Set up
+## Setup
 
-Download firmware **5.18.1.1.1** from
-[Amazon's firmware page](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW).
-Install [KindleTool](https://github.com/NiLuJe/KindleTool) if it is not already
-available, then replace `/path/to/` with the location of your download:
+Supply firmware **5.18.1.1.1** from
+[Amazon's firmware page](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW)
+and install the [host requirements](../README.md#host-requirements).
+Replace `/path/to/` with the package location:
 
 ```sh
 ./eink import /path/to/update_kindle_10th_5.18.1.1.1.bin --model kindle-kt4
@@ -17,17 +16,9 @@ available, then replace `/path/to/` with the location of your download:
 ./eink run kt4
 ```
 
-Select the open **Kindle-QEMU** Wi-Fi network to connect. No password is
-required.
+See [networking](networking.md) for Wi-Fi and SSH access.
 
 ## Controls
 
-| Action | Control |
-| --- | --- |
-| Tap | Click the screen |
-| Stop the emulator | Close its window |
-
+On macOS, click the display to tap and close the window to stop QEMU.
 KT4 has no physical page buttons.
-
-To open the saved emulator again, run `./eink run kt4`. Import and create are
-only needed during initial setup.

@@ -1,54 +1,46 @@
 # Bellatrix3 guest setup
 
-The Scribe 1 and 2 image builder installs these files into a copy of the
-rootfs. The imported firmware and kernel are kept intact.
+Scribe 1 and 2 use these files to start the framework on emulated hardware:
 
 | File | Purpose |
 | --- | --- |
-| `console.conf` | Run and supervise a serial shell on ttyS0 |
-| `display` | Load HWTCON v2 with the selected waveform, then start MDP |
-| `qemu-development-state.conf` | Set the device type, skip initial setup and select British English on first boot |
+| `console.conf` | Supervise a serial shell on `ttyS0` |
+| `display` | Load HWTCON v2 with a generated waveform, then start MDP |
+| `qemu-development-state.conf` | Set the device type, skip initial setup and select British English |
 | `qemu-runtime-permissions` | Set shared directory permissions before services start |
-| `../network/qemu-usb-network.conf` | Configure USB Ethernet with the stock g_ether driver |
-| `../../guest-additions/ssh/sshd.conf` | Supervise Dropbear on USB and Wi-Fi |
-| `../network/disabled.conf` | Disable MTP and competing USB network jobs |
-| `qemu-review-awake.conf` | Keep the active display awake for up to two hours |
+| `../network/qemu-usb-network.conf` | Configure USB Ethernet with `g_ether` |
+| `../../guest-additions/ssh/sshd.conf` | Supervise Dropbear |
+| `../network/disabled.conf` | Disable MTP and competing USB jobs |
+| `qemu-review-awake.conf` | Keep an active display awake for up to two hours |
 
 ## First boot
 
-The state job runs before display starts, once encrypted persistent storage
-is mounted. It backs up locale and preferences under
-`/var/local/system/qemu-development` and records that setup is complete.
-Later boots preserve the user's choices. This skips OOBE without creating
-an Amazon account.
+The state job runs after encrypted persistent storage mounts and before
+display starts. It backs up locale and preferences in
+`/var/local/system/qemu-development`, then records setup completion. Later
+boots preserve user choices. It does not create an Amazon account.
 
-`/var/local/deviceType.txt` supplies the device type for DVT board IDs absent
-from the firmware's production lookup table. A valid existing value is kept.
+`/var/local/deviceType.txt` supplies the device type for DVT board IDs missing
+from the production lookup table. A valid existing value is kept.
 
 ## Startup and permissions
 
-Runtime permissions are set before services create shared files. Existing
-persistent files are updated once, tracked by a version marker. Shared
-directories use setgid so new files inherit the `javausers` group. Framework
-restarts check the top-level directories rather than walking every file.
-The private root directory and the stock chroot exclusion keep their original
-ownership rules.
+Permissions are set before services create shared files. A version marker
+limits updates to existing files to one pass. Shared directories use setgid
+so new files inherit the `javausers` group. Framework restarts check top-level
+directories instead of walking every file. The private root directory and
+stock chroot exclusion retain their ownership rules.
 
-The framework gets 600 seconds to start, and a successful sysctl job stops
-instead of respawning. Java settings remain unchanged. Timezone and
-registration jobs check that their required services are available. Minerva
-is disabled; native wireless jobs remain enabled. The keep-awake job runs every 30
-seconds for up to two hours and only refreshes an already active display.
-Manual sleep remains available.
+The framework has 600 seconds to start. A successful sysctl job stops instead
+of respawning. Timezone and registration jobs check their service dependencies.
+Minerva is disabled; native Wi-Fi jobs remain enabled. Java settings are
+unchanged.
 
-## Display and console
+The keep-awake job runs every 30 seconds for up to two hours. It refreshes
+only an active display; it does not wake a sleeping display.
 
-A generated waveform is installed in FAT p2 and at
-`/data/init_bin/wf_lut.gz`. The display job leaves an already loaded HWTCON
-module alone; otherwise, it loads the generated file from the rootfs. Synthetic data enables display
-emulation without physical panel calibration.
+## Display and access
 
-Serial uses the launching terminal. `--serial-socket` redirects it to the
-instance's socket and log. SSH forwards from `127.0.0.1:2222` on USB and
-port 2223 on Wi-Fi; use `--ssh-port` and `--wifi-ssh-port` to change them.
-Connect as root using the shared `build/ssh/id_ed25519` login key.
+The generated waveform is installed in FAT p2 and `/data/init_bin/wf_lut.gz`.
+The display job loads it from the rootfs unless HWTCON is already loaded.
+See [networking](../../docs/networking.md#kindle-ssh) for SSH access.

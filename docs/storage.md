@@ -1,46 +1,42 @@
 # Machines and disk images
 
-Instances share a base image and store their own changes in a writable disk:
+Each instance stores its changes in a QCOW2 overlay. Instances can share a
+read-only base image, which reduces disk use.
 
 ```text
-firmware/MODEL/                  Imported firmware
-build/images/*.qcow2             Shared base images
-build/ssh/id_ed25519             Shared Kindle SSH login key (keep private)
-build/ssh/id_ed25519.pub         Public key installed in new Kindle images
-machines/NAME/machine.json       Instance configuration
-machines/NAME/disk.qcow2          Writable disk overlay
-machines/NAME/NAME.qmp.sock       Optional QMP socket
-machines/NAME/NAME.serial.sock   Optional serial socket
-machines/NAME/NAME.serial.log    Serial output with --serial-socket
+firmware/MODEL/                 Imported firmware
+build/images/*.qcow2            Shared base images
+build/ssh/id_ed25519            Kindle SSH private key
+build/ssh/id_ed25519.pub        Public key installed in Kindle images
+machines/NAME/machine.json      Instance configuration
+machines/NAME/disk.qcow2        Writable overlay
+machines/NAME/NAME.qmp.sock     Optional QMP socket
+machines/NAME/NAME.serial.sock  Optional serial socket
+machines/NAME/NAME.serial.log   Serial log with --serial-socket
 ```
 
-These files are ignored by Git. Image creation builds a temporary sparse raw
-disk and converts it to a QCOW2 base. Each instance starts with an empty
-QCOW2 overlay and uses more host space as the guest writes to it.
+Git ignores runtime files. An overlay starts empty and grows as the guest
+writes data.
 
-Changes to firmware, image-building code, guest additions or the SSH public
-key produce a new base. Keep the SSH private key when cleaning build files
-to retain access to existing Kindles. Existing
-instances keep using the base they were created with.
+Changes to firmware, builder code, guest files or the SSH public key cause
+future instances to use a new base. Existing instances keep their original
+base.
 
-[Oasis 1 and 2](oasis.md) each have 2 GiB of virtual storage. Their disk
-files grow as needed rather than reserving the full amount on your Mac.
+## Inventory and backups
 
-## Console sockets
+`./eink list` shows instances and checks that their disks and bases exist.
+`./eink images` shows virtual sizes, allocated host space and backing files.
 
-`./eink run NAME --qmp-socket` creates the QMP socket. `--serial-socket`
-redirects serial from the terminal to a socket and records output in a log.
-
-Before launching, `eink` checks the instance's QMP socket. If QEMU is already
-running, it reports that process instead of launching another one against
-the same disk. A stale QMP socket is removed when starting a new QMP listener.
-Serial sockets are left alone because they can be in use without QMP.
-Remove a stale serial socket only after its QEMU process has exited.
+Stop QEMU before copying an instance. Back up its complete `machines/NAME/`
+directory and the base named in `machine.json`. Preserve their relative paths;
+the overlay depends on its base. Keep the model's firmware directory because
+launch still needs the bootloader and any separate machine firmware. Keep
+`build/ssh/` for Kindle SSH access.
 
 ## Scribe partitions
 
-Both Scribe image builders create 8 GiB sparse disks. They use the partition
-numbers expected by the firmware; partition sizes are chosen for emulation.
+Both Scribe builders create 8 GiB sparse disks. Partition numbers match the
+firmware; sizes are selected for emulation.
 
 | Partition | Scribe 1 / 2 (Bellatrix3) | Scribe 3 / Colorsoft (MT8115) |
 | --- | --- | --- |
@@ -58,36 +54,26 @@ numbers expected by the firmware; partition sizes are chosen for emulation.
 | 12 | — | Varlocal |
 | 13 | — | Userstore |
 
-Scribe 1 and 2 use a prepared 768 MiB rootfs, with fresh pdata and varlocal
-filesystems. Their ext4 userstore has fully initialized inode tables to
-avoid discard errors during Linux 4.9's lazy initialization. The eMMC model
-supports normal TRIM for the firmware's hibernate cleanup.
+Scribe 1/2 use a prepared 768 MiB rootfs and fresh pdata and varlocal filesystems.
+Their ext4 userstore has fully initialized inode tables to avoid discard
+errors during Linux 4.9 startup.
 
-Scribe 3 and Colorsoft copy the original rootfs into a partition of exactly
-the same size, keeping its AVB footer at the partition boundary. Both use a
-fresh ext4 userstore. On all four Scribes, the userstore filesystem starts
-8 KiB into its partition, as expected by the guest's loop device.
+Scribe 3 and Scribe Colorsoft keep the source rootfs size and AVB footer at
+the partition boundary, although [guest preparation](guest-overrides.md#scribe-3-and-colorsoft)
+changes the filesystem contents. Both use a fresh ext4 userstore. On all
+Scribes, the userstore filesystem starts 8 KiB into its partition, as required
+by the guest loop device.
 
 ## KT4 partitions
 
-[KT4](kt4.md) uses a sparse 2 GiB disk. Jaeger retains rootfs p8, varlocal p9
-and userstore p10, plus its keys and hibernation partitions. The stock rootfs
-has 512 MiB and local settings have 64 MiB; userstore fills the remaining
-space. The emulated eMMC boot areas hold vendor BIOS and synthetic IDME
-separately from the user-area GPT.
+[KT4](kt4.md) uses a 2 GiB sparse disk. Rootfs is p8 (512 MiB), varlocal is
+p9 (64 MiB) and userstore is p10 (remaining space). The layout also retains
+keys and hibernation partitions. Vendor BIOS and synthetic IDME are stored in
+emulated eMMC boot areas, separate from the user-area GPT.
 
 ## KOA3 partitions
 
-[KOA3](koa3.md) uses a sparse 2 GiB disk. Stinger retains the Zelda platform's
-system p5, local settings p6 and userstore p7, as well as its absolute
-hibernation and key regions. The stock rootfs has 512 MiB and local settings
-have 64 MiB; userstore fills the remaining space. The emulated eMMC boot areas
-hold vendor BIOS and synthetic IDME separately from the user-area GPT.
-
-## Inventory and backups
-
-`./eink list` shows the instances and whether their disks and bases exist.
-`./eink images` lists image sizes, allocated host space and backing files.
-
-To back up an instance, copy its complete `machines/NAME` directory and the
-base named in `machine.json`. The overlay cannot be used without its base.
+[KOA3](koa3.md) uses a 2 GiB sparse disk. System is p5 (512 MiB), local settings
+are p6 (64 MiB) and userstore is p7 (remaining space). The layout retains
+Zelda's absolute hibernation and key regions. As on KT4, vendor BIOS and
+synthetic IDME use separate eMMC boot areas.

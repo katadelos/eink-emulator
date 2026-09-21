@@ -1,18 +1,25 @@
 <div align="center">
   <h1>E-ink emulator</h1>
-  <i>Run virtual Kindle and Kobo e-readers in QEMU!</i>
   <img src="images/header.png" alt="E-ink emulator">
 </div>
 
+Run Kindle and Kobo firmware in QEMU with persistent storage, touch input and
+network access. Scribe support is experimental; see the model pages below.
 
-Run Kindle and Kobo firmware in QEMU with a persistent disk for each emulated device.
+Supply your own firmware. The project is not affiliated with Amazon or
+Rakuten Kobo.
 
-No firmware, device dumps, account data, or physical-device identity values are distributed here. This project is not affiliated with Amazon or Rakuten
-Kobo.
+## Host requirements
+
+- Python 3.10 or newer
+- A C compiler, Ninja and the standard QEMU build dependencies
+- `mke2fs`, `e2fsck`, `tune2fs` and `debugfs` from e2fsprogs
+- `ssh-keygen` from OpenSSH for Kindle SSH access
+- [KindleTool](https://github.com/NiLuJe/KindleTool) to import Kindle recovery packages
+
+On macOS, install e2fsprogs through Homebrew.
 
 ## Quick start
-
-Clone and inspect the supported models:
 
 ```sh
 git clone git@github.com:katadelos/eink-emulator.git
@@ -21,128 +28,75 @@ cd eink-emulator
 ./eink firmware
 ```
 
-The first command that needs QEMU initializes the QEMU checkout and fetches
-its pinned SLIRP fallback. QEMU's unrelated firmware and test submodules are
-not needed.
-
-Use `./eink firmware` to find the files needed for your model. QEMU provides
-synthetic device identity defaults, so creating a Voyage needs no identity
-configuration:
+Choose a model and supply the files listed by `./eink firmware`. For example,
+with a [Paperwhite 5 recovery package](docs/paperwhite-5.md):
 
 ```sh
-./eink create my-reader --model kindle-voyage
+./eink import /path/to/update.bin --model kindle-paperwhite-5
+./eink create my-reader --model kindle-paperwhite-5 --profile production
 ./eink run my-reader
 ```
 
-The Scribes also require a hardware profile. Import a recovery package, then
-create an instance:
+`create` builds QEMU if needed and prepares the instance disk. On macOS,
+`run` opens a Cocoa window. Click to tap; serial uses the launching terminal.
+To reopen the saved instance, use `run` again.
+
+Other models need different files and, in some cases, a hardware profile.
+See [firmware setup](docs/firmware.md). Kobo Forma and Elipsa 2E accept
+`--sideloaded` at creation to skip account setup.
+
+## Everyday use
 
 ```sh
-./eink import /path/to/update.bin --model kindle-scribe-1
-./eink create my-scribe --model kindle-scribe-1 --profile dvt
-./eink run my-scribe
+./eink list                         # List saved instances.
+./eink images                       # Show disk use.
+./eink run my-reader --qmp-socket    # Start with QMP control.
+./eink run --help                   # List launch options.
 ```
 
-Create Kobo devices the same way:
+`--serial-socket` sends serial output to a socket and log. `--headless`
+disables the display; `--vnc ENDPOINT` selects VNC. Use `--dry-run` to print
+the QEMU command. See [QMP inspection](docs/qmp.md) for remote control and
+[storage](docs/storage.md) for backups.
 
-```sh
-./eink create my-kobo --model kobo-touch
-./eink run my-kobo
-
-./eink create my-mini --model kobo-mini
-./eink run my-mini
-
-./eink create my-forma --model kobo-forma --sideloaded
-./eink run my-forma
-
-./eink create my-elipsa --model kobo-elipsa-2e --sideloaded
-./eink run my-elipsa
-```
-
-`create` builds QEMU if needed, prepares a shared base image, and adds a
-small writable disk for the instance.
-
-## Everyday commands
-
-```text
-./eink models                 List supported models
-./eink firmware               Show required firmware files
-./eink import FILE --model M  Import a supported recovery package
-./eink create NAME --model M  Create a persistent instance
-./eink run NAME               Launch an instance
-./eink qemu -- ARGS           Use a raw QEMU machine
-./eink list                   List instances
-./eink images                 List base and instance disks
-./eink build                  Build the QEMU fork
-```
-
-Serial uses the launching terminal. Add `--serial-socket` to send it to the
-instance's Unix socket and log file, or `--qmp-socket` to enable QMP control.
-Use `--headless` to disable the display, or `--vnc ENDPOINT` for VNC.
-Every newly created Kindle includes Dropbear SSH. Creation generates one shared
-login key at `build/ssh/id_ed25519`. Connect over USB with:
+Kindle images start SSH over USB automatically:
 
 ```sh
 ssh -i build/ssh/id_ed25519 -p 2222 root@127.0.0.1
 ```
 
-After joining `Kindle-QEMU` in the guest Wi-Fi controls, the same login works
-on port 2223. `--ssh-port PORT` and `--wifi-ssh-port PORT` select the host
-ports; Dropbear listens on guest port 22 on both interfaces. Kobo devices
-use USB telnet, with `--telnet-port PORT` (default 2323).
-See the [networking guide](docs/networking.md) for addresses and guest services.
-Arguments after `--` are passed directly to QEMU.
-
-## Using a raw QEMU machine
-
-For kernel or bootloader work, pass QEMU options directly through `eink qemu`:
-
-```sh
-# Bootloader development
-./eink qemu -- \
-  -machine imx6sl-wario \
-  -m 512M \
-  -bios path/to/u-boot.bin \
-  -serial mon:stdio \
-  -no-reboot
-
-# Direct kernel boot
-./eink qemu -- \
-  -machine imx6sl-wario \
-  -m 512M \
-  -kernel path/to/uImage \
-  -append '<kernel command line>' \
-  -serial mon:stdio \
-  -no-reboot
-
-# Eanab bootloader development
-./eink qemu -- \
-  -machine imx6sl-eanab \
-  -m 512M \
-  -bios path/to/u-boot.bin \
-  -serial mon:stdio \
-  -no-reboot
-```
-
-These commands run QEMU directly. Supply any disk images and machine
-properties yourself; `eink qemu` does not create or load a saved instance.
-Kindle machines use synthetic IDME defaults. Override one when needed with
-QEMU's existing flags, such as `-idme-serial VALUE` or `-idme-mac VALUE`.
-The same flags can follow `--` on `eink run`.
+Select `Kindle-QEMU` in the guest for Wi-Fi; SSH then also works on port 2223.
+Kobo provides USB telnet on port 2323. See [networking](docs/networking.md)
+for file transfer, port options and limits.
 
 ## Taking a screenshot
 
-Use QEMU's monitor to capture the emulated framebuffer directly. While a
-machine is running, press `Ctrl-A C` to switch from its serial console to the
-monitor, then write a PNG to an absolute host path:
+With serial in the terminal, press `Ctrl-A C` to open the QEMU monitor:
 
 ```text
 (qemu) screendump /tmp/eink-screen.png -f png
 ```
 
-Press `Ctrl-A C` again to return to the serial console. `screendump` captures
-guest pixels without window decorations, cursor state, display scaling, or
-other desktop content.
+Press `Ctrl-A C` again to return to serial. With `--serial-socket`, use
+[QMP screendump](docs/qmp.md#common-commands).
+
+## Using a raw QEMU machine
+
+For bootloader work, supply QEMU options directly:
+
+```sh
+./eink qemu -- \
+  -machine imx6sl-wario -m 512M \
+  -bios /path/to/u-boot.bin -serial mon:stdio -no-reboot
+```
+
+This does not load a saved instance. Supply any required disks and machine
+properties. To boot a kernel directly, replace `-bios /path/to/u-boot.bin`
+with `-kernel /path/to/uImage -append '<kernel command line>'`.
+Use `--arch aarch64` before `--` for AArch64 machines.
+
+Arguments after `--` also pass through on `run`; see
+[device identity](docs/firmware.md#qemu-device-identity) for the required option order.
 
 ## Supported models
 
@@ -159,8 +113,8 @@ other desktop content.
 | [Kindle Oasis 1](docs/oasis.md) | KOA1 | Whisky / Duet | |
 | [Kindle Oasis 2](docs/oasis.md) | KOA2 | Cognac / Zelda | |
 | Kindle Paperwhite 4 | PW4 | Moonshine | |
-| [KT4](docs/kt4.md) | KT4 | Jaeger | |
-| [KOA3](docs/koa3.md) | KOA3 | Stinger | |
+| [Kindle Basic 4 (2019)](docs/kt4.md) | KT4 | Jaeger | |
+| [Kindle Oasis 3](docs/koa3.md) | KOA3 | Stinger | |
 | [Kindle Paperwhite 5](docs/paperwhite-5.md) | PW5 | Malbec | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
 | [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
@@ -175,20 +129,5 @@ other desktop content.
 | [Kobo Forma](docs/kobo-forma.md) | Forma | E80K02 | Stock UI, offline sideloaded mode |
 | [Kobo Elipsa 2E](docs/kobo-elipsa-2e.md) | N605 | EA0T00 | Stock UI, offline sideloaded mode |
 
-Additional documentation covers [firmware setup](docs/firmware.md),
-[Wi-Fi and USB networking status](docs/networking.md),
-[guest compatibility changes](docs/guest-overrides.md),
-[QMP workflows](docs/qmp.md), and [storage layout](docs/storage.md).
-
-## Host requirements
-
-- Python 3.10 or newer
-- `ssh-keygen` (OpenSSH) for the shared Kindle SSH login key
-- a C compiler and the standard QEMU build dependencies
-- Ninja
-- `mke2fs`, `e2fsck`, `tune2fs`, and `debugfs` from e2fsprogs for image creation
-- `kindletool` when importing supported Kindle recovery packages
-
-On macOS, Homebrew's `e2fsprogs` package supplies the filesystem tools. QEMU's
-SLIRP dependency is built from its pinned subproject when it is not installed
-on the host.
+[Guest compatibility changes](docs/guest-overrides.md) explains how the builders
+adapt vendor firmware to the emulated hardware.

@@ -1,260 +1,119 @@
 # Firmware
 
-Supply firmware from hardware or recovery packages you are entitled to use.
-The emulator does not download firmware, and Git ignores imported files.
+Supply firmware from your device or a recovery package for your model.
+`./eink firmware` lists the required paths and checks which files are present.
+Firmware is not distributed with the repository; imported files are ignored
+by Git.
 
-List the required files for each model:
+## Import a recovery package
 
-```sh
-./eink firmware
-```
-
-## Directory layout
-
-Each model has a directory under `firmware/`. Older models keep their files
-directly in that directory; Scribe 3 and Scribe Colorsoft also use
-`boot_images/` and `peripherals/` subdirectories. The older layouts are shown
-below; see [Scribe recovery packages](#scribe-recovery-packages) for the Scribes.
-
-```text
-firmware/
-├── kindle-basic-2022/
-│   ├── u-boot.bin
-│   ├── bl2.img
-│   ├── tee.img
-│   ├── quickboot.img
-│   ├── boot.img
-│   └── rootfs.img
-├── kindle-basic-2024/
-│   ├── u-boot.bin
-│   ├── bl2.img
-│   ├── tee.img
-│   ├── quickboot.img
-│   ├── boot.img
-│   └── rootfs.img
-├── kindle-colorsoft/
-│   ├── u-boot.bin
-│   ├── bl2.img
-│   ├── tee.img
-│   ├── quickboot.img
-│   ├── boot.img
-│   └── rootfs.img
-├── kindle-paperwhite-6/
-│   ├── u-boot.bin
-│   ├── bl2.img
-│   ├── tee.img
-│   ├── quickboot.img
-│   ├── boot.img
-│   └── rootfs.img
-├── kindle-voyage/
-│   ├── u-boot.bin
-│   ├── uImage
-│   ├── rootfs.img
-│   ├── diags-uImage        (optional)
-│   └── diags.img           (optional)
-├── kindle-basic-2014/
-│   ├── u-boot.bin
-│   ├── uImage
-│   ├── rootfs.img
-│   ├── diags-uImage        (optional)
-│   └── diags.img           (optional)
-├── kindle-basic-2016/
-│   ├── u-boot.bin
-│   ├── uImage
-│   └── rootfs.img
-├── kindle-paperwhite-1/
-│   ├── u-boot.bin
-│   ├── uImage
-│   └── rootfs.img
-├── kindle-paperwhite-2/
-│   ├── u-boot.bin
-│   ├── uImage
-│   ├── rootfs.img
-│   ├── diags-uImage        (optional)
-│   └── diags.img           (optional)
-├── kindle-paperwhite-3/
-│   ├── u-boot.bin
-│   ├── uImage
-│   ├── rootfs.img
-│   ├── diags-uImage        (optional)
-│   └── diags.img           (optional)
-├── kindle-paperwhite-4/
-│   ├── u-boot.bin
-│   ├── boot.img
-│   ├── rootfs.img
-│   ├── s-bios.bin
-│   └── bios.bin
-├── kindle-4/
-│   ├── u-boot.bin
-│   ├── uImage
-│   └── rootfs.img
-├── kindle-touch/
-│   ├── u-boot.bin
-│   ├── uImage
-│   └── rootfs.img
-├── kobo-forma/
-│   ├── u-boot.imx
-│   ├── boot-region.img
-│   ├── rootfs.img
-│   └── recoveryfs.img
-├── kobo-mini/
-│   ├── u-boot.bin
-│   └── sd.img
-└── kobo-touch/
-    ├── u-boot.bin
-    └── sd.img
-```
-
-Waveforms and panel flash are managed by the emulator. Image creation uses
-synthetic or firmware-provided waveforms, and QEMU supplies synthetic panel
-flash. These are not firmware inputs.
-
-The optional diagnostics kernel and diagnostics partition files use the same
-names for Kindle Basic (2014), Paperwhite 2, and Paperwhite 3 as shown for Voyage.
-
-For Kobo Mini and Kobo Touch, `u-boot.bin` is passed directly to QEMU as
-the BIOS and `sd.img` is the complete internal-card image, including its
-raw boot area, rootfs, recoveryfs, and userstore.
-
-[Kobo Forma](kobo-forma.md) uses its live boot-region and partition dumps
-with the U-Boot image from a Forma firmware update. Its builder preserves
-the boot offsets and creates a fresh userstore within a 2 GiB eMMC image.
-
-[Kobo Elipsa 2E](kobo-elipsa-2e.md) combines its partition dumps with the
-compiled U-Boot, kernel and TEE from a mark 11 update. Its 2 GiB GPT disk
-retains the original system partition offsets and has a fresh FAT32 userstore.
-See the model page for the complete firmware file list.
-
-Kindle Basic 5, Kindle Basic 6, Paperwhite 5, Colorsoft, and Paperwhite 6 follow the
-component-image flow used by the other Kindles. Supply the matching Bellatrix
-boot components, `boot.img`, and `rootfs.img`; the builder creates a sparse
-disk with the required GPT layout and a board-appropriate fresh userstore. A
-complete device storage image is neither required nor used.
-
-For [Paperwhite 5 setup](paperwhite-5.md), import Amazon's recovery package
-with `./eink import FILE --model kindle-paperwhite-5`. The importer installs
-the required files in `firmware/kindle-paperwhite-5/`.
-
-Bellatrix and Scribe image creation generates a synthetic HWTCON waveform
-and packs it into the guest's waveform partition. Paperwhite 4 and KT4 use
-the stock kernel's built-in waveform with a generated store. Kobo Elipsa 2E
-gets an ext4 waveform partition containing a generated `wf_lut.gz`.
-These waveforms provide emulator display input, not physical panel calibration.
-
-`rootfs.img` must be a raw ext filesystem image. If an extracted firmware
-package contains `rootfs.img.gz`, decompress it before placing it here.
-
-## Scribe recovery packages
-
-All four Scribes can import a recovery package. Install KindleTool and
-e2fsprogs, then select the matching model:
+With the [host requirements](../README.md#host-requirements) installed, run:
 
 ```sh
 ./eink import /path/to/update.bin --model kindle-scribe-1
 ```
 
-| Device | Model ID | Firmware layout |
-| --- | --- | --- |
-| [Scribe 1](scribe-1.md) | `kindle-scribe-1` | Boot files and rootfs in the model directory |
-| [Scribe 2](scribe-2.md) | `kindle-scribe-2` | Boot files and rootfs in the model directory |
-| [Scribe 3](scribe-3.md) | `kindle-scribe-3` | Boot files in `boot_images/`, extracted firmware in `peripherals/` |
-| [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` | Boot files in `boot_images/`, extracted firmware in `peripherals/` |
+The importer extracts the package, decompresses the rootfs and installs the
+files under `firmware/MODEL/`. It refuses to overwrite an existing model
+directory. Use a package for the selected device.
 
-The importer decompresses `rootfs.img.gz` and refuses to overwrite an
-existing firmware directory. Scribe 3 and Colorsoft also extract touch and
-connectivity firmware from the rootfs. Their rootfs images keep the AVB
-footer used for verified boot.
+Import is available for these models:
 
-Scribe image creation always generates a synthetic waveform for display
-emulation. This does not reproduce panel calibration.
+| Device | Model ID |
+| --- | --- |
+| Basic 2016 | `kindle-basic-2016` |
+| Basic 2022 | `kindle-basic-2022` |
+| Basic 2024 | `kindle-basic-2024` |
+| [Oasis 1 and 2](oasis.md) | `kindle-oasis-1`, `kindle-oasis-2` |
+| [Oasis 3](koa3.md) | `kindle-oasis-3` |
+| [Basic 4 (2019)](kt4.md) | `kindle-kt4` |
+| [Paperwhite 5](paperwhite-5.md) | `kindle-paperwhite-5` |
+| [Scribe 1](scribe-1.md) | `kindle-scribe-1` |
+| [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
+| [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
+| [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` |
 
-## Kindle Basic (2016) recovery package
+## Directory layout
 
-The Eanab firmware is distributed as a Heisenberg recovery package. Import it
-directly with KindleTool installed:
+For manual setup, place files under `firmware/MODEL/`:
 
-```sh
-./eink import path/to/update_kindle_8th.bin --model kindle-basic-2016
+| Models | Required files |
+| --- | --- |
+| Kindle 4, Touch, Paperwhite 1–3, Basic 2014/2016, Voyage | `u-boot.bin`, `uImage`, `rootfs.img` |
+| Oasis 1 | The files above, plus `s-bios.bin` and `bios.bin` |
+| Paperwhite 4, KT4, Oasis 2/3 | `u-boot.bin`, `boot.img`, `rootfs.img`, `s-bios.bin`, `bios.bin` |
+| Basic 2022/2024, Paperwhite 5/6, Colorsoft, Scribe 1/2 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img` |
+| Kobo Mini, Touch | `u-boot.bin`, `sd.img` |
+| Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
+| Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
+
+Basic 2014, Paperwhite 2/3 and Voyage also accept optional `diags-uImage` and
+`diags.img` files.
+
+`rootfs.img` must be a raw ext filesystem image. Decompress `rootfs.img.gz`
+if you prepare the files manually. Kindle builders assemble a disk from
+component images. Kobo Mini and Touch instead need a complete internal-card
+image, `sd.img`, with the boot area and all partitions.
+
+### Scribe recovery packages
+
+Scribe 1/2 store boot files and rootfs in the model directory. Scribe 3 and
+Scribe Colorsoft use this layout:
+
+```text
+firmware/MODEL/
+├── rootfs.img
+├── boot_images/
+│   ├── u-boot.bin
+│   ├── bl2.img
+│   ├── tee.img
+│   ├── quickboot.img
+│   ├── boot.img
+│   └── firmware.img
+└── peripherals/
+    ├── focaltech_ts_fw_bw5c.bin   # Scribe 3
+    └── soc2_2_ram_mcu_mt8171_mt6631_1_hdr.bin
 ```
 
-The importer runs `kindletool extract`, validates the Heisenberg artifact
-layout, decompresses `rootfs.img.gz`, and installs `u-boot.bin`, `uImage`, and
-`rootfs.img` under `firmware/kindle-basic-2016/`. It refuses to overwrite an
-existing firmware directory.
+Scribe Colorsoft uses `focaltech_ts_fw_cp5d.bin` in place of the `bw5c` file.
+The importer extracts both peripheral files from the rootfs.
 
-## KT4 recovery package
+## Display data
 
-[KT4](kt4.md) imports its 5.18.1.1.1 recovery package directly:
-
-```sh
-./eink import /path/to/update_kindle_10th_5.18.1.1.1.bin --model kindle-kt4
-```
-
-The package contains the `imx6sll_rex` boot platform. Import checks the rootfs
-identity `com.lab126.eink.jaeger.os`, then installs stock U-Boot, `boot.img`,
-rootfs, storage BIOS and Falcon BIOS under `firmware/kindle-kt4/`. The emulator
-selects the Jaeger board. Matching Wi-Fi firmware and NVRAM are already in the
-rootfs; no separate radio download is needed.
-
-## KOA3 recovery package
-
-[KOA3](koa3.md) imports its 5.18.2.1.1 recovery package directly:
-
-```sh
-./eink import /path/to/update_kindle_all_new_oasis_v2_5.18.2.1.1.bin --model kindle-oasis-3
-```
-
-The package contains the `imx7d_zelda` boot platform. Import checks the rootfs
-identity `com.lab126.eink.stinger.os`, then installs stock U-Boot, `boot.img`,
-rootfs, storage BIOS and Falcon BIOS under `firmware/kindle-oasis-3/`. The
-emulator selects the Stinger board. Matching Wi-Fi firmware and NVRAM are
-already in the rootfs; no separate radio download is needed.
-
-## Kindle Oasis recovery packages
-
-Download the matching Oasis update from
-[Amazon](https://www.amazon.com/gp/help/customer/display.html?nodeId=GKMQC26VQQMM8XSW),
-then import it with KindleTool installed:
-
-```sh
-./eink import /path/to/update_kindle_oasis_5.16.2.1.1.bin --model kindle-oasis-1
-./eink import /path/to/update_kindle_all_new_oasis_5.16.2.1.1.bin --model kindle-oasis-2
-```
-
-See [Oasis setup](oasis.md) to create and run your emulator.
+Waveforms and panel flash come from firmware or are generated by the emulator.
+Do not supply separate files. Synthetic waveforms support display updates;
+they do not reproduce physical panel response.
 
 ## QEMU device identity
 
-Kindle QEMU machines provide synthetic IDME defaults. Instance creation does
-not request or store device identity. To override a default for a particular
-run, pass QEMU's existing `-idme-*` flags after `--`:
+Kindle machines provide synthetic IDME defaults. To override a value for one
+run, pass QEMU options after `--`:
 
 ```sh
-./eink run NAME -- -idme-serial '<value>' -idme-mac '<value>'
+./eink run NAME --qmp-socket -- -idme-serial '<value>' -idme-mac '<value>'
 ```
 
-Available flags include `-idme-serial`, `-idme-accel`, `-idme-mac`,
-`-idme-mfg`, `-idme-sec`, `-idme-pcbsn`, `-idme-bootmode`, and
-`-idme-postmode`; support varies by QEMU machine. These overrides populate
-the emulated volatile eMMC boot partition and do not change the saved disk.
+Keep a launcher option, such as `--qmp-socket`, between `NAME` and `--`.
+The current parser otherwise discards the separator and rejects the QEMU flags.
 
-Paperwhite 4 / Rex requires either `--profile production` or `--profile
-dvt` at instance creation. The profile is stored with the instance and passed
-to QEMU on every launch.
+Supported `-idme-*` flags depend on the QEMU machine. Overrides apply to that
+run and do not change the saved disk.
 
-Bellatrix instances also require a profile. Kindle Basic 5, Kindle Basic 6,
-and Colorsoft accept `production`, `dvt`, `evt`, `hvt`, or `proto`;
-Paperwhite 6 additionally accepts `hvt1.1`. Paperwhite 5 supports only
-`production`. The profile selects the stock board tattoo exposed to U-Boot,
-the kernel, and userspace capability detection.
+## Hardware profiles
 
-Scribes also require `--profile`:
+The following models require `--profile` when you create an instance. The
+profile selects the board identity used by U-Boot, Linux and guest services.
+It is saved in the instance configuration and applied on each run.
 
-| Device | Profiles |
+| Models | Profiles |
 | --- | --- |
+| Paperwhite 4 | `production`, `dvt` |
+| Paperwhite 5 | `production` |
+| Basic 2022/2024, Colorsoft | `production`, `dvt`, `evt`, `hvt`, `proto` |
+| Paperwhite 6 | `production`, `dvt`, `evt`, `hvt1.1`, `hvt`, `proto` |
 | Scribe 1 | `production`, `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`, `proto` |
 | Scribe 2 | `production`, `dvt` |
 | Scribe 3, Scribe Colorsoft | `production`, `dvt`, `evt`, `hvt1.1` |
 
-For the Scribes, `production` selects the DVT configuration. Profile selection
-is saved in the instance and passed to QEMU on each launch.
+On Scribes, `production` selects DVT hardware. Scribe 1's `proto` selects Proto2.
+`./eink models` also lists the profiles from [`models.json`](../models.json).
