@@ -247,7 +247,21 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     directory, manifest = read_machine(args.name)
     model = manifest.get("model")
     definition = model_definition(model)
-    artifacts = firmware_for(model, definition)
+    # A saved disk already contains the kernel, rootfs and other image inputs.
+    # Only files actually passed to QEMU are required to launch it.
+    runtime_roles = {"bootloader", *definition.get("machine_firmware_properties", {}).values()}
+    if model == "kindle-paperwhite-4":
+        runtime_roles.update({"storage_bios", "falcon_bios"})
+    missing_roles = runtime_roles - definition["firmware"].keys()
+    if missing_roles:
+        fail(f"model catalogue has undefined runtime firmware roles: {', '.join(sorted(missing_roles))}")
+    runtime_definition = definition | {
+        "firmware": {
+            role: candidates for role, candidates in definition["firmware"].items()
+            if role in runtime_roles
+        },
+    }
+    artifacts = firmware_for(model, runtime_definition)
     disk = directory / "disk.qcow2"
     if not disk.is_file():
         fail(f"machine disk is missing: {disk}")

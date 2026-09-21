@@ -17,8 +17,7 @@
     "machine_firmware_properties": {
       "bl2": "bl2",
       "tee": "tee",
-      "quickboot": "quickboot",
-      "aux-firmware": "aux_firmware"
+      "quickboot": "quickboot"
     },
     "firmware": {
       "bootloader": ["u-boot.bin"],
