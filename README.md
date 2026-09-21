@@ -79,10 +79,17 @@ small writable disk for the instance.
 Serial uses the launching terminal. Add `--serial-socket` to send it to the
 instance's Unix socket and log file, or `--qmp-socket` to enable QMP control.
 Use `--headless` to disable the display, or `--vnc ENDPOINT` for VNC.
-`--ssh-port PORT` changes USB SSH forwarding, or Wi-Fi SSH forwarding on
-models with only a Wi-Fi backend. With both backends, `--wifi-ssh-port PORT`
-sets the separate Wi-Fi SSH port (default 2223). Scribe 1/2 and the Kobos use
-USB telnet instead, with `--telnet-port PORT` to change its default port of 2323.
+Every newly created Kindle includes Dropbear SSH. Creation generates one shared
+login key at `build/ssh/id_ed25519`. Connect over USB with:
+
+```sh
+ssh -i build/ssh/id_ed25519 -p 2222 root@127.0.0.1
+```
+
+After joining `Kindle-QEMU` in the guest Wi-Fi controls, the same login works
+on port 2223. `--ssh-port PORT` and `--wifi-ssh-port PORT` select the host
+ports; Dropbear listens on guest port 22 on both interfaces. Kobo devices
+use USB telnet, with `--telnet-port PORT` (default 2323).
 See the [networking guide](docs/networking.md) for addresses and guest services.
 Arguments after `--` are passed directly to QEMU.
 
@@ -176,6 +183,7 @@ Additional documentation covers [firmware setup](docs/firmware.md),
 ## Host requirements
 
 - Python 3.10 or newer
+- `ssh-keygen` (OpenSSH) for the shared Kindle SSH login key
 - a C compiler and the standard QEMU build dependencies
 - Ninja
 - `mke2fs`, `e2fsck`, `tune2fs`, and `debugfs` from e2fsprogs for image creation

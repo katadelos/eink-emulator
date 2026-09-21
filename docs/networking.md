@@ -1,4 +1,4 @@
-# Networking status — 20 September 2026
+# Networking and SSH
 
 All 26 catalogue models have carried Wi-Fi and USB Ethernet traffic concurrently
 in stock guests. Every row below includes association, DHCP and gateway packet
@@ -57,11 +57,47 @@ Wi-Fi events and DHCP completion restore that route and USB DNS after the stock
 network manager rewrites them. Kindle 4 uses an init-supervised event listener;
 later Kindles use Upstart. No periodic network polling daemon is installed.
 
-`--ssh-port` defaults to 2222 for USB SSH; `--wifi-ssh-port` defaults to 2223.
-Scribe 1/2 and the Kobos provide USB telnet with `--telnet-port` (default 2323).
-Port forwarding does not install an SSH server: most stock Kindle images have
-sshd jobs without a working dropbear binary/key. Use the serial console unless
-a server is installed in that guest.
+## Kindle SSH
+
+Newly created Kindle images include Dropbear 2026.94 and start it automatically:
+Kindle 4 uses a respawning init entry; Touch and later use the Upstart `sshd`
+job. The server listens on guest port 22 on both USB and Wi-Fi, including when
+Wi-Fi connects after boot. The prepared firewall permits SSH on both interfaces.
+Scribe 1 and 2 use SSH too. Kobos retain USB telnet on host port 2323, configurable
+with `--telnet-port`.
+
+The first Kindle image build generates one Ed25519 login key at
+`build/ssh/id_ed25519`, reused for every Kindle. Only its public key is installed
+in the guest, at `/etc/eink-ssh/authorized_keys`. These binaries accept public
+keys only; there is no SSH password. Keep the private key when cleaning build
+outputs if you want to retain access to existing devices.
+
+```sh
+# USB (available automatically after boot)
+ssh -i build/ssh/id_ed25519 -p 2222 root@127.0.0.1
+
+# Wi-Fi (after joining Kindle-QEMU)
+ssh -i build/ssh/id_ed25519 -p 2223 root@127.0.0.1
+
+# Choose different host ports for another running device
+./eink run my-reader --ssh-port 4022 --wifi-ssh-port 4023
+ssh -i build/ssh/id_ed25519 -p 4022 root@127.0.0.1
+
+# File transfer uses the SCP protocol; these builds do not include SFTP.
+scp -O -i build/ssh/id_ed25519 -P 2222 book.txt root@127.0.0.1:/mnt/us/
+```
+
+All host forwards bind to `127.0.0.1`. Each guest generates its own host key
+under `/var/local/eink-ssh` on first boot and retains it across restarts. Different
+devices on the same host port have different host identities; use SSH's
+`HostKeyAlias` option to keep their known-hosts entries separate.
+Server logs are in `/var/log/sshd.log`. On Upstart devices, `initctl status sshd`
+and `restart sshd` inspect and restart the service from the serial console.
+
+Create a new machine to obtain these additions; existing saved disks keep
+their original guest configuration. Changes to the bundled additions or shared
+public key invalidate the base-image cache for future creations. See
+[guest additions](../guest-additions/README.md) for ABI selection.
 
 Select `Kindle-QEMU` through the guest Wi-Fi controls. For serial diagnosis,
 Amazon's `wpa_cli` wraps the SSID itself:

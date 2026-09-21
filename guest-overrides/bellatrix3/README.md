@@ -10,7 +10,7 @@ rootfs. The imported firmware and kernel are kept intact.
 | `qemu-development-state.conf` | Set the device type, skip initial setup and select British English on first boot |
 | `qemu-runtime-permissions` | Set shared directory permissions before services start |
 | `../network/qemu-usb-network.conf` | Configure USB Ethernet with the stock g_ether driver |
-| `qemu-telnet.conf` | Run telnet on the guest USB interface |
+| `../../guest-additions/ssh/sshd.conf` | Supervise Dropbear on USB and Wi-Fi |
 | `../network/disabled.conf` | Disable MTP and competing USB network jobs |
 | `qemu-review-awake.conf` | Keep the active display awake for up to two hours |
 
@@ -49,5 +49,6 @@ module alone; otherwise, it loads the generated file from the rootfs. Synthetic 
 emulation without physical panel calibration.
 
 Serial uses the launching terminal. `--serial-socket` redirects it to the
-instance's socket and log. Telnet forwards from `127.0.0.1:2323`; use
-`--telnet-port PORT` to change the host port.
+instance's socket and log. SSH forwards from `127.0.0.1:2222` on USB and
+port 2223 on Wi-Fi; use `--ssh-port` and `--wifi-ssh-port` to change them.
+Connect as root using the shared `build/ssh/id_ed25519` login key.

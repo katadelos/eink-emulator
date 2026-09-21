@@ -5,6 +5,8 @@ Instances share a base image and store their own changes in a writable disk:
 ```text
 firmware/MODEL/                  Imported firmware
 build/images/*.qcow2             Shared base images
+build/ssh/id_ed25519             Shared Kindle SSH login key (keep private)
+build/ssh/id_ed25519.pub         Public key installed in new Kindle images
 machines/NAME/machine.json       Instance configuration
 machines/NAME/disk.qcow2          Writable disk overlay
 machines/NAME/NAME.qmp.sock       Optional QMP socket
@@ -16,7 +18,9 @@ These files are ignored by Git. Image creation builds a temporary sparse raw
 disk and converts it to a QCOW2 base. Each instance starts with an empty
 QCOW2 overlay and uses more host space as the guest writes to it.
 
-Changes to firmware or image-building code produce a new base. Existing
+Changes to firmware, image-building code, guest additions or the SSH public
+key produce a new base. Keep the SSH private key when cleaning build files
+to retain access to existing Kindles. Existing
 instances keep using the base they were created with.
 
 [Oasis 1 and 2](oasis.md) each have 2 GiB of virtual storage. Their disk

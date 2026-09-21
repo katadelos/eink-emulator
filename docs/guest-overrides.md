@@ -3,7 +3,9 @@
 Some models need guest startup changes to run on the emulated hardware.
 The image builder applies them to a copy of the rootfs using `debugfs`;
 imported firmware files are kept intact. The files are grouped by platform
-under `guest-overrides/`.
+under `guest-overrides/`. Shared Kindle SSH binaries and startup files live
+under [`guest-additions/`](../guest-additions/README.md). Every new Kindle
+starts Dropbear on USB and Wi-Fi with a shared host login key.
 
 | Devices | Guest setup |
 | --- | --- |
@@ -41,7 +43,7 @@ output, boot messages and the login console remain available.
 
 ## Scribe 1 and 2
 
-Barolo and Pisco provide a supervised serial shell and USB Ethernet/telnet.
+Barolo and Pisco provide a supervised serial shell and USB Ethernet/SSH.
 On first boot, they skip OOBE, select British English and set the device type
 needed for DVT boards. Existing preferences are backed up. Shared directory
 permissions are set before services start, and a keep-awake job runs for up

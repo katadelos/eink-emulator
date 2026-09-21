@@ -34,15 +34,16 @@ emulated display updates; they do not reproduce a physical panel's response.
 
 ## Guest setup
 
-The generated rootfs provides a serial shell and USB Ethernet with telnet.
+The generated rootfs provides a serial shell and SSH over USB Ethernet and Wi-Fi.
 Serial opens in the launching terminal. Use `--serial-socket` to redirect
 it to the instance's Unix socket and log file.
 
 ```sh
-telnet 127.0.0.1 2323
+ssh -i build/ssh/id_ed25519 -p 2222 root@127.0.0.1
 ```
 
-Use `--telnet-port PORT` to change the host port. MTP is disabled so it does
+Use `--ssh-port PORT` to change the USB host port, or `--wifi-ssh-port PORT`
+for Wi-Fi (default 2223). MTP is disabled so it does
 not take over the USB controller. Native Wi-Fi connects to the open
 `Kindle-QEMU` AP; see [networking](networking.md).
 

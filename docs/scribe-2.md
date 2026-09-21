@@ -23,14 +23,15 @@ host delays execution.
 
 ## Guest behavior
 
-The image includes a serial shell, USB Ethernet/telnet, initial setup skip,
+The image includes a serial shell, USB Ethernet/SSH, initial setup skip,
 British English locale, permission fixes and a two-hour keep-awake job.
 Java settings remain unchanged. The device-type override accounts for the
 DVT board ID missing from the firmware's production lookup table.
 
 Serial opens in the launching terminal. `--serial-socket` redirects it to
-a Unix socket and log file. Telnet is available at `127.0.0.1:2323`; change
-the host port with `--telnet-port PORT`. Native Wi-Fi connects to the open
+a Unix socket and log file. SSH is available at `127.0.0.1:2222` over USB
+and port 2223 over Wi-Fi, using `build/ssh/id_ed25519`. Change the host ports
+with `--ssh-port PORT` and `--wifi-ssh-port PORT`. Native Wi-Fi connects to the open
 `Kindle-QEMU` AP; see [networking](networking.md).
 
 The builder generates a synthetic waveform. See [Scribe 1](scribe-1.md) for display
