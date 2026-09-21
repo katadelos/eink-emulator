@@ -1,0 +1,33 @@
+#!/bin/sh
+# The emulator's USB host supplies an ECM Ethernet connection.
+set -e
+
+gadget=/drivers/$PLATFORM/usb/gadget
+for module in arcotg_udc configfs libcomposite u_ether usb_f_ecm usb_f_ecm_subset usb_f_eem usb_f_rndis; do
+    if [ -f "$gadget/$module.ko" ] && ! grep -q "^$module " /proc/modules; then
+        insmod "$gadget/$module.ko"
+    fi
+done
+if ! grep -q '^g_ether ' /proc/modules; then
+    insmod "$gadget/g_ether.ko" host_addr=ee:49:00:00:00:00 dev_addr=ee:19:00:00:00:00
+fi
+
+# Older Netronix ECM kernels need net_open after SET_INTERFACE has completed.
+ifconfig usb0 up
+tries=0
+while [ "$(cat /sys/class/net/usb0/carrier 2>/dev/null)" != 1 ]; do
+    tries=$((tries + 1))
+    [ "$tries" -le 30 ] || exit 1
+    sleep 1
+done
+ifconfig usb0 down
+ifconfig usb0 192.168.15.244 netmask 255.255.255.0 up
+route add default gw 192.168.15.201 metric 2048
+grep -q '192.168.15.3' /etc/resolv.conf 2>/dev/null || echo 'nameserver 192.168.15.3' >> /etc/resolv.conf
+grep -q '192.168.15.3' /etc/resolv.conf.tail 2>/dev/null || echo 'nameserver 192.168.15.3' >> /etc/resolv.conf.tail
+
+mkdir -p /dev/pts
+grep -q ' /dev/pts devpts ' /proc/mounts || mount -t devpts devpts /dev/pts
+if ! pidof telnetd >/dev/null; then
+    busybox telnetd -b 192.168.15.244 -p 23 -l /bin/login
+fi

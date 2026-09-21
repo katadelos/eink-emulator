@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kt4, mt8115, oasis,
+    bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kt4, mt8115, oasis,
     rex, rootfs, tequila, wario, whitney,
 )
 
@@ -16,13 +16,13 @@ def build_raw_image(
 ) -> Path:
     """Build a sparse raw source image and return its path.
 
-    A user-supplied full disk is returned directly, avoiding a redundant and
-    potentially non-sparse host copy before QCOW2 conversion.
+    Full Kobo SD images retain their partition layout while receiving the
+    same networking setup as partition-based builds.
     """
     builder = definition["builder"]
     if builder == "disk-copy":
-        return artifacts["disk"]
-    if builder == "forma":
+        kobo.build(artifacts["disk"], output)
+    elif builder == "forma":
         forma.build(output, artifacts, sideloaded=definition.get("sideloaded", False))
     elif builder == "elipsa2e":
         elipsa2e.build(output, artifacts, sideloaded=definition.get("sideloaded", False))

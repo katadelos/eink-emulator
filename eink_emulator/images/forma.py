@@ -9,6 +9,7 @@ from pathlib import Path
 
 from . import rootfs
 from .common import atomic_output
+from .kobo import prepare_network
 
 DISK_SIZE = 2 * 1024**3
 ROOT_START = 49152
@@ -24,7 +25,7 @@ def boot_environment(region: bytes, *, sideloaded: bool) -> bytes:
     if len(env) != ENV_SIZE or zlib.crc32(env[4:]) != struct.unpack_from('<I', env)[0]:
         raise ValueError('Forma boot region has an invalid U-Boot environment')
     entries = dict(item.split(b'=', 1) for item in env[4:].split(b'\0\0', 1)[0].split(b'\0'))
-    if sideloaded:
+    if sideloaded and b'eink.sideloaded=1' not in entries[b'mmcargs'].split():
         entries[b'mmcargs'] += b' eink.sideloaded=1'
     data = b'\0'.join(key + b'=' + value for key, value in entries.items()) + b'\0\0'
     if len(data) > ENV_SIZE - 4:
@@ -79,12 +80,15 @@ def prepare_root(source: Path, output: Path) -> None:
     })
     marker = '/etc/init.d/eink-sideloaded\n'
     def patch_startup(contents: str) -> str:
+        if marker in contents:
+            return contents
         needle = '/usr/local/Kobo/hindenburg &'
         if contents.count(needle) != 1:
             raise ValueError('Unrecognized Forma rcS: expected one Hindenburg launch')
         return contents.replace(needle, marker + needle)
     rootfs.transform_file(output, '/etc/init.d/rcS', '0100755', patch_startup)
     rootfs.transform_file(output, '/etc/passwd', '0100644', rootfs.blank_root_password)
+    prepare_network(output)
 
 
 def build(output: Path, artifacts: dict[str, Path], *, sideloaded: bool = False) -> None:
