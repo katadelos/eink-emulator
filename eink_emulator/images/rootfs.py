@@ -11,9 +11,12 @@ from functools import cache
 from pathlib import Path
 from typing import Callable
 
+from ..ssh import ensure_login_key
+
 
 ROOT = Path(__file__).resolve().parents[2]
 OVERRIDES = ROOT / "guest-overrides"
+ADDITIONS = ROOT / "guest-additions"
 EXT_MAGIC_OFFSET = 1024 + 56
 FRAMEWORK_TIMEOUT_STOCK = "        TO=105\n"
 FRAMEWORK_TIMEOUT_EMULATED = "        TO=600\n"
@@ -329,6 +332,76 @@ def prepare_usb_network(
         **{f"/etc/upstart/{name}.conf": ("disabled.conf", "0100644")
            for name in ("mtp", "usbnetd", "usbnet-autostart")},
     })
+    prepare_ssh(image, early_kindle=early_gadget)
+
+
+def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) -> None:
+    """Install Dropbear for the guest userspace ABI and supervise it at boot."""
+    loader = subprocess.run([
+        str(find_debugfs()), "-R", "stat /lib/ld-linux-armhf.so.3", str(image),
+    ], check=True, capture_output=True, text=True)
+    platform = "kindlehf" if "Inode:" in loader.stdout else (
+        "kindle5" if early_kindle else "kindlepw2"
+    )
+    binaries = ADDITIONS / "dropbear" / platform
+    files = {
+        "/usr/sbin/dropbear": (binaries / "dropbear", "0100755"),
+        "/usr/bin/dropbearkey": (binaries / "dropbearkey", "0100755"),
+        "/usr/bin/dbclient": (binaries / "dbclient", "0100755"),
+        "/usr/bin/scp": (binaries / "scp", "0100755"),
+        "/usr/sbin/qemu-sshd": (ADDITIONS / "ssh/qemu-sshd", "0100755"),
+        "/etc/eink-ssh/authorized_keys": (ensure_login_key(), "0100600"),
+    }
+    if not sysv:
+        files["/etc/upstart/sshd.conf"] = (ADDITIONS / "ssh/sshd.conf", "0100644")
+    commands = ["mkdir /etc/eink-ssh", "set_inode_field /etc/eink-ssh mode 040700"]
+    for destination, (source, mode) in files.items():
+        if not source.is_file():
+            raise SystemExit(f"missing Kindle guest addition: {source}")
+        commands.extend([
+            f"rm {destination}",
+            f'write "{source}" {destination}',
+            f"set_inode_field {destination} mode {mode}",
+            f"set_inode_field {destination} uid 0",
+            f"set_inode_field {destination} gid 0",
+        ])
+    run_many(image, commands, writable=True)
+
+    def allow_ssh(contents: str) -> str:
+        # Some recovery images retain this factory substitution token.
+        contents = contents.replace("@@SUBST_FIREWALLSSH_CMD@@", "")
+        rules = "".join(
+            f"-A INPUT -i {interface} -p tcp --dport 22 -j ACCEPT\n"
+            for interface in ("usb0", "wlan0")
+        )
+        if rules in contents:
+            return contents
+        if contents.count("COMMIT") != 1:
+            raise SystemExit("unexpected Kindle firewall configuration")
+        return contents.replace("COMMIT", rules + "COMMIT", 1)
+
+    transform_file(image, "/etc/sysconfig/iptables", "0100644", allow_ssh)
+    if sysv:
+        transform_file(image, "/etc/inittab", "0100644", lambda text:
+                       text + "\nsshd:2345:respawn:/usr/sbin/qemu-sshd\n")
+    else:
+        def protect_host_key(contents: str) -> str:
+            # The stock framework grants javausers group access recursively.
+            # Keep the SSH server identity private across framework restarts.
+            exclude = "find $dir -path /var/local/eink-ssh -prune -o "
+            contents = contents.replace(
+                "chgrp -R javausers $dir",
+                exclude + "! -type l -exec chgrp javausers '{}' +",
+            ).replace(
+                "chmod -R g=u $dir",
+                exclude + "! -type l -exec chmod g=u '{}' +",
+            ).replace(
+                "find $dir -type d",
+                exclude + "-type d",
+            )
+            return contents
+
+        transform_file(image, "/etc/upstart/framework.conf", "0100644", protect_host_key)
 
 
 def prepare_tequila(source: Path, output: Path) -> None:
@@ -349,6 +422,7 @@ def prepare_tequila(source: Path, output: Path) -> None:
                    text + "\nqnet:2345:respawn:/usr/sbin/qemu-network-events\n")
     run_many(output, ["rm /etc/rc5.d/S81usbnetd", "rm /etc/rc5.d/S82usbnet",
                       "rm /etc/rc5.d/S62usbnet-preinit"], writable=True)
+    prepare_ssh(output, early_kindle=True, sysv=True)
 
 
 def prepare_wario(source: Path, output: Path) -> None:
@@ -477,7 +551,6 @@ def prepare_rex(source: Path, output: Path) -> None:
         "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
         "/etc/upstart/qemu-disable-kpp-boot.conf": ("qemu-disable-kpp-boot.conf", "0100644"),
         "/etc/upstart/qemu-seed-locale.conf": ("qemu-seed-locale.conf", "0100644"),
-        "/etc/upstart/sshd.conf": ("qemu-disabled-service.conf", "0100644"),
     })
     prepare_usb_network(output)
 
@@ -658,7 +731,6 @@ def prepare_bellatrix3(
         "/etc/upstart/qemu-development-state.conf": (
             "qemu-development-state.conf", "0100644",
         ),
-        "/etc/upstart/qemu-telnet.conf": ("qemu-telnet.conf", "0100644"),
         "/etc/upstart/qemu-review-awake.conf": (
             "qemu-review-awake.conf", "0100644",
         ),

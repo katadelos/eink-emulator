@@ -45,9 +45,9 @@ case "$1" in
         marker=/var/local/root/qemu-permissions-v1
         if [ ! -e "$marker" ]; then
             # Never temporarily grant javausers access to the private tree.
-            find /var/local -path /var/local/root -prune -o \
+            find /var/local \( -path /var/local/root -o -path /var/local/eink-ssh \) -prune -o \
                 ! -type l -exec chgrp javausers '{}' + -exec chmod g=u '{}' +
-            find /var/local -path /var/local/root -prune -o \
+            find /var/local \( -path /var/local/root -o -path /var/local/eink-ssh \) -prune -o \
                 -type d -exec chmod g+s '{}' +
             chown -R root:root /var/local/root
             chmod -R g=u /var/local/root

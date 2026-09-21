@@ -1,0 +1,22 @@
+#!/bin/sh
+set -e
+umask 077
+
+state=/var/local/eink-ssh
+mkdir -p "$state"
+chmod 700 "$state"
+chown root:root "$state"
+
+# Generate a separate, persistent server identity in each machine's overlay.
+key="$state/dropbear_ed25519_host_key"
+if [ ! -s "$key" ]; then
+    rm -f "$key.tmp"
+    /usr/bin/dropbearkey -t ed25519 -f "$key.tmp" >/dev/null
+    mv "$key.tmp" "$key"
+    rm -f "$key.tmp.pub"
+fi
+
+# A port without an address listens on every interface, including interfaces
+# brought up after this process starts. Init supervises the foreground server.
+exec /usr/sbin/dropbear -F -E -p 22 -r "$key" -D /etc/eink-ssh \
+    -P /var/run/qemu-sshd.pid 2>>/var/log/sshd.log
