@@ -131,13 +131,15 @@
     "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
     "memory": "4G",
     "builder": "mt8115",
+    "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platcs8",
     "drive_index": 0,
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
       "touch-controller": "focaltech",
-      "board": "calvados"
+      "board": "calvados",
+      "development-mode": "on"
     },
     "machine_firmware_properties": {
       "bl2": "bl2",
@@ -181,13 +183,15 @@
     "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
     "memory": "4G",
     "builder": "mt8115",
+    "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platpa6",
     "drive_index": 0,
     "accel": "tcg",
     "allow_reboot": false,
     "machine_properties": {
       "touch-controller": "focaltech",
-      "board": "paloma"
+      "board": "paloma",
+      "development-mode": "on"
     },
     "machine_firmware_properties": {
       "bl2": "bl2",
