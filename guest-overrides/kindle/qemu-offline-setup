@@ -1,0 +1,51 @@
+#!/bin/sh
+# Seed local setup preferences before the firmware's language picker and Home.
+set -eu
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 022
+state=/var/local/system/eink-offline-initialized
+# OTA's filesystems_setup may recreate these even after the first boot.
+rm -f /var/local/decanter/ENABLE_KPP_BOOT \
+      /var/local/decanter/ENABLE_KPP_OOBE \
+      /var/local/decanter/kpp_oobe_crash.txt
+[ ! -e "$state" ] || exit 0
+mkdir -p /var/local/system /var/local/java/prefs
+
+set_preference()
+{
+    file=$1 key=$2 value=$3
+    mkdir -p "${file%/*}"
+    if [ -f "$file" ]; then
+        sed "/^${key}=/d" "$file" > "$file.new"
+    else
+        : > "$file.new"
+    fi
+    printf '%s=%s\n' "$key" "$value" >> "$file.new"
+    chmod 0664 "$file.new"
+    mv "$file.new" "$file"
+}
+
+if [ "${1:-}" = k4 ]; then
+    prefs=/var/local/java/prefs/com.amazon.ebook.framework/prefs
+    if ! grep -q '^locale=..' "$prefs" 2>/dev/null; then
+        set_preference "$prefs" locale en-GB
+    fi
+    set_preference "$prefs" RUN_SETUP false
+    set_preference /var/local/java/prefs/com.amazon.ebook.booklet.home/com.amazon.ebook.booklet.home.prefs HOME_SHOW_SETUP_KINDLE false
+else
+    if [ ! -s /var/local/system/locale ]; then
+        printf 'LANG=en_GB.UTF-8\nLC_ALL=en_GB.UTF-8\n' > /var/local/system/locale
+        chmod 0664 /var/local/system/locale
+    fi
+    prefs=/var/local/java/prefs/com.lab126.booklet.home.preferences
+    set_preference "$prefs" OOBE_DELETED true
+    # Home launches OOBE/tutorials on missing FIRST_BOOT keys even when its
+    # setup entry is hidden. These are the firmware's completed-state values.
+    for key in FIRST_BOOT HOME_V3_FIRST_BOOT ASR_FIRST_BOOT; do
+        set_preference "$prefs" "$key" false
+    done
+    chown framework:javausers "$prefs"
+    chown root:javausers /var/local/java /var/local/java/prefs
+    chmod 0775 /var/local/java /var/local/java/prefs
+fi
+touch /var/local/system/not_first_boot "$state"

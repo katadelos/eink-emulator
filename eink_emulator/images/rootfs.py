@@ -387,14 +387,18 @@ def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) 
     else:
         def protect_host_key(contents: str) -> str:
             # The stock framework grants javausers group access recursively.
-            # Keep the SSH server identity private across framework restarts.
-            exclude = "find $dir -path /var/local/eink-ssh -prune -o "
+            # Protect the SSH identity and the optional setuid MKK root helper.
+            # PW1 BusyBox find requires \; rather than the newer + terminator.
+            exclude = (
+                r"find $dir \( -path /var/local/eink-ssh -o -path /var/local/mkk \) -prune -o "
+            )
+            terminator = r"\;" if early_kindle else "+"
             contents = contents.replace(
                 "chgrp -R javausers $dir",
-                exclude + "! -type l -exec chgrp javausers '{}' +",
+                exclude + "! -type l -exec chgrp javausers '{}' " + terminator,
             ).replace(
                 "chmod -R g=u $dir",
-                exclude + "! -type l -exec chmod g=u '{}' +",
+                exclude + "! -type l -exec chmod g=u '{}' " + terminator,
             ).replace(
                 "find $dir -type d",
                 exclude + "-type d",
@@ -404,8 +408,20 @@ def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) 
         transform_file(image, "/etc/upstart/framework.conf", "0100644", protect_host_key)
 
 
+def prepare_offline_setup(image: Path, *, sysv: bool = False) -> None:
+    replacements = {
+        "/usr/sbin/qemu-offline-setup": ("qemu-offline-setup", "0100755"),
+    }
+    if sysv:
+        replacements["/etc/rc5.d/S91qemu-offline-setup"] = ("S91qemu-offline-setup", "0100755")
+    else:
+        replacements["/etc/upstart/qemu-offline-setup.conf"] = ("qemu-offline-setup.conf", "0100644")
+    install_overrides(image=image, group="kindle", replacements=replacements)
+
+
 def prepare_tequila(source: Path, output: Path) -> None:
     copy_source(source, output)
+    prepare_offline_setup(output, sysv=True)
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
     transform_file(output, "/etc/modules.yoshi", "0100644", lambda text:
                    re.sub(r"(?m)^g_file_storage[^\n]*$",
@@ -427,6 +443,7 @@ def prepare_tequila(source: Path, output: Path) -> None:
 
 def prepare_wario(source: Path, output: Path) -> None:
     copy_source(source, output)
+    prepare_offline_setup(output)
     install_overrides(image=output, group="wario", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
         "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
@@ -439,6 +456,7 @@ def prepare_wario(source: Path, output: Path) -> None:
 
 def prepare_heisenberg(source: Path, output: Path) -> None:
     copy_source(source, output)
+    prepare_offline_setup(output)
     install_overrides(image=output, group="heisenberg", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
         "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
@@ -455,6 +473,7 @@ def prepare_heisenberg(source: Path, output: Path) -> None:
 
 def prepare_kt4(source: Path, output: Path) -> None:
     copy_source(source, output, maximum_size=512 * 1024**2)
+    prepare_offline_setup(output)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/console.conf": ("console.conf", "0100644"),
         "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
@@ -473,6 +492,7 @@ def prepare_kt4(source: Path, output: Path) -> None:
 
 def prepare_koa3(source: Path, output: Path) -> None:
     copy_source(source, output, maximum_size=512 * 1024**2)
+    prepare_offline_setup(output)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/console.conf": ("console.conf", "0100644"),
         "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
@@ -491,6 +511,7 @@ def prepare_koa3(source: Path, output: Path) -> None:
 
 def prepare_oasis(source: Path, output: Path) -> None:
     copy_source(source, output)
+    prepare_offline_setup(output)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
         "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
@@ -508,6 +529,7 @@ def prepare_oasis(source: Path, output: Path) -> None:
 
 def prepare_whitney(source: Path, output: Path, *, maximum_size: int) -> None:
     copy_source(source, output, maximum_size=maximum_size)
+    prepare_offline_setup(output)
     transform_file(
         output,
         "/etc/upstart/framework_setup.conf",
@@ -524,6 +546,7 @@ def prepare_whitney(source: Path, output: Path, *, maximum_size: int) -> None:
 
 def prepare_celeste(source: Path, output: Path, *, maximum_size: int) -> None:
     copy_source(source, output, maximum_size=maximum_size)
+    prepare_offline_setup(output)
     transform_file(
         output,
         "/etc/upstart/framework_setup.conf",
@@ -540,6 +563,7 @@ def prepare_celeste(source: Path, output: Path, *, maximum_size: int) -> None:
 
 def prepare_rex(source: Path, output: Path) -> None:
     copy_source(source, output)
+    prepare_offline_setup(output)
     transform_file(
         output,
         "/etc/upstart/framework_setup.conf",
