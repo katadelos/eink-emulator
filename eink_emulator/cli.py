@@ -594,6 +594,54 @@ def command_delete(args: argparse.Namespace) -> None:
     prune_bases(bases, dry_run=args.dry_run)
 
 
+def command_reset(args: argparse.Namespace) -> None:
+    directory, manifest = read_machine(args.name)
+    disk = directory / "disk.qcow2"
+    if directory.is_symlink() or disk.is_symlink():
+        fail(f"refusing to reset a symlinked machine directory or disk: {args.name}")
+    if not disk.is_file():
+        fail(f"machine disk is missing: {disk}")
+    base_name = manifest.get("base")
+    if not isinstance(base_name, str) or not base_name:
+        fail(f"machine manifest has no valid base: {args.name}")
+    base = ROOT / base_name
+    if not base.is_file():
+        fail(f"machine base is missing: {base}")
+    if not QEMU_IMG.is_file():
+        fail("QEMU image tool is not built; run ./eink build")
+    qmp = runtime_paths(directory)["qmp"]
+    if qmp.exists() and qmp_status(qmp) is not None:
+        fail(f"machine is still running: {args.name}; stop it before resetting it")
+    if open_files([disk]):
+        fail(f"machine disk is still in use: {args.name}; stop it before resetting it")
+    # Exclude only the disk: snapshots inside this directory must also block
+    # replacement when they depend on the current overlay's contents.
+    references = image_references(ROOT, QEMU_IMG, excluding=disk)
+    if disk.resolve() in references:
+        fail(f"another disk depends on machine {args.name}; cannot reset it")
+    # Check the complete prepared-image chain, including with --dry-run.
+    run_checked([str(QEMU_IMG), "info", "--backing-chain", str(base)], stdout=subprocess.DEVNULL)
+    if args.dry_run:
+        print(f"would reset {args.name} to {base_name}, discarding all guest changes")
+        return
+
+    fd, name = tempfile.mkstemp(prefix=".reset-", suffix=".qcow2", dir=directory)
+    os.close(fd)
+    temporary = Path(name)
+    try:
+        relative_base = os.path.relpath(base.resolve(), directory.resolve())
+        run_checked([str(QEMU_IMG), "create", "-q", "-f", "qcow2", "-F", "qcow2",
+                     "-b", relative_base, str(temporary)])
+        run_checked([str(QEMU_IMG), "check", "-q", "-f", "qcow2", str(temporary)])
+        if open_files([disk]):
+            fail(f"machine disk is still in use: {args.name}; stop it before resetting it")
+        temporary.replace(disk)
+    finally:
+        temporary.unlink(missing_ok=True)
+    print(f"reset {args.name} to its prepared image; all guest changes discarded")
+    print(f"run it with: ./eink run {args.name}")
+
+
 def command_images(args: argparse.Namespace) -> None:
     if args.dry_run and not (args.prune or args.compact):
         fail("--dry-run requires --prune or --compact")
@@ -716,6 +764,11 @@ def parser() -> argparse.ArgumentParser:
     delete.add_argument("--dry-run", action="store_true", help="show what would be removed")
     delete.set_defaults(handler=command_delete)
 
+    reset = commands.add_parser("reset", help="discard guest changes and restore a stopped machine's prepared image")
+    reset.add_argument("name")
+    reset.add_argument("--dry-run", action="store_true", help="show the reset without changing the machine")
+    reset.set_defaults(handler=command_reset)
+
     run = commands.add_parser("run", help="launch a persistent machine")
     run.add_argument("name")
     run.add_argument("--headless", action="store_true", help="disable graphical output")
@@ -753,7 +806,7 @@ def main() -> None:
         extra = extra[1:]
     args.qemu_args = extra
     try:
-        changes_storage = args.command in {"create", "delete"} or (
+        changes_storage = args.command in {"create", "delete", "reset"} or (
             args.command == "images" and (args.prune or args.compact)
         )
         with storage_lock(BUILD_ROOT) if changes_storage else nullcontext():

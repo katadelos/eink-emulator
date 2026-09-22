@@ -130,6 +130,8 @@ def image_references(root: Path, qemu_img: Path, *, excluding: Path | None = Non
         ]
         for name in names:
             path = parent / name
+            if path == excluding:
+                continue
             if name == "machine.json" and (
                 parent.is_relative_to(root / "machines") or "disk.qcow2" in names
             ):

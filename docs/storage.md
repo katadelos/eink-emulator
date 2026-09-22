@@ -25,6 +25,28 @@ future instances to use a new prepared revision. Existing instances keep their
 original revision and contents. Revisions layer directly on a standalone
 base, so a machine's backing chain has at most three images.
 
+## Resetting an instance
+
+Stop the instance, then run:
+
+```sh
+./eink reset NAME --dry-run
+./eink reset NAME
+```
+
+Reset replaces the writable overlay with an empty one backed by the prepared
+image recorded in `machine.json`. It restores the creation-time state,
+including boot modifications and any add-ons baked into that image. Guest
+files, settings and software installed after creation are discarded. First-boot
+setup runs again on the next launch. The machine's name, configuration and
+host logs are preserved; reset does not rebuild firmware or apply newer guest
+overrides.
+
+The replacement is created and checked before the old overlay is replaced.
+Reset refuses running machines, disks opened by another process, symlinked
+machine directories or disks, and overlays used as backing images by other
+workspace disks, including snapshots in the same instance directory.
+
 ## Deleting instances and reclaiming space
 
 Stop the instance, then run `./eink delete NAME`. This removes its directory
@@ -60,7 +82,7 @@ the workspace, including snapshots and development disks outside `machines/`.
 It recognizes QCOW2 disks with `.qcow2`, `.qcow`, `.img` and `.raw` extensions.
 It requires `lsof` to preserve open bases and refuse deletion of files in use.
 Symlinked bases are retained. An unreadable manifest or backing chain stops
-cleanup before any deletion. Creation, deletion, compaction and pruning are
+cleanup before any deletion. Creation, reset, deletion, compaction and pruning are
 serialized so cleanup cannot remove a base while an instance is being created.
 
 Backups outside the workspace must include their bases as described below;

@@ -55,6 +55,7 @@ New instances in this family start at Home with offline setup already prepared.
 ```sh
 ./eink list                         # List saved instances.
 ./eink images                       # Show disk use.
+./eink reset my-reader              # Discard guest changes; restore the prepared image.
 ./eink delete my-reader             # Delete a stopped instance and unused bases.
 ./eink images --prune               # Reclaim bases left by manual deletions.
 ./eink images --compact             # Deduplicate stopped base revisions.
