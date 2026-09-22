@@ -13,6 +13,7 @@ import socket
 import subprocess
 import sys
 import tempfile
+from contextlib import nullcontext
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -21,6 +22,7 @@ from .firmware import import_recovery
 from .images import addons, build_raw_image
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
+from .storage import image_references, open_files, storage_lock, unused_bases
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -534,7 +536,44 @@ def command_list(_: argparse.Namespace) -> None:
         print("No machines. Create one with: ./eink create NAME --model MODEL")
 
 
-def command_images(_: argparse.Namespace) -> None:
+def prune_bases(paths: list[Path], *, dry_run: bool) -> None:
+    allocated = sum(allocated_size(path) for path in paths)
+    for path in paths:
+        if not dry_run:
+            path.unlink()
+            path.with_suffix(".json").unlink(missing_ok=True)
+        print(f"{'would remove' if dry_run else 'removed'} {path.relative_to(ROOT)}")
+    action = "Would reclaim" if dry_run else "Reclaimed"
+    print(f"{action} {human_size(allocated)} from {len(paths)} unused base images.")
+
+
+def command_delete(args: argparse.Namespace) -> None:
+    directory, _ = read_machine(args.name)
+    if directory.is_symlink():
+        fail(f"refusing to delete a symlinked machine directory: {directory}")
+    qmp = runtime_paths(directory)["qmp"]
+    if qmp.exists() and qmp_status(qmp) is not None:
+        fail(f"machine is still running: {args.name}; stop it before deleting it")
+    references = image_references(ROOT, QEMU_IMG, excluding=directory.resolve())
+    files = [path for path in directory.rglob("*") if path.is_file()]
+    if any(path.resolve() in references for path in files):
+        fail(f"another disk depends on machine {args.name}; cannot delete it")
+    if open_files(files):
+        fail(f"machine files are still in use: {args.name}; stop it before deleting it")
+    bases = unused_bases(ROOT, references)
+    if not args.dry_run:
+        shutil.rmtree(directory)
+    print(f"{'would delete' if args.dry_run else 'deleted'} machine {args.name}")
+    prune_bases(bases, dry_run=args.dry_run)
+
+
+def command_images(args: argparse.Namespace) -> None:
+    if args.dry_run and not args.prune:
+        fail("--dry-run requires --prune")
+    if args.prune:
+        references = image_references(ROOT, QEMU_IMG)
+        prune_bases(unused_bases(ROOT, references), dry_run=args.dry_run)
+        return
     paths = sorted(BASES_ROOT.glob("*.qcow2")) if BASES_ROOT.is_dir() else []
     if MACHINES_ROOT.is_dir():
         paths.extend(sorted(MACHINES_ROOT.glob("*/disk.qcow2")))
@@ -619,6 +658,11 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--mrpi", action="store_true", help="pre-install pinned MRPI (includes --kual and --jailbreak)")
     create.set_defaults(handler=command_create)
 
+    delete = commands.add_parser("delete", help="delete a stopped machine and prune unused shared bases")
+    delete.add_argument("name")
+    delete.add_argument("--dry-run", action="store_true", help="show what would be removed")
+    delete.set_defaults(handler=command_delete)
+
     run = commands.add_parser("run", help="launch a persistent machine")
     run.add_argument("name")
     run.add_argument("--headless", action="store_true", help="disable graphical output")
@@ -640,6 +684,8 @@ def parser() -> argparse.ArgumentParser:
     machines.set_defaults(handler=command_list)
 
     images = commands.add_parser("images", help="list every generated disk image")
+    images.add_argument("--prune", action="store_true", help="remove shared bases no longer used by workspace disks")
+    images.add_argument("--dry-run", action="store_true", help="preview --prune without deleting anything")
     images.set_defaults(handler=command_images)
     return root
 
@@ -652,7 +698,13 @@ def main() -> None:
         extra = extra[1:]
     args.qemu_args = extra
     try:
-        args.handler(args)
+        changes_storage = args.command in {"create", "delete"} or (
+            args.command == "images" and args.prune
+        )
+        with storage_lock(BUILD_ROOT) if changes_storage else nullcontext():
+            args.handler(args)
+    except OSError as error:
+        fail(str(error))
     except subprocess.CalledProcessError as error:
         fail(f"command failed with exit status {error.returncode}: {shlex.join(error.cmd)}")
     except KeyboardInterrupt:

@@ -5,3 +5,6 @@
 
 Use `./eink list` to list instances and `./eink images` to list disks. See
 [storage](../docs/storage.md) before moving or backing up an instance.
+
+Use `./eink delete NAME` to remove a stopped instance and reclaim unused shared
+bases. After manual deletions, run `./eink images --prune` to reclaim them.

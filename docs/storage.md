@@ -22,6 +22,32 @@ Changes to firmware, builder code, guest files or the SSH public key cause
 future instances to use a new base. Existing instances keep their original
 base.
 
+## Deleting instances and reclaiming space
+
+Stop the instance, then run `./eink delete NAME`. This removes its directory
+and prunes shared bases that no remaining disk uses. Use `--dry-run` to preview
+the deletion. Instances with identical image inputs share a single base;
+deleting one of them preserves that base until the last dependent disk is gone.
+
+To reclaim old bases after manually removing instance directories:
+
+```sh
+./eink images --prune --dry-run
+./eink images --prune
+```
+
+Pruning checks machine manifests and actual QCOW2 backing chains throughout
+the workspace, including snapshots and development disks outside `machines/`.
+It recognizes QCOW2 disks with `.qcow2`, `.qcow`, `.img` and `.raw` extensions.
+It requires `lsof` to preserve open bases and refuse deletion of files in use.
+Symlinked bases are retained. An unreadable manifest or backing chain stops
+cleanup before any deletion. Creation, deletion and pruning are
+serialized so cleanup cannot remove a base while an instance is being created.
+
+Backups outside the workspace must include their bases as described below;
+pruning cannot discover dependencies in external, stopped disks. Stop manual
+QEMU/image operations before pruning, since they do not take the CLI's lock.
+
 ## Inventory and backups
 
 `./eink list` shows instances and checks that their disks and bases exist.
