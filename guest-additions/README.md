@@ -29,3 +29,10 @@ Wi-Fi SSH traffic.
 The login public key is installed at `/etc/eink-ssh/authorized_keys`. Each
 guest creates its own server key in `/var/local/eink-ssh`. Framework permission
 changes exclude that directory to keep the key private.
+
+## Optional KUAL and MRPI
+
+`eink create --jailbreak`, `--kual` and `--mrpi` opt into the pinned inputs in
+[`kindle/assets.json`](kindle/assets.json). Downloaded archives stay in the ignored
+`kindle/downloads/` directory. See [Kindle add-ons](../docs/kindle-addons.md) for dependencies,
+supported models and first-boot installation logs.

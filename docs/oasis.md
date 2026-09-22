@@ -26,8 +26,8 @@ Replace `/path/to/` with the package location.
 ./eink run oasis-2
 ```
 
-To reach Home without registration, choose **Set up later**, then
-**Finish later**. See [networking](networking.md) for Wi-Fi and SSH access.
+Instances skip initial setup and open Home without an Amazon account.
+See [networking](networking.md) for Wi-Fi and SSH access.
 
 ## Controls
 

@@ -17,6 +17,17 @@ the guest changes its Wi-Fi connection. See [networking](networking.md).
 
 ## Older Kindle models
 
+Kindle 4 through Oasis 3 skip initial setup and open Home. The
+`kindle/qemu-offline-setup` hook selects British English when no locale is set
+and records setup completion before the UI starts. Locale and preference
+changes persist across boots. The guest remains unregistered; newer firmware
+shows a registration invitation on Home, while Library is usable offline.
+
+Kindle 4, Touch and Paperwhite 1 use synthetic panel flash with the waveform
+data required by the stock display service. Basic 2014 and Voyage use panel
+identifiers for their 600×800 and 1072×1448 displays. If you supply a panel-flash
+backing file, QEMU uses its contents.
+
 | Models | Changes |
 | --- | --- |
 | Basic 2014, Paperwhite 2/3, Voyage | Keyboard, service startup, wake and suspend fixes |

@@ -45,6 +45,11 @@ Other models need different files and, in some cases, a hardware profile.
 See [firmware setup](docs/firmware.md). Kobo Forma and Elipsa 2E accept
 `--sideloaded` at creation to skip account setup.
 
+Kindle 4 through Oasis 3 also support `create --mrpi` to pre-install KUAL,
+MRPI and their jailbreak prerequisites. Use `--kual` or `--jailbreak` for a
+smaller setup; see [Kindle add-ons and pinned downloads](docs/kindle-addons.md).
+New instances in this family start at Home with offline setup already prepared.
+
 ## Everyday use
 
 ```sh
