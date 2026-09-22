@@ -57,6 +57,7 @@ New instances in this family start at Home with offline setup already prepared.
 ./eink images                       # Show disk use.
 ./eink delete my-reader             # Delete a stopped instance and unused bases.
 ./eink images --prune               # Reclaim bases left by manual deletions.
+./eink images --compact             # Deduplicate stopped base revisions.
 ./eink run my-reader --qmp-socket    # Start with QMP control.
 ./eink run --help                   # List launch options.
 ```

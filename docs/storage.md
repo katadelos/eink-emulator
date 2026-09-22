@@ -1,7 +1,9 @@
 # Machines and disk images
 
-Each instance stores its changes in a QCOW2 overlay. Instances can share a
-read-only base image, which reduces disk use.
+Each instance stores its changes in a QCOW2 overlay. Prepared image revisions
+share a read-only base for the same model and virtual disk size. A revision
+stores only the blocks that differ from that base; identical image inputs
+reuse the same revision.
 
 ```text
 firmware/MODEL/                 Imported firmware
@@ -19,8 +21,9 @@ Git ignores runtime files. An overlay starts empty and grows as the guest
 writes data.
 
 Changes to firmware, builder code, guest files or the SSH public key cause
-future instances to use a new base. Existing instances keep their original
-base.
+future instances to use a new prepared revision. Existing instances keep their
+original revision and contents. Revisions layer directly on a standalone
+base, so a machine's backing chain has at most three images.
 
 ## Deleting instances and reclaiming space
 
@@ -36,28 +39,52 @@ To reclaim old bases after manually removing instance directories:
 ./eink images --prune
 ```
 
+To deduplicate existing standalone base revisions, stop their instances and run:
+
+```sh
+./eink images --compact --dry-run
+./eink images --compact
+```
+
+Compaction computes each revision's differences from the oldest standalone
+base of the same model and disk size. It checks the new QCOW2 and compares all
+guest-visible contents before atomically replacing the original, keeping its
+path and every machine's data. It keeps the original if the result is not
+smaller. Bases with internal snapshots, persistent bitmaps or external data
+files are left alone. Compaction requires enough temporary space for one
+revision's differences. Interrupted operations leave the original intact;
+rerunning compaction processes the remaining standalone revisions.
+
 Pruning checks machine manifests and actual QCOW2 backing chains throughout
 the workspace, including snapshots and development disks outside `machines/`.
 It recognizes QCOW2 disks with `.qcow2`, `.qcow`, `.img` and `.raw` extensions.
 It requires `lsof` to preserve open bases and refuse deletion of files in use.
 Symlinked bases are retained. An unreadable manifest or backing chain stops
-cleanup before any deletion. Creation, deletion and pruning are
+cleanup before any deletion. Creation, deletion, compaction and pruning are
 serialized so cleanup cannot remove a base while an instance is being created.
 
 Backups outside the workspace must include their bases as described below;
 pruning cannot discover dependencies in external, stopped disks. Stop manual
-QEMU/image operations before pruning, since they do not take the CLI's lock.
+QEMU/image operations before storage maintenance, since they do not take the
+CLI's lock.
 
 ## Inventory and backups
 
-`./eink list` shows instances and checks that their disks and bases exist.
-`./eink images` shows virtual sizes, allocated host space and backing files.
+`./eink list` shows instances and checks that their disks and bases exist. Its
+`OVERLAY` column measures only the instance's writable disk. Both `list` and
+`images` report total allocated host storage for `machines/` and `build/images/`,
+counting shared bases once and including other files such as serial logs.
+Imported firmware, QEMU builds and development directories are outside that
+total. `./eink images` also shows virtual sizes and backing files; virtual
+capacity is not allocated host space.
 
 Stop QEMU before copying an instance. Back up its complete `machines/NAME/`
-directory and the base named in `machine.json`. Preserve their relative paths;
-the overlay depends on its base. Keep the model's firmware directory because
-launch still needs the bootloader and any separate machine firmware. Keep
-`build/ssh/` for Kindle SSH access.
+directory and every image in its backing chain, starting with the revision
+named in `machine.json`. Inspect the complete chain with
+`qemu/build/qemu-img info --backing-chain machines/NAME/disk.qcow2`.
+Preserve their relative paths; each overlay depends on its backing image.
+Keep the model's firmware directory because launch still needs the bootloader
+and any separate machine firmware. Keep `build/ssh/` for Kindle SSH access.
 
 ## Scribe partitions
 

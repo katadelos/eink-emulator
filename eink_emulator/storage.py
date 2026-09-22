@@ -6,6 +6,7 @@ import fcntl
 import json
 import os
 import subprocess
+import tempfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Iterator
@@ -28,6 +29,76 @@ def cached_bases(root: Path) -> list[Path]:
         path for path in (root / "build" / "images").glob("*.qcow2")
         if not path.is_symlink() and path.is_file()
     )
+
+
+def disk_info(qemu_img: Path, path: Path) -> dict:
+    return json.loads(subprocess.check_output(
+        [str(qemu_img), "info", "--output=json", str(path)], text=True,
+    ))
+
+
+def base_families(
+    root: Path, qemu_img: Path, *, model: str | None = None,
+) -> dict[tuple[str, int], list[Path]]:
+    """Group standalone bases by model and disk size, oldest first.
+
+    Every revision layers directly on a standalone base, keeping chains bounded
+    at machine -> prepared revision -> shared base.
+    """
+    families: dict[tuple[str, int], list[tuple[str, Path]]] = {}
+    for path in cached_bases(root):
+        try:
+            metadata = json.loads(path.with_suffix(".json").read_text())
+        except FileNotFoundError:
+            # An interrupted build may not have published its metadata yet.
+            continue
+        if model is not None and metadata["model"] != model:
+            continue
+        info = disk_info(qemu_img, path)
+        if info.get("backing-filename"):
+            continue
+        # Rebuilding only the current disk contents would lose these features.
+        data = info.get("format-specific", {}).get("data", {})
+        if info.get("snapshots") or data.get("bitmaps") or data.get("data-file"):
+            continue
+        key = (metadata["model"], info["virtual-size"])
+        families.setdefault(key, []).append((metadata["created"], path))
+    return {key: [path for _, path in sorted(items)] for key, items in families.items()}
+
+
+def write_base(
+    qemu_img: Path, source: Path, source_format: str, destination: Path,
+    *, backing: Path | None = None,
+) -> None:
+    """Atomically install a checked base, preserving all guest-visible bytes."""
+    fd, name = tempfile.mkstemp(prefix=f".{destination.stem}-", suffix=".tmp", dir=destination.parent)
+    os.close(fd)
+    temporary = Path(name)
+
+    def run(*arguments: str) -> None:
+        subprocess.run([str(qemu_img), *arguments], check=True)
+
+    try:
+        if backing is None:
+            run("convert", "-f", source_format, "-O", "qcow2", "-S", "4k", str(source), str(temporary))
+        else:
+            # Safe rebase of an empty overlay computes the differences between
+            # source and backing. convert -b alone does NOT deduplicate them.
+            run("create", "-q", "-f", "qcow2", "-F", source_format,
+                "-b", str(source.resolve()), str(temporary))
+            run("rebase", "-f", "qcow2", "-F", "qcow2",
+                "-b", os.path.relpath(backing.resolve(), destination.parent.resolve()), str(temporary))
+        run("check", "-q", "-f", "qcow2", str(temporary))
+        run("compare", "-q", "-f", source_format, "-F", "qcow2", str(source), str(temporary))
+        if destination.exists():
+            if source == destination and temporary.stat().st_blocks >= destination.stat().st_blocks:
+                return
+            if open_files([destination]):
+                raise SystemExit(f"base is in use; stop its machines before compacting: {destination}")
+        temporary.chmod(0o444)
+        temporary.replace(destination)
+    finally:
+        temporary.unlink(missing_ok=True)
 
 
 def image_references(root: Path, qemu_img: Path, *, excluding: Path | None = None) -> set[Path]:

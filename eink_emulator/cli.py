@@ -22,7 +22,10 @@ from .firmware import import_recovery
 from .images import addons, build_raw_image
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
-from .storage import image_references, open_files, storage_lock, unused_bases
+from .storage import (
+    base_families, disk_info, image_references, open_files, storage_lock,
+    unused_bases, write_base,
+)
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -164,12 +167,10 @@ def ensure_base(model: str, definition: dict[str, Any], artifacts: dict[str, Pat
     staging_root.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=f"{model}-", dir=staging_root) as temporary:
         raw = Path(temporary) / "disk.raw"
-        converted = Path(temporary) / "disk.qcow2"
         source = build_raw_image(definition, artifacts, raw)
-        run_checked([str(QEMU_IMG), "convert", "-f", "raw", "-O", "qcow2", "-S", "4k", str(source), str(converted)])
-        run_checked([str(QEMU_IMG), "check", "-f", "qcow2", str(converted)])
-        converted.replace(base)
-    os.chmod(base, 0o444)
+        families = base_families(ROOT, QEMU_IMG, model=model)
+        parents = families.get((model, source.stat().st_size), [])
+        write_base(QEMU_IMG, source, "raw", base, backing=parents[0] if parents else None)
     write_json(metadata, {
         "created": datetime.now(timezone.utc).isoformat(),
         "firmware": {role: path.name for role, path in sorted(artifacts.items())},
@@ -501,7 +502,7 @@ def image_info(path: Path) -> tuple[int | None, str]:
     if not QEMU_IMG.is_file():
         return None, "-"
     try:
-        value = json.loads(subprocess.check_output([str(QEMU_IMG), "info", "--output=json", str(path)], text=True))
+        value = disk_info(QEMU_IMG, path)
     except (OSError, subprocess.SubprocessError, json.JSONDecodeError):
         return None, "?"
     backing = value.get("backing-filename") or "-"
@@ -531,9 +532,35 @@ def command_list(_: argparse.Namespace) -> None:
             except (OSError, KeyError, json.JSONDecodeError):
                 rows.append((directory.name, "?", "invalid", "-", "-"))
     if rows:
-        print_table(("NAME", "MODEL", "STATE", "ALLOCATED", "CREATED"), rows)
+        print_table(("NAME", "MODEL", "STATE", "OVERLAY", "CREATED"), rows)
     else:
         print("No machines. Create one with: ./eink create NAME --model MODEL")
+    print_storage_summary()
+
+
+def print_storage_summary() -> None:
+    totals = {"overlays": 0, "bases": 0, "other": 0}
+    seen: set[tuple[int, int]] = set()
+    for directory in (BASES_ROOT, MACHINES_ROOT):
+        for path in directory.rglob("*"):
+            if not path.is_file():
+                continue
+            stat = path.stat()
+            identity = (stat.st_dev, stat.st_ino)
+            if identity in seen:
+                continue
+            seen.add(identity)
+            group = "other"
+            if path.parent == BASES_ROOT and path.suffix == ".qcow2":
+                group = "bases"
+            elif path.name == "disk.qcow2" and path.parent.parent == MACHINES_ROOT:
+                group = "overlays"
+            totals[group] += stat.st_blocks * 512
+    print(f"\nMachine overlays: {human_size(totals['overlays'])}; "
+          f"shared bases: {human_size(totals['bases'])}; "
+          f"other machine/image files: {human_size(totals['other'])}.")
+    print(f"Total allocated: {human_size(sum(totals.values()))} "
+          "(shared bases counted once; excludes imported firmware and build files).")
 
 
 def prune_bases(paths: list[Path], *, dry_run: bool) -> None:
@@ -568,8 +595,11 @@ def command_delete(args: argparse.Namespace) -> None:
 
 
 def command_images(args: argparse.Namespace) -> None:
-    if args.dry_run and not args.prune:
-        fail("--dry-run requires --prune")
+    if args.dry_run and not (args.prune or args.compact):
+        fail("--dry-run requires --prune or --compact")
+    if args.compact:
+        command_compact(args)
+        return
     if args.prune:
         references = image_references(ROOT, QEMU_IMG)
         prune_bases(unused_bases(ROOT, references), dry_run=args.dry_run)
@@ -585,6 +615,29 @@ def command_images(args: argparse.Namespace) -> None:
         print_table(("IMAGE", "VIRTUAL", "ALLOCATED", "BACKING"), rows)
     else:
         print("No generated images.")
+    print_storage_summary()
+
+
+def command_compact(args: argparse.Namespace) -> None:
+    families = base_families(ROOT, QEMU_IMG)
+    pairs = [(path, paths[0]) for paths in families.values() for path in paths[1:]]
+    if not args.dry_run and open_files([path for path, _ in pairs]):
+        fail("shared bases are in use; stop their machines before compacting")
+    reclaimed = 0
+    for path, backing in pairs:
+        if args.dry_run:
+            print(f"would layer {path.name} on {backing.name}")
+            continue
+        before = allocated_size(path)
+        write_base(QEMU_IMG, path, "qcow2", path, backing=backing)
+        saved = before - allocated_size(path)
+        reclaimed += saved
+        print(f"{path.name}: reclaimed {human_size(saved)}", flush=True)
+    if args.dry_run:
+        print(f"Would compact {len(pairs)} base images; exact savings require comparing disk contents.")
+    else:
+        print(f"Reclaimed {human_size(reclaimed)} from shared base images.")
+        print_storage_summary()
 
 
 def command_models(_: argparse.Namespace) -> None:
@@ -684,8 +737,10 @@ def parser() -> argparse.ArgumentParser:
     machines.set_defaults(handler=command_list)
 
     images = commands.add_parser("images", help="list every generated disk image")
-    images.add_argument("--prune", action="store_true", help="remove shared bases no longer used by workspace disks")
-    images.add_argument("--dry-run", action="store_true", help="preview --prune without deleting anything")
+    maintenance = images.add_mutually_exclusive_group()
+    maintenance.add_argument("--prune", action="store_true", help="remove shared bases no longer used by workspace disks")
+    maintenance.add_argument("--compact", action="store_true", help="deduplicate stopped base revisions using shared backing images")
+    images.add_argument("--dry-run", action="store_true", help="preview --prune or --compact without changing images")
     images.set_defaults(handler=command_images)
     return root
 
@@ -699,7 +754,7 @@ def main() -> None:
     args.qemu_args = extra
     try:
         changes_storage = args.command in {"create", "delete"} or (
-            args.command == "images" and args.prune
+            args.command == "images" and (args.prune or args.compact)
         )
         with storage_lock(BUILD_ROOT) if changes_storage else nullcontext():
             args.handler(args)
