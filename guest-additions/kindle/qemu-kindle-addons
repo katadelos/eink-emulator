@@ -1,0 +1,30 @@
+#!/bin/sh
+# Complete optional provisioning after var-local/userstore mount, before CVM.
+set -eu
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 022
+state=/var/local/eink-addons
+[ ! -f "$state/installed.json" ] || exit 0
+mkdir -p "$state"
+exec >>"$state/install.log" 2>&1
+trap 'status=$?; [ "$status" -eq 0 ] || echo "Provisioning failed ($status); retry on next boot"' EXIT
+# Never unpack into the rootfs mountpoint if either data filesystem is absent.
+grep -q ' /var/local ' /proc/mounts
+grep -q ' /mnt/us ' /proc/mounts
+echo 'Installing optional Kindle add-ons'
+tar -xzpf /usr/share/eink-addons/data.tar.gz -C /
+if [ -f /var/local/mkk/gandalf ]; then
+    chown root:root /var/local/mkk /var/local/mkk/gandalf
+    chmod 0755 /var/local/mkk
+    chmod 4755 /var/local/mkk/gandalf
+    ln -sf gandalf /var/local/mkk/su
+fi
+if [ -f /usr/share/eink-addons/appreg.install.sql ]; then
+    # sqlite must open the existing firmware database, never create an empty one.
+    [ -s /var/local/appreg.db ]
+    sqlite3 /var/local/appreg.db < /usr/share/eink-addons/appreg.install.sql
+fi
+mount -i -o remount,exec /mnt/us
+cp /etc/eink-addons.json "$state/installed.json.tmp"
+mv "$state/installed.json.tmp" "$state/installed.json"
+echo 'Provisioning complete'

@@ -1,0 +1,26 @@
+{
+  "jailbreak": {
+    "version": "1.8.N-r18977",
+    "url": "https://storage.gra.cloud.ovh.net/v1/AUTH_2ac4bfee353948ec8ea7fd1710574097/mr-public/Touch/kindle-k4-jailbreak-1.8.N-r18977.tar.xz"
+  },
+  "mkk": {
+    "version": "20141129-r18833",
+    "url": "https://storage.gra.cloud.ovh.net/v1/AUTH_2ac4bfee353948ec8ea7fd1710574097/mr-public/Touch/kindle-mkk-20141129-r18833.tar.xz"
+  },
+  "hotfix": {
+    "version": "2.5.0",
+    "url": "https://github.com/KindleModding/Hotfix/releases/download/2.5.0/Update_hotfix_universal.bin"
+  },
+  "kual_kindlet": {
+    "version": "2.7.37-gfcb45b5-20250419",
+    "url": "https://storage.gra.cloud.ovh.net/v1/AUTH_2ac4bfee353948ec8ea7fd1710574097/mr-public/KUAL/KUAL-v2.7.37-gfcb45b5-20250419.tar.xz"
+  },
+  "kual_booklet": {
+    "version": "c6ac782-20250419",
+    "url": "https://storage.gra.cloud.ovh.net/v1/AUTH_2ac4bfee353948ec8ea7fd1710574097/mr-public/KUAL/KUAL-c6ac782-20250419.tar.xz"
+  },
+  "mrpi": {
+    "version": "1.7.N-r19303-khf-08f8c5a",
+    "url": "https://media.githubusercontent.com/media/KindleModding/kindlemodding.github.io/08f8c5add11ce931123fbaf9417c87d9f1685415/content/jailbreaking/Legacy/post-jailbreak/installing-kual-mrpi/kual-mrinstaller-khf.zip"
+  }
+}

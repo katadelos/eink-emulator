@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from .firmware import import_recovery
-from .images import build_raw_image
+from .images import addons, build_raw_image
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
 
@@ -107,6 +107,8 @@ def digest_files(definition: dict[str, Any], artifacts: dict[str, Path]) -> str:
     if definition["network"].get("usb", {}).get("service") == "ssh":
         additions = ROOT / "guest-additions"
         for path in sorted(path for path in additions.rglob("*") if path.is_file()):
+            if path.is_relative_to(addons.DOWNLOADS):
+                continue
             digest.update(str(path.relative_to(additions)).encode())
             digest.update(path.read_bytes())
     for role, path in sorted(artifacts.items()):
@@ -187,6 +189,9 @@ def command_create(args: argparse.Namespace) -> None:
         if definition["builder"] not in {"forma", "elipsa2e"}:
             fail("--sideloaded is only supported by Kobo Forma and Elipsa 2E")
         definition["sideloaded"] = True
+    addon_plan = addons.plan(args.model, jailbreak=args.jailbreak, kual=args.kual, mrpi=args.mrpi)
+    if addon_plan:
+        definition["addons"] = addon_plan
     profile = parse_profile(args.profile, definition)
     artifacts = firmware_for(args.model, definition)
     target = machine_directory(args.name)
@@ -209,6 +214,8 @@ def command_create(args: argparse.Namespace) -> None:
             "model": args.model,
             "name": args.name,
         }
+        if addon_plan:
+            manifest["addons"] = addon_plan
         if profile:
             manifest["profile"] = profile
         write_json(temporary / "machine.json", manifest)
@@ -607,6 +614,9 @@ def parser() -> argparse.ArgumentParser:
         "--sideloaded", action="store_true",
         help="initialize Kobo Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
     )
+    create.add_argument("--jailbreak", action="store_true", help="prepare Kindle developer update key, debug/exec flags and root helper")
+    create.add_argument("--kual", action="store_true", help="pre-install pinned KUAL (includes --jailbreak)")
+    create.add_argument("--mrpi", action="store_true", help="pre-install pinned MRPI (includes --kual and --jailbreak)")
     create.set_defaults(handler=command_create)
 
     run = commands.add_parser("run", help="launch a persistent machine")

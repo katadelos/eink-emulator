@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kt4, mt8115, oasis,
+    addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kt4, mt8115, oasis,
     rex, rootfs, tequila, wario, whitney,
 )
 
@@ -19,6 +19,11 @@ def build_raw_image(
     Full Kobo SD images retain their partition layout while receiving the
     same networking setup as partition-based builds.
     """
+    if definition.get("addons"):
+        prepared_addons = output.with_name("addons-rootfs.img")
+        artifacts = artifacts | {
+            "rootfs": addons.prepare(artifacts["rootfs"], prepared_addons, definition["addons"])
+        }
     builder = definition["builder"]
     if builder == "disk-copy":
         kobo.build(artifacts["disk"], output)
