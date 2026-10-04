@@ -1,0 +1,191 @@
+{
+  "kt1": {
+    "model": "kindle-touch",
+    "machine": "mrpi-kt1",
+    "arch": "arm",
+    "native": true,
+    "image": "uImage"
+  },
+  "pw1": {
+    "model": "kindle-paperwhite-1",
+    "machine": "mrpi-pw1",
+    "arch": "arm",
+    "kernel": "2.6.31",
+    "lookup_parameter": true,
+    "image": "uImage"
+  },
+  "pw2": {
+    "model": "kindle-paperwhite-2",
+    "machine": "mrpi-pw2",
+    "arch": "arm",
+    "kernel": "3.0.35",
+    "image": "uImage"
+  },
+  "kt2": {
+    "model": "kindle-basic-2014",
+    "machine": "mrpi-kt2",
+    "arch": "arm",
+    "kernel": "3.0.35",
+    "image": "uImage"
+  },
+  "kv": {
+    "model": "kindle-voyage",
+    "machine": "mrpi-kv",
+    "arch": "arm",
+    "kernel": "3.0.35",
+    "image": "uImage"
+  },
+  "pw3": {
+    "model": "kindle-paperwhite-3",
+    "machine": "mrpi-pw3",
+    "arch": "arm",
+    "kernel": "3.0.35",
+    "image": "uImage"
+  },
+  "koa1": {
+    "model": "kindle-oasis-1",
+    "machine": "mrpi-koa1",
+    "arch": "arm",
+    "kernel": "3.0.35",
+    "falcon": [
+      "0x9f5f0000",
+      "0x9f5e0000"
+    ],
+    "image": "uImage"
+  },
+  "kt3": {
+    "model": "kindle-basic-2016",
+    "machine": "mrpi-kt3",
+    "arch": "arm",
+    "kernel": "3.10.53",
+    "image": "uImage"
+  },
+  "koa2": {
+    "model": "kindle-oasis-2",
+    "machine": "mrpi-koa2",
+    "arch": "arm",
+    "kernel": "4.1.15",
+    "falcon": [
+      "0x9ffd0000",
+      "0x9ffc0000"
+    ],
+    "image": "boot.img"
+  },
+  "pw4": {
+    "model": "kindle-paperwhite-4",
+    "machine": "mrpi-pw4",
+    "arch": "arm",
+    "kernel": "4.1.15",
+    "falcon": [
+      "0x9ffd0000",
+      "0x9ffc0000"
+    ],
+    "image": "boot.img"
+  },
+  "kt4": {
+    "model": "kindle-kt4",
+    "machine": "mrpi-kt4",
+    "arch": "arm",
+    "kernel": "4.1.15",
+    "falcon": [
+      "0x9ffd0000",
+      "0x9ffc0000"
+    ],
+    "image": "boot.img"
+  },
+  "koa3": {
+    "model": "kindle-oasis-3",
+    "machine": "mrpi-koa3",
+    "arch": "arm",
+    "kernel": "4.1.15",
+    "falcon": [
+      "0x9ffd0000",
+      "0x9ffc0000"
+    ],
+    "image": "boot.img"
+  },
+  "pw5": {
+    "model": "kindle-paperwhite-5",
+    "machine": "kexec-pw5",
+    "arch": "arm",
+    "kernel": "4.9.77",
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "kt5": {
+    "model": "kindle-basic-2022",
+    "machine": "kexec-basic2022",
+    "arch": "arm",
+    "kernel": "4.9.77",
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "kt6": {
+    "model": "kindle-basic-2024",
+    "machine": "kexec-basic2024",
+    "arch": "arm",
+    "kernel": "4.9.77",
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "pw6": {
+    "model": "kindle-paperwhite-6",
+    "machine": "triage-pw6-ipcf",
+    "arch": "arm",
+    "kernel": "5.15",
+    "lookup_parameter": true,
+    "falcon_image": "quickboot.img",
+    "falcon": [
+      "0xdf9a0000",
+      "0xdf980000"
+    ],
+    "image": "boot.img"
+  },
+  "cs": {
+    "model": "kindle-colorsoft",
+    "machine": "kexec-colorsoft",
+    "arch": "arm",
+    "kernel": "5.15",
+    "lookup_parameter": true,
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "ks1": {
+    "model": "kindle-scribe-1",
+    "machine": "kexec-scribe1",
+    "arch": "arm",
+    "kernel": "4.9.77",
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "ks2": {
+    "model": "kindle-scribe-2",
+    "machine": "kexec-scribe2",
+    "arch": "arm",
+    "kernel": "4.9.77",
+    "falcon_image": "quickboot.img",
+    "falcon": ["0xdf9a0000", "0xdf980000"],
+    "image": "boot.img"
+  },
+  "ks3": {
+    "model": "kindle-scribe-3",
+    "machine": "kexec-scribe3",
+    "arch": "arm64",
+    "kernel": "6.6",
+    "power_domains": ["vadsp-infra"],
+    "image": "boot_images/boot.img"
+  },
+  "ksc": {
+    "model": "kindle-scribe-colorsoft",
+    "machine": "kexec-scribe-colorsoft",
+    "arch": "arm64",
+    "kernel": "6.6",
+    "power_domains": ["vadsp-infra"],
+    "image": "boot_images/boot.img"
+  }
+}
