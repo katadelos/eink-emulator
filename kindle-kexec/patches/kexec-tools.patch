@@ -1,0 +1,230 @@
+diff --git a/kexec/arch/arm/kexec-zImage-arm.c b/kexec/arch/arm/kexec-zImage-arm.c
+index 8b474dd..79af866 100644
+--- a/kexec/arch/arm/kexec-zImage-arm.c
++++ b/kexec/arch/arm/kexec-zImage-arm.c
+@@ -186,37 +186,51 @@ struct tag * atag_read_tags(void)
+ 	return (struct tag *) buf;
+ }
+ 
+-static
+-int create_mem32_tag(struct tag_mem32 *tag_mem32)
++/* Preserve the Lab126 identity and boot-mode tags when CONFIG_ATAGS_PROC
++ * is disabled. These values belong to the running device, not a model default. */
++static void kindle_idme_read(const char *path, void *out, size_t size)
+ {
+-	const char fn[]= "/proc/device-tree/memory/reg";
+-	uint32_t tmp[2];
+-	FILE *fp;
+-
+-	fp = fopen(fn, "r");
+-	if (!fp) {
+-		fprintf(stderr, "Cannot open %s: %m\n", fn);
+-		return -1;
+-	}
+-
+-	if (fread(tmp, sizeof(tmp[0]), 2, fp) != 2) {
+-		fprintf(stderr, "Short read %s\n", fn);
+-		fclose(fp);
+-		return -1;
+-	}
+-
+-	if (ferror(fp)) {
+-		fprintf(stderr, "Cannot read %s: %m\n", fn);
+-		fclose(fp);
+-		return -1;
+-	}
+-
+-	/* atags_mem32 has base/size fields reversed! */
+-	tag_mem32->size = be32_to_cpu(tmp[1]);
+-	tag_mem32->start = be32_to_cpu(tmp[0]);
++    FILE *f = fopen(path, "rb");
++    size_t len;
++    if (!f) die("Cannot read Kindle identity %s: %s\n", path, strerror(errno));
++    memset(out, 0, size);
++    len = fread(out, 1, size, f);
++    if (ferror(f)) die("Cannot read Kindle identity %s\n", path);
++    fclose(f);
++    if (len && ((char *)out)[len - 1] == '\n') ((char *)out)[len - 1] = 0;
++}
+ 
+-	fclose(fp);
+-	return 0;
++static struct tag *kindle_idme_tags(struct tag *params)
++{
++    unsigned char *payload;
++    params->hdr.size = 6; params->hdr.tag = 0x5441000a;
++    payload = (unsigned char *)params + 8;
++    kindle_idme_read("/proc/usid", payload, 16);
++    params = tag_next(params);
++    params->hdr.size = 6; params->hdr.tag = 0x5441000b;
++    kindle_idme_read("/proc/board_id", (unsigned char *)params + 8, 16);
++    params = tag_next(params);
++    params->hdr.size = 10; params->hdr.tag = 0x5441000d;
++    payload = (unsigned char *)params + 8;
++    kindle_idme_read("/proc/mac_addr", payload, 12);
++    kindle_idme_read("/proc/mac_sec", payload + 12, 20);
++    params = tag_next(params);
++    params->hdr.size = 10; params->hdr.tag = 0x5441000f;
++    payload = (unsigned char *)params + 8;
++    kindle_idme_read("/proc/bootmode", payload, 16);
++    kindle_idme_read("/proc/postmode", payload + 16, 16);
++    if (access("/proc/oldboot", R_OK) == 0) {
++        params->hdr.size = 14;
++        kindle_idme_read("/proc/oldboot", payload + 32, 16);
++    }
++    params = tag_next(params);
++    if (access("/proc/qbcount", R_OK) == 0) {
++        params->hdr.size = 5; params->hdr.tag = 0x54410012;
++        memset((unsigned char *)params + 8, 0, 12);
++        kindle_idme_read("/proc/qbcount", (unsigned char *)params + 8, 10);
++        params = tag_next(params);
++    }
++    return params;
+ }
+ 
+ static
+@@ -251,17 +265,34 @@ int atag_arm_load(struct kexec_info *info, unsigned long base,
+ 			saved_tags = tag_next(saved_tags);
+ 		}
+ 	} else {
+-		params->hdr.size = 2;
+-		params->hdr.tag = ATAG_CORE;
++		params->hdr.size = 5;
++        params->hdr.tag = ATAG_CORE;
++        params->u.core.flags = 1;
++        params->u.core.pagesize = getpagesize();
++        params->u.core.rootdev = 0;
+ 		params = tag_next(params);
+ 
+-		if (!create_mem32_tag(&params->u.mem)) {
+-			params->hdr.size = 4;
+-			params->hdr.tag = ATAG_MEM;
+-			params = tag_next(params);
+-		}
++        /* ATAG machines may expose neither /proc/atags nor a device tree.
++         * Use the RAM banks already read from /proc/iomem. */
++        for (int i = 0; i < info->memory_ranges; i++) {
++            const struct memory_range *ram = &info->memory_range[i];
++            if (ram->type != RANGE_RAM) continue;
++            if ((char *)params + sizeof(struct tag) >= buf + getpagesize())
++                die("Too many RAM banks for ATAGs\n");
++            params->hdr.size = 4;
++            params->hdr.tag = ATAG_MEM;
++            params->u.mem.start = ram->start;
++            params->u.mem.size = ram->end - ram->start + 1;
++            params = tag_next(params);
++        }
+ 	}
+ 
++    if ((char *)params - buf + 256 + command_line_len + sizeof(struct tag) * 2 > getpagesize())
++        die("Boot tags and command line exceed one page\n");
++
++    if (!saved_tags && access("/proc/usid", R_OK) == 0)
++        params = kindle_idme_tags(params);
++
+ 	if (initrd) {
+ 		params->hdr.size = tag_size(tag_initrd);
+ 		params->hdr.tag = ATAG_INITRD2;
+@@ -910,5 +941,6 @@ int zImage_arm_load(int argc, char **argv, const char *buf, off_t len,
+ 
+ 	info->entry = (void*)kernel_base;
+ 
++
+ 	return 0;
+ }
+diff --git a/kexec/arch/arm64/kexec-arm64.c b/kexec/arch/arm64/kexec-arm64.c
+index ec6df4b..4a39792 100644
+--- a/kexec/arch/arm64/kexec-arm64.c
++++ b/kexec/arch/arm64/kexec-arm64.c
+@@ -503,7 +503,7 @@ static int setup_2nd_dtb(struct dtb *dtb, char *command_line, int on_crash)
+ 	int len, range_len;
+ 	int nodeoffset;
+ 	int new_size;
+-	int i, result, kaslr_seed;
++	int i, result;
+ 
+ 	result = fdt_check_header(dtb->buf);
+ 
+@@ -576,19 +576,11 @@ static int setup_2nd_dtb(struct dtb *dtb, char *command_line, int on_crash)
+ 			return result;
+ 		}
+ 	} else {
+-		kaslr_seed = fdt64_to_cpu(*prop);
+-
+-		/* kaslr_seed must be wiped clean by primary
+-		 * kernel during boot
+-		 */
+-		if (kaslr_seed != 0) {
+-			dbgprintf("%s: kaslr-seed is not wiped to 0.\n",
+-					__func__);
+-			result = -EINVAL;
+-			goto on_error;
+-		}
+-
+ 		/*
++		 * A kernel built without CONFIG_RANDOMIZE_BASE can leave the old
++		 * seed intact. Replace it on every handoff rather than requiring
++		 * the previous kernel to consume it.
++		 *
+ 		 * Invoke the getrandom system call with
+ 		 * GRND_NONBLOCK, to make sure we
+ 		 * have a valid random seed to pass to the
+diff --git a/kexec/kexec-syscall.h b/kexec/kexec-syscall.h
+index be6ccd5..2c69475 100644
+--- a/kexec/kexec-syscall.h
++++ b/kexec/kexec-syscall.h
+@@ -88,12 +88,36 @@
+ 
+ #endif /*ifndef __NR_kexec_file_load*/
+ 
++#ifdef KINDLE_KEXEC_MODULE
++#include <fcntl.h>
++#include <sys/ioctl.h>
++#include <errno.h>
++static inline long kindle_kexec_ioctl(unsigned int request, void *arg)
++{
++    int fd = open("/dev/kexec", O_RDONLY);
++    long result;
++    int saved_errno;
++    if (fd < 0) return -1;
++    result = ioctl(fd, request, arg);
++    saved_errno = errno;
++    close(fd);
++    errno = saved_errno;
++    return result;
++}
++#endif
++
+ struct kexec_segment;
+ 
+ static inline long kexec_load(void *entry, unsigned long nr_segments,
+ 			struct kexec_segment *segments, unsigned long flags)
+ {
+-	return (long) syscall(__NR_kexec_load, entry, nr_segments, segments, flags);
++#ifdef KINDLE_KEXEC_MODULE
++    struct { void *entry; unsigned long count; struct kexec_segment *segments; unsigned long flags; }
++        args = { entry, nr_segments, segments, flags };
++    return kindle_kexec_ioctl(LINUX_REBOOT_CMD_KEXEC - 1, &args);
++#else
++    return (long) syscall(__NR_kexec_load, entry, nr_segments, segments, flags);
++#endif
+ }
+ 
+ static inline int is_kexec_file_load_implemented(void) {
+diff --git a/kexec/kexec.c b/kexec/kexec.c
+index 0e92d96..05a6b4c 100644
+--- a/kexec/kexec.c
++++ b/kexec/kexec.c
+@@ -924,7 +924,11 @@ static int my_exec(void)
+ 		if ((kexec_flags & KEXEC_LIVE_UPDATE) && !ret)
+ 			return 0;
+ 	} else
+-		reboot(LINUX_REBOOT_CMD_KEXEC);
++#ifdef KINDLE_KEXEC_MODULE
++        kindle_kexec_ioctl(LINUX_REBOOT_CMD_KEXEC, NULL);
++#else
++        reboot(LINUX_REBOOT_CMD_KEXEC);
++#endif
+ 	/* I have failed if I make it here */
+ 	fprintf(stderr, "kexec failed: %s\n", 
+ 		strerror(errno));

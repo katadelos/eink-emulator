@@ -1,0 +1,7 @@
+/build/
+/dist/
+/sources/
+/kexec-mod/
+/kexec-module/
+/kexec-tools/
+__pycache__/

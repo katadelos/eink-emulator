@@ -1,0 +1,6 @@
+obj-m := kexec-mod.o
+kexec-mod-y := kexec-drv.o kexec.o
+kexec-mod-y += machine_kexec.o relocate_kernel.o
+ccflags-y := -include $(src)/kexec-mod.h
+
+kexec-mod-y += reboot-trampoline.o

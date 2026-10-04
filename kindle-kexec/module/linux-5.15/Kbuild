@@ -1,0 +1,3 @@
+obj-m := kexec_mod.o
+kexec_mod-y := kexec_drv.o kexec_compat.o kexec.o kexec_core.o machine_kexec.o relocate_kernel.o
+ccflags-y := -I$(src) -DCONFIG_KEXEC=1 -include $(src)/kexec.h
