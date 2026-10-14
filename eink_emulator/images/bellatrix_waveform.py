@@ -14,7 +14,7 @@ import struct
 from pathlib import Path
 
 PRODUCTS = (
-    "barolo", "pisco", "cava", "malbec", "rossini",
+    "barolo", "pisco", "cava", "malbec", "rossini", "prosecco",
     "sangria", "sangria-color", "elipsa2e",
 )
 DUAL_MODE_PRODUCTS = {"sangria", "sangria-color"}

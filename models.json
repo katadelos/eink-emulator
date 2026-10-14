@@ -1,4 +1,46 @@
 {
+  "kindle-basic-2026": {
+    "description": "Kindle Basic 7 (2026)",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8110-bellatrix",
+    "memory": "1G",
+    "builder": "kt7",
+    "rootfs_overrides": ["bellatrix", "oasis"],
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8110",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8110",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "device_profiles": ["production", "dvt", "evt", "hvt", "proto"],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "prosecco",
+      "boot-stage": "u-boot",
+      "idme-fos-flags": "80"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot",
+      "touch-firmware": "touch_firmware"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"],
+      "touch_firmware": ["peripherals/tt_fw.bin"]
+    }
+  },
   "kindle-basic-2024": {
     "description": "Kindle Basic 6 (2024)",
     "qemu_arch": "aarch64",

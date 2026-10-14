@@ -656,6 +656,16 @@ def prepare_bellatrix(
     prepare_usb_network(output, mass_storage=board in {"malbec", "cava"})
 
 
+def prepare_kt7(source: Path, output: Path) -> None:
+    """Keep Prosecco's stock startup code with local serial and SSH access."""
+    copy_source(source, output, maximum_size=1024 * 1024**2)
+    transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    install_overrides(image=output, group="oasis", replacements={
+        "/etc/upstart/console.conf": ("console.conf", "0100644"),
+    })
+    prepare_usb_network(output, mass_storage=False)
+
+
 def bellatrix3_patch_framework(contents: str) -> str:
     """Move stock permission setup before producers; keep restarts constant cost."""
     if BELLATRIX3_FRAMEWORK_MARKER in contents:

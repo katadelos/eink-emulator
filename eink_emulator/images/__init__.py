@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kt4, mt8115, oasis,
+    addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kt4, kt7, mt8115, oasis,
     rex, rootfs, tequila, wario, whitney,
 )
 
@@ -51,6 +51,10 @@ def build_raw_image(
         bellatrix3.build(
             output, board=definition["machine_properties"]["board"],
             boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
+        )
+    elif builder == "kt7":
+        kt7.build(
+            output, boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
         )
     elif builder == "mt8115":
         mt8115.build(
