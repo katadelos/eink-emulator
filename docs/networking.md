@@ -70,7 +70,7 @@ ssh -i build/ssh/id_ed25519 -p 4022 root@127.0.0.1
 | USB | `192.168.15.244/24` | `192.168.15.201` | `192.168.15.3` |
 
 Each interface has a separate QEMU user-network backend. Wi-Fi is usually
-`wlan0`; Clara HD and Forma use `eth0`. USB is `usb0`.
+`wlan0`; Aura HD, Clara HD and Forma use `eth0`. USB is `usb0`.
 
 Kindle images assign the USB default route metric 2048. Wi-Fi events and DHCP
 completion restore USB routes and DNS after the stock network manager changes
@@ -107,7 +107,7 @@ Kobo uses standard SSID syntax. For example, use
 | Paperwhite 5, Basic 2022/2024 | MediaTek CONNAC DMA | MT8110 `g_ether` |
 | Scribe 1/2, Paperwhite 6, Colorsoft | MediaTek CONNAC DMA | MT8113 `g_ether` |
 | Scribe 3, Scribe Colorsoft | MT8171 CONNAC DMA | MTU3 `g_ether` / ECM |
-| Kobo Mini, Touch | BCM43362 FullMAC SDIO | ChipIdea `g_ether` |
+| Kobo Mini, Touch, Aura HD | BCM43362 FullMAC SDIO | ChipIdea `g_ether` |
 | Kobo Clara HD | RTL8189FS SDIO | ChipIdea `g_ether` |
 | Kobo Forma | RTL8192ES SDIO | ChipIdea `g_ether` |
 | Kobo Elipsa 2E | MediaTek CONNAC DMA | MT8113 configfs RNDIS |

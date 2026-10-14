@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    addons, bellatrix, bellatrix3, celeste, clarahd, elipsa2e, forma, heisenberg, kobo, kt4, kt7, mt8115, oasis,
+    addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kobo_sd, kt4, kt7, mt8115, oasis,
     rex, rootfs, tequila, wario, whitney,
 )
 
@@ -27,8 +27,10 @@ def build_raw_image(
     builder = definition["builder"]
     if builder == "disk-copy":
         kobo.build(artifacts["disk"], output)
-    elif builder == "clarahd":
-        clarahd.build(output, artifacts)
+    elif builder in {"clarahd", "aurahd"}:
+        model = {"clarahd": "kobo-clara-hd", "aurahd": "kobo-aura-hd"}[builder]
+        kobo_sd.build(output, artifacts, model=model,
+                      sideloaded=definition.get("sideloaded", False))
     elif builder == "forma":
         forma.build(output, artifacts, sideloaded=definition.get("sideloaded", False))
     elif builder == "elipsa2e":

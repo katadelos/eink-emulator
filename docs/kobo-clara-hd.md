@@ -11,7 +11,7 @@ opens the card read-only and never reads partition 3, the userstore.
 Identify the whole SD device with `diskutil list` on macOS, then run:
 
 ```sh
-sudo python3 scripts/capture-clara-hd.py /dev/rdiskN
+sudo python3 scripts/carve-kobo.py /dev/rdiskN --model kobo-clara-hd
 ```
 
 Replace `/dev/rdiskN` with the card's device. The script checks the Clara HD

@@ -136,6 +136,7 @@ Arguments after `--` also pass through on `run`; see
 | [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | Experimental |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
+| [Kobo Aura HD](docs/kobo-aura-hd.md) | N204B | E606C0 | Experimental |
 | [Kobo Clara HD](docs/kobo-clara-hd.md) | N249 | E60K02 | Experimental |
 | [Kobo Forma](docs/kobo-forma.md) | Forma | E80K02 | Stock UI, offline sideloaded mode |
 | [Kobo Elipsa 2E](docs/kobo-elipsa-2e.md) | N605 | EA0T00 | Stock UI, offline sideloaded mode |

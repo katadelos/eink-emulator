@@ -189,8 +189,8 @@ def machine_directory(name: str) -> Path:
 def command_create(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     if args.sideloaded:
-        if definition["builder"] not in {"forma", "elipsa2e"}:
-            fail("--sideloaded is only supported by Kobo Forma and Elipsa 2E")
+        if definition["builder"] not in {"aurahd", "forma", "elipsa2e"}:
+            fail("--sideloaded is only supported by Kobo Aura HD, Forma and Elipsa 2E")
         definition["sideloaded"] = True
     addon_plan = addons.plan(args.model, jailbreak=args.jailbreak, kual=args.kual, mrpi=args.mrpi)
     if addon_plan:
@@ -323,7 +323,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2",
     ])
     runtime = runtime_paths(directory)
-    if model in {"kobo-mini", "kobo-touch"}:
+    if model in {"kobo-mini", "kobo-touch", "kobo-aura-hd"}:
         chardev = (
             f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on,logfile={runtime['serial_log']}"
             if args.serial_socket
@@ -752,7 +752,7 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--profile", help="hardware profile; required for models that expose profiles")
     create.add_argument(
         "--sideloaded", action="store_true",
-        help="initialize Kobo Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
+        help="initialize Kobo Aura HD, Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
     )
     create.add_argument("--jailbreak", action="store_true", help="prepare Kindle developer update key, debug/exec flags and root helper")
     create.add_argument("--kual", action="store_true", help="pre-install pinned KUAL (includes --jailbreak)")
