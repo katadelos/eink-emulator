@@ -553,16 +553,23 @@ def main() -> int:
                     "format": suffix[1:],
                 }))
             elif args.action == "tap":
-                if not (0 <= args.x <= 1272 and 0 <= args.y <= 1696):
+                display = query_hwtcon_properties(
+                    client, ("scanout-width", "scanout-height"))
+                width = display.get("scanout-width", 0)
+                height = display.get("scanout-height", 0)
+                if width <= 1 or height <= 1:
+                    raise QMPError("tap requires an initialized display scanout")
+                max_x, max_y = width - 1, height - 1
+                if not (0 <= args.x <= max_x and 0 <= args.y <= max_y):
                     raise QMPError(
-                        "tap coordinates must be within 0..1272 x 0..1696")
+                        f"tap coordinates must be within 0..{max_x} x 0..{max_y}")
                 if args.hold < 0:
                     raise QMPError("tap hold time must be nonnegative")
                 # The QEMU input core scales absolute axes with integer-floor
                 # division.  Use the inverse ceiling so the touchscreen
                 # driver receives the exact requested panel coordinate.
-                abs_x = (args.x * 0x7fff + 1272 - 1) // 1272
-                abs_y = (args.y * 0x7fff + 1696 - 1) // 1696
+                abs_x = (args.x * 0x7fff + max_x - 1) // max_x
+                abs_y = (args.y * 0x7fff + max_y - 1) // max_y
                 down = client.execute("input-send-event", {
                     "events": [
                         {"type": "abs", "data": {
