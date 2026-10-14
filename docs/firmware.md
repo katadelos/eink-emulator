@@ -53,6 +53,7 @@ For manual setup, place files under `firmware/MODEL/`:
 | Basic 2022/2024, Paperwhite 5/6, Colorsoft, Scribe 1/2 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img` |
 | Basic 2026 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img`, `peripherals/tt_fw.bin` |
 | Kobo Mini, Touch | `u-boot.bin`, `sd.img` |
+| Kobo Clara HD | See the [Clara HD file list](kobo-clara-hd.md#firmware) |
 | Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
 

@@ -908,6 +908,28 @@
     },
     "rootfs_overrides": ["bellatrix", "bellatrix3"]
   },
+  "kobo-clara-hd": {
+    "description": "Kobo Clara HD",
+    "qemu_machine": "imx6sll-kobo-clara-hd",
+    "memory": "512M",
+    "builder": "clarahd",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "rtl8189fs-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.imx"],
+      "boot_region": ["boot-region.img"],
+      "rootfs": ["rootfs.img"],
+      "recoveryfs": ["recoveryfs.img"]
+    }
+  },
   "kobo-forma": {
     "description": "Kobo Forma",
     "qemu_machine": "imx6sll-kobo-forma",
