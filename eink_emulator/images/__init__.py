@@ -27,8 +27,9 @@ def build_raw_image(
     builder = definition["builder"]
     if builder == "disk-copy":
         kobo.build(artifacts["disk"], output)
-    elif builder in {"clarahd", "aurahd"}:
-        model = {"clarahd": "kobo-clara-hd", "aurahd": "kobo-aura-hd"}[builder]
+    elif builder in {"clarahd", "aurahd", "glohd"}:
+        model = {"clarahd": "kobo-clara-hd", "aurahd": "kobo-aura-hd",
+                 "glohd": "kobo-glo-hd"}[builder]
         kobo_sd.build(output, artifacts, model=model,
                       sideloaded=definition.get("sideloaded", False))
     elif builder == "forma":

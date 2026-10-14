@@ -27,7 +27,7 @@ The Aura HD artifacts are written to `firmware/kobo-aura-hd/`:
 | `rootfs.img` | Partition 1: 524,289 sectors starting at sector 19,456 |
 | `recoveryfs.img` | Partition 2: 524,289 sectors starting at sector 543,745 |
 
-The carver supports Aura HD and Clara HD. Partition offsets come from the
+The carver supports Aura HD, Glo HD and Clara HD. Partition offsets come from the
 image's MBR; the model profile validates the hardware identity and boot format.
 
 ## Create and run

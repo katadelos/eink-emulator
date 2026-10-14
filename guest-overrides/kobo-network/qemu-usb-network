@@ -4,6 +4,10 @@ set -e
 
 gadget=/drivers/$PLATFORM/usb/gadget
 for module in arcotg_udc configfs libcomposite u_ether usb_f_ecm usb_f_ecm_subset usb_f_eem usb_f_rndis; do
+    # Built-in ARC UDC has no /proc/modules entry on the Glo HD kernel.
+    if [ "$module" = arcotg_udc ] && [ -d /sys/bus/platform/drivers/fsl-usb2-udc ]; then
+        continue
+    fi
     if [ -f "$gadget/$module.ko" ] && ! grep -q "^$module " /proc/modules; then
         insmod "$gadget/$module.ko"
     fi

@@ -40,6 +40,7 @@ def carve(source_path: Path, output: Path | None, *, model: str | None) -> None:
         if region_size < HWCFG_OFFSET + SECTOR_SIZE:
             raise ValueError("Kobo boot region does not contain its hardware configuration")
         board = identify_board(read_exact(source, HWCFG_OFFSET, SECTOR_SIZE, limit=limit))
+        parse_layout(mbr, board=board)
         if model and board.model != model:
             raise ValueError(f"Expected {model}, found {board.model}")
         output = (output or ROOT / "firmware" / board.model).resolve()
@@ -57,6 +58,9 @@ def carve(source_path: Path, output: Path | None, *, model: str | None) -> None:
             for name, partition in (("rootfs.img", root), ("recoveryfs.img", recovery)):
                 offset = partition.start * SECTOR_SIZE
                 remaining = partition.sectors * SECTOR_SIZE
+                if (partition.sectors < 3 or
+                        read_exact(source, offset + 1024, SECTOR_SIZE, limit=limit)[56:58] != b"\x53\xef"):
+                    raise ValueError(f"{name} is not an ext filesystem")
                 print(f"Capturing {name} ({remaining:,} bytes)", flush=True)
                 with (staging / name).open("wb") as target:
                     while remaining:

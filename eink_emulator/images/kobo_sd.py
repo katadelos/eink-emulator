@@ -25,6 +25,7 @@ class Board:
     ram_base: int
     bootloader_name: str
     rom_plugin: bool
+    root_partition_type: int = 0x83
 
 
 BOARDS = {
@@ -32,6 +33,9 @@ BOARDS = {
                            "u-boot.imx", False),
     "kobo-aura-hd": Board("kobo-aura-hd", "Aura HD", 28, 0x70000000,
                           "u-boot.bin", True),
+    # This captured Glo HD card labels its ext rootfs as FAT32 in the MBR.
+    "kobo-glo-hd": Board("kobo-glo-hd", "Glo HD", 46, 0x80000000,
+                         "u-boot.imx", False, 0x0b),
 }
 
 
@@ -47,13 +51,18 @@ class Partition:
         return self.start + self.sectors
 
 
-def parse_layout(mbr: bytes) -> tuple[Partition, Partition, Partition]:
-    """Validate two Linux partitions followed by a FAT32 userstore."""
+def parse_layout(
+    mbr: bytes, *, board: Board | None = None,
+) -> tuple[Partition, Partition, Partition]:
+    """Validate two system partitions followed by a FAT32 userstore."""
     if len(mbr) != SECTOR_SIZE or mbr[510:512] != b"\x55\xaa":
         raise ValueError("Kobo SD image requires a valid 512-byte MBR")
     partitions = []
     previous_end = 1
-    for index, types in enumerate(({0x83}, {0x83}, {0x0b, 0x0c})):
+    root_types = {board.root_partition_type} if board else {
+        profile.root_partition_type for profile in BOARDS.values()
+    }
+    for index, types in enumerate((root_types, {0x83}, {0x0b, 0x0c})):
         entry = mbr[446 + index * 16:462 + index * 16]
         start, sectors = struct.unpack_from("<II", entry, 8)
         partition = Partition(start, sectors, entry[4])
@@ -108,7 +117,7 @@ def extract_uboot(region: bytes, board: Board) -> bytes:
         end = begin + size
         load_address = start
     else:
-        # i.MX6SLL uses the IVT-start .imx artifact passed to its board loader.
+        # i.MX6 uses the IVT-start .imx artifact passed to its board loader.
         begin = ivt
         end = ivt + size - (address - start)
         load_address = address
@@ -151,10 +160,10 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str,
     if sideloaded and model != "kobo-aura-hd":
         raise ValueError(f"Sideloaded mode is not supported by {model}")
     region = artifacts["boot_region"].read_bytes()
-    root, recovery, user = parse_layout(region[:SECTOR_SIZE])
+    board = identify_board(region[HWCFG_OFFSET:HWCFG_OFFSET + SECTOR_SIZE])
+    root, recovery, user = parse_layout(region[:SECTOR_SIZE], board=board)
     if len(region) != root.start * SECTOR_SIZE:
         raise ValueError("Kobo SD image requires the complete region before partition 1")
-    board = identify_board(region[HWCFG_OFFSET:HWCFG_OFFSET + SECTOR_SIZE])
     if board.model != model:
         raise ValueError(f"Expected {model} hardware configuration, found {board.model}")
     for role, partition in (("rootfs", root), ("recoveryfs", recovery)):

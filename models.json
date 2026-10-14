@@ -931,6 +931,28 @@
     },
     "rootfs_overrides": ["elipsa2e"]
   },
+  "kobo-glo-hd": {
+    "description": "Kobo Glo HD",
+    "qemu_machine": "imx6sl-kobo-glo-hd",
+    "memory": "512M",
+    "builder": "glohd",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.imx"],
+      "boot_region": ["boot-region.img"],
+      "rootfs": ["rootfs.img"],
+      "recoveryfs": ["recoveryfs.img"]
+    }
+  },
   "kobo-clara-hd": {
     "description": "Kobo Clara HD",
     "qemu_machine": "imx6sll-kobo-clara-hd",
