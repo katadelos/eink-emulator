@@ -24,6 +24,7 @@ Import is available for these models:
 | Basic 2016 | `kindle-basic-2016` |
 | Basic 2022 | `kindle-basic-2022` |
 | Basic 2024 | `kindle-basic-2024` |
+| [Basic 2026](kt7.md) | `kindle-basic-2026` |
 | [Oasis 1 and 2](oasis.md) | `kindle-oasis-1`, `kindle-oasis-2` |
 | [Oasis 3](koa3.md) | `kindle-oasis-3` |
 | [Basic 4 (2019)](kt4.md) | `kindle-kt4` |
@@ -32,6 +33,13 @@ Import is available for these models:
 | [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
 | [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` |
+
+[Kindle Basic 7 (2026)](kt7.md) uses the standard update-package importer.
+Its update packages have not been released; the expected Bellatrix package
+layout remains unverified. The supplied partition dump uses the separate
+[`scripts/carve-kt7.py`](../scripts/carve-kt7.py) utility, with its matching
+kernel partition supplied through `--boot-image`. Touch firmware is extracted
+from the rootfs into `peripherals/tt_fw.bin` by either workflow.
 
 ## Directory layout
 
@@ -43,6 +51,7 @@ For manual setup, place files under `firmware/MODEL/`:
 | Oasis 1 | The files above, plus `s-bios.bin` and `bios.bin` |
 | Paperwhite 4, KT4, Oasis 2/3 | `u-boot.bin`, `boot.img`, `rootfs.img`, `s-bios.bin`, `bios.bin` |
 | Basic 2022/2024, Paperwhite 5/6, Colorsoft, Scribe 1/2 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img` |
+| Basic 2026 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img`, `peripherals/tt_fw.bin` |
 | Kobo Mini, Touch | `u-boot.bin`, `sd.img` |
 | Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
@@ -109,11 +118,12 @@ It is saved in the instance configuration and applied on each run.
 | --- | --- |
 | Paperwhite 4 | `production`, `dvt` |
 | Paperwhite 5 | `production` |
+| Basic 2026 | `production`, `dvt`, `evt`, `hvt`, `proto` |
 | Basic 2022/2024, Colorsoft | `production`, `dvt`, `evt`, `hvt`, `proto` |
 | Paperwhite 6 | `production`, `dvt`, `evt`, `hvt1.1`, `hvt`, `proto` |
 | Scribe 1 | `production`, `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`, `proto` |
 | Scribe 2 | `production`, `dvt` |
 | Scribe 3, Scribe Colorsoft | `production`, `dvt`, `evt`, `hvt1.1` |
 
-On Scribes, `production` selects DVT hardware. Scribe 1's `proto` selects Proto2.
+On Basic 2026 and Scribes, `production` selects DVT hardware. Scribe 1's `proto` selects Proto2.
 `./eink models` also lists the profiles from [`models.json`](../models.json).

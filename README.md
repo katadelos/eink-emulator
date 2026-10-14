@@ -128,6 +128,7 @@ Arguments after `--` also pass through on `run`; see
 | Kindle Basic 5 (2022) | KT5 | Cava | |
 | [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
 | Kindle Basic 6 (2024) | KT6 | Rossini | |
+| [Kindle Basic 7 (2026)](docs/kt7.md) | KT7 | Prosecco | Experimental |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Sangria Color | |
 | [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Sangria | |
 | [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | Experimental |
