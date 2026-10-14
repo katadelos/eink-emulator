@@ -39,6 +39,18 @@
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"],
       "touch_firmware": ["peripherals/tt_fw.bin"]
+    },
+    "rootfs_extract": {
+      "touch_firmware": "/lib/firmware/touch/tt_fw.bin"
+    },
+    "rootfs_package": "com.lab126.eink.prosecco.os",
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix/u-boot.bin",
+      "bl2": "mt8110_bellatrix/bl2.img",
+      "tee": "mt8110_bellatrix/tee.img",
+      "quickboot": "mt8110_bellatrix/quickboot.img",
+      "boot_image": "mt8110_bellatrix/boot.img",
+      "rootfs": "rootfs.img.gz"
     }
   },
   "kindle-basic-2024": {

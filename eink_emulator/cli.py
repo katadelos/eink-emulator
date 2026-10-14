@@ -740,7 +740,7 @@ def parser() -> argparse.ArgumentParser:
     firmware.set_defaults(handler=command_firmware)
 
     import_package = commands.add_parser(
-        "import", help="import a vendor recovery firmware package"
+        "import", help="import a vendor firmware update package"
     )
     import_package.add_argument("package")
     import_package.add_argument("--model", required=True)
