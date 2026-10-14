@@ -244,6 +244,20 @@ def initialize_factory_data(
             image.write(struct.pack("<BBHBB", 0, 0, PRECHARGE_MAGIC, 0, 0))
 
 
+def initialize_miscdata(image: Path, layout: dict[str, tuple[int, int]]) -> None:
+    """Write the raw cold-boot configuration consumed by MediaTek U-Boot."""
+    keys = (
+        "type", "force_splash", "splash_middle", "splash_reverse",
+        "working_buffer_addr", "waveform_addr", "waveform_offset",
+        "waveform_size", "splash_offset", "splash_size",
+        "working_buffer_offset", "working_buffer_size",
+    )
+    config = "".join(f"{key}=0\n" for key in keys).encode()
+    with image.open("r+b") as stream:
+        stream.seek(layout["miscdata"][0] * SECTOR_SIZE)
+        stream.write(config.ljust(4096, b"\0"))
+
+
 def create_ext4_userstore(
     image_path: Path, layout: dict[str, tuple[int, int]], *,
     eager_inode_init: bool = False,

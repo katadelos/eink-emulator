@@ -108,17 +108,7 @@ def partitions(rootfs_size: int) -> list[tuple[str, int]]:
 
 def initialize_factory_data(image: Path, layout: dict[str, tuple[int, int]]) -> None:
     bellatrix.initialize_factory_data(image, layout)
-    # U-Boot's parser requires every key even for a fresh cold-boot disk.
-    keys = (
-        "type", "force_splash", "splash_middle", "splash_reverse",
-        "working_buffer_addr", "waveform_addr", "waveform_offset",
-        "waveform_size", "splash_offset", "splash_size",
-        "working_buffer_offset", "working_buffer_size",
-    )
-    config = "".join(f"{key}=0\n" for key in keys).encode()
-    with image.open("r+b") as stream:
-        stream.seek(layout["miscdata"][0] * 512)
-        stream.write(config.ljust(4096, b"\0"))
+    bellatrix.initialize_miscdata(image, layout)
 
 
 def build(
