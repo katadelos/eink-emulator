@@ -15,6 +15,10 @@ vendor radio services and reserve the USB controller for Ethernet by disabling
 competing MTP and USB jobs. Route and DNS hooks keep USB access available when
 the guest changes its Wi-Fi connection. See [networking](networking.md).
 
+MediaTek Kindle and Tolino images retain the stock WMT and Wi-Fi kernel modules
+from the imported firmware. Connectivity power, bus protection and reset
+behavior are implemented in QEMU's device models.
+
 ## Older Kindle models
 
 Kindle 4 through Oasis 3 skip initial setup and open Home. The
