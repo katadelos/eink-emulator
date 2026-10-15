@@ -82,3 +82,14 @@ the first boot opens My Books without account setup. Later boots preserve
 existing settings. Both builders also enable serial root access.
 
 All Kobo models start USB Ethernet and telnet automatically.
+
+## Tolino Vision Color and Shine
+
+The builder prepares a copy of the update's rootfs with serial root access,
+USB RNDIS and public-key access through the stock OpenSSH server. On color
+models, display startup selects the kernel's built-in `NTX_SF` CFA conversion
+because the update does not include the factory color lookup table. Imported
+bootloader, kernel and rootfs files remain unchanged. The WMT and Wi-Fi kernel
+modules are used unmodified. See
+[Tolino Vision Color](tolino-vision-color.md) and
+[Shine 5 / Shine Color](tolino-shine.md) for storage and calibration limits.

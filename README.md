@@ -3,7 +3,7 @@
   <img src="images/header.png" alt="E-ink emulator">
 </div>
 
-Run Kindle and Kobo firmware in QEMU with persistent storage, touch input and
+Run Kindle, Kobo and Tolino firmware in QEMU with persistent storage, touch input and
 network access. Scribe support is experimental; see the model pages below.
 
 Supply your own firmware. The project is not affiliated with Amazon or
@@ -14,7 +14,8 @@ Rakuten Kobo.
 - Python 3.10 or newer
 - A C compiler, Ninja and the standard QEMU build dependencies
 - `mke2fs`, `e2fsck`, `tune2fs` and `debugfs` from e2fsprogs
-- `ssh-keygen` from OpenSSH for Kindle SSH access
+- `ssh-keygen` from OpenSSH for Kindle and Tolino SSH access
+- `zstd` to import Tolino updates
 - [KindleTool](https://github.com/NiLuJe/KindleTool) to import Kindle recovery packages
 
 On macOS, install e2fsprogs through Homebrew.
@@ -142,6 +143,9 @@ Arguments after `--` also pass through on `run`; see
 | [Kobo Clara HD](docs/kobo-clara-hd.md) | N249 | E60K02 | Experimental |
 | [Kobo Forma](docs/kobo-forma.md) | Forma | E80K02 | Stock UI, offline sideloaded mode |
 | [Kobo Elipsa 2E](docs/kobo-elipsa-2e.md) | N605 | EA0T00 | Stock UI, offline sideloaded mode |
+| [Tolino Shine (5th generation)](docs/tolino-shine.md) | Shine 5 | E60T00 / Kobo Clara BW; E60V00 / TPV revision | Experimental |
+| [Tolino Shine Color](docs/tolino-shine.md) | Shine Color | E60T00 / Kobo Clara Colour | Experimental |
+| [Tolino Vision Color](docs/tolino-vision-color.md) | Vision Color | E70T04 / Kobo Libra Colour | Experimental |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.

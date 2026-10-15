@@ -1,4 +1,4 @@
-"""The shared host login identity for emulated Kindles."""
+"""The shared host login identity for emulated readers."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ def ensure_login_key() -> Path:
     """Create one private login key locally; return its public-key file."""
     keygen = shutil.which("ssh-keygen")
     if not keygen:
-        raise SystemExit("ssh-keygen is required to prepare Kindle SSH access")
+        raise SystemExit("ssh-keygen is required to prepare guest SSH access")
     LOGIN_KEY.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
     public_key = LOGIN_KEY.with_suffix(".pub")
     # Parallel image creation must authorize the same identity in every image.

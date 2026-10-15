@@ -34,6 +34,11 @@ Import is available for these models:
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
 | [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` |
 
+[Tolino Vision Color](tolino-vision-color.md) and
+[Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive
+or an extracted update directory through the same `import` command. Their
+zstd-compressed components require `zstd` on the host; KindleTool is not used.
+
 [Kindle Basic 7 (2026)](kt7.md) uses the standard update-package importer.
 Its update packages have not been released; the expected Bellatrix package
 layout remains unverified. The supplied partition dump uses the separate
@@ -59,6 +64,8 @@ For manual setup, place files under `firmware/MODEL/`:
 | Kobo Clara HD | See the [Clara HD file list](kobo-clara-hd.md#firmware) |
 | Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
+| Tolino Vision Color | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [import instructions](tolino-vision-color.md#firmware) |
+| Tolino Shine 5, Shine Color, Shine 5 TPV | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [kernel selection](tolino-shine.md#firmware) |
 
 Basic 2014, Paperwhite 2/3 and Voyage also accept optional `diags-uImage` and
 `diags.img` files.

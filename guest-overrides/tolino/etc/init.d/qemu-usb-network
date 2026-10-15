@@ -1,0 +1,12 @@
+#!/bin/sh
+set -e
+
+/etc/init.d/usb-gadget start ethernet
+interface=$(cat /sys/kernel/config/usb_gadget/kobo/functions/rndis.0/ifname)
+ip addr flush dev "$interface"
+ip addr add 192.168.15.244/24 dev "$interface"
+ip link set dev "$interface" up
+ip route replace default via 192.168.15.201 dev "$interface" metric 2048
+# dhcpcd rebuilds resolv.conf when Wi-Fi connects or disconnects.
+printf 'nameserver 192.168.15.3\n' > /etc/resolv.conf.head
+cat /etc/resolv.conf.head > /etc/resolv.conf

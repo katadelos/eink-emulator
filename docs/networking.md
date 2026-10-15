@@ -45,6 +45,19 @@ Kobo images provide USB telnet:
 telnet 127.0.0.1 2323
 ```
 
+## Tolino SSH
+
+[Tolino Vision Color](tolino-vision-color.md) and
+[Shine 5 / Shine Color](tolino-shine.md) use the same local login key and
+USB SSH port as Kindle images. Their stock OpenSSH server also provides SFTP:
+
+```sh
+scp -i build/ssh/id_ed25519 -P 2222 book.epub root@127.0.0.1:/mnt/onboard/
+```
+
+The USB startup hook writes `resolv.conf.head` so dhcpcd preserves the USB
+DNS server when Wi-Fi connects or disconnects.
+
 ## Host ports
 
 All launcher forwards bind to `127.0.0.1`. Choose unused ports when you run
@@ -53,7 +66,7 @@ even when its guest has no SSH server.
 
 | Option | Default | Service |
 | --- | --- | --- |
-| `--ssh-port PORT` | 2222 | Kindle USB SSH |
+| `--ssh-port PORT` | 2222 | Kindle / Tolino USB SSH |
 | `--wifi-ssh-port PORT` | 2223 | Wi-Fi SSH forward |
 | `--telnet-port PORT` | 2323 | Kobo USB telnet |
 
@@ -111,6 +124,8 @@ Kobo uses standard SSID syntax. For example, use
 | Kobo Clara HD | RTL8189FS SDIO | ChipIdea `g_ether` |
 | Kobo Forma | RTL8192ES SDIO | ChipIdea `g_ether` |
 | Kobo Elipsa 2E | MediaTek CONNAC DMA | MT8113 configfs RNDIS |
+| Tolino Vision Color | MediaTek CONNAC DMA | MT8113 configfs RNDIS |
+| Tolino Shine 5 / Shine Color / Shine 5 TPV | MediaTek CONNAC DMA | MT8113 configfs RNDIS |
 
 ## Verification and limits
 

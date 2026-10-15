@@ -1019,6 +1019,110 @@
       "recoveryfs": ["recoveryfs.img"]
     }
   },
+  "tolino-shine-5": {
+    "description": "Tolino Shine (5th generation)",
+    "qemu_machine": "mt8113-kobo-clara-bw",
+    "qemu_arch": "aarch64",
+    "memory": "512M",
+    "builder": "tolino",
+    "image_profile": "spa-bw",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "firmware": {
+      "bootloader": ["uboot.img"],
+      "boot_image": ["kernel.img"],
+      "rootfs": ["rootfs.img"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"]
+    }
+  },
+  "tolino-shine-color": {
+    "description": "Tolino Shine Color",
+    "qemu_machine": "mt8113-kobo-clara-colour",
+    "qemu_arch": "aarch64",
+    "memory": "512M",
+    "builder": "tolino",
+    "image_profile": "spa-colour",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "firmware": {
+      "bootloader": ["uboot.img"],
+      "boot_image": ["kernel.img"],
+      "rootfs": ["rootfs.img"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"]
+    }
+  },
+  "tolino-shine-5-tpv": {
+    "description": "Tolino Shine (5th generation, TPV hardware)",
+    "qemu_machine": "mt8113-kobo-clara-bw-tpv",
+    "qemu_arch": "aarch64",
+    "memory": "512M",
+    "builder": "tolino",
+    "image_profile": "spa-tpv-bw",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "firmware": {
+      "bootloader": ["uboot.img"],
+      "boot_image": ["kernel.img"],
+      "rootfs": ["rootfs.img"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"]
+    }
+  },
+  "tolino-vision-color": {
+    "description": "Tolino Vision Color",
+    "qemu_machine": "mt8113-kobo-libra-colour",
+    "qemu_arch": "aarch64",
+    "memory": "1G",
+    "builder": "tolino",
+    "image_profile": "monza",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "firmware": {
+      "bootloader": ["uboot.img"],
+      "boot_image": ["kernel.img"],
+      "rootfs": ["rootfs.img"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"]
+    }
+  },
   "kobo-elipsa-2e": {
     "description": "Kobo Elipsa 2E",
     "qemu_machine": "mt8113-kobo-elipsa2e",

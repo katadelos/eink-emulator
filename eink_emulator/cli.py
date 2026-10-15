@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .firmware import import_recovery
-from .images import addons, build_raw_image
+from .images import addons, build_raw_image, tolino
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
 from .storage import (
@@ -153,7 +153,7 @@ def require_qemu_tools(qemu: Path) -> None:
 
 
 def ensure_base(model: str, definition: dict[str, Any], artifacts: dict[str, Path]) -> tuple[Path, str]:
-    if model.startswith("kindle-"):
+    if definition["network"].get("usb", {}).get("service") == "ssh":
         artifacts = artifacts | {"ssh_authorized_keys": ensure_login_key()}
     fingerprint = digest_files(definition, artifacts)
     base = BASES_ROOT / f"{model}-{fingerprint[:16]}.qcow2"
@@ -228,7 +228,7 @@ def command_create(args: argparse.Namespace) -> None:
             shutil.rmtree(temporary)
     print(f"created {args.name} ({definition['description']})")
     print(f"run it with: ./eink run {args.name}")
-    if args.model.startswith("kindle-"):
+    if definition["network"].get("usb", {}).get("service") == "ssh":
         print(f"SSH over USB: ssh -i {shlex.quote(str(LOGIN_KEY))} -p 2222 root@127.0.0.1")
         print("SSH over Wi-Fi: use port 2223 after joining Kindle-QEMU")
 
@@ -715,11 +715,18 @@ def command_firmware(_: argparse.Namespace) -> None:
 
 def command_import(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
-    installed = import_recovery(
-        package=Path(args.package).resolve(),
-        destination=FIRMWARE_ROOT / args.model,
-        definition=definition,
-    )
+    package = Path(args.package).resolve()
+    destination = FIRMWARE_ROOT / args.model
+    if definition["builder"] == "tolino":
+        installed = tolino.import_update(
+            package, destination, profile=definition["image_profile"],
+        )
+    else:
+        installed = import_recovery(
+            package=package,
+            destination=destination,
+            definition=definition,
+        )
     print(f"imported {definition['description']} firmware:")
     for role, path in installed.items():
         print(f"  {role}: {path.relative_to(ROOT)}")
@@ -740,7 +747,7 @@ def parser() -> argparse.ArgumentParser:
     firmware.set_defaults(handler=command_firmware)
 
     import_package = commands.add_parser(
-        "import", help="import a vendor firmware update package"
+        "import", help="import a vendor firmware update package or extracted Tolino update"
     )
     import_package.add_argument("package")
     import_package.add_argument("--model", required=True)
