@@ -16,6 +16,14 @@ SECTOR_SIZE = 512
 USERSTORE_SIZE = 1024**3
 HWCFG_OFFSET = 512 * 1024
 
+GLOHD_BATTERY_WAIT = """# The Ricoh driver reports zero until its first capacity calculation.
+for battery_wait in 1 2 3 4 5 6 7 8 9 10; do
+    [ "$(cat /sys/devices/platform/pmic_battery.1/power_supply/mc13892_bat/capacity 2>/dev/null)" -gt 0 ] 2>/dev/null && break
+    sleep 1
+done
+unset battery_wait
+"""
+
 
 @dataclass(frozen=True)
 class Board:
@@ -137,6 +145,14 @@ def prepare_root(source: Path, output: Path, *, size: int, board: Board,
     if result.returncode not in (0, 1):
         raise ValueError(f"Could not recover the {board.description} root filesystem")
     rootfs.run(output, "rm /etc/udev.tgz", writable=True)
+    if board.model == "kobo-glo-hd":
+        def wait_for_battery(contents: str) -> str:
+            needle = "/usr/local/Kobo/nickel -platform kobo -skipFontLoad &"
+            if contents.count(needle) != 1:
+                raise ValueError("Unrecognized Glo HD Nickel startup")
+            return contents.replace(needle, GLOHD_BATTERY_WAIT + needle)
+
+        rootfs.transform_file(output, "/etc/init.d/rcS", "0100755", wait_for_battery)
     if sideloaded:
         rootfs.install_overrides(image=output, group="elipsa2e", replacements={
             "/etc/init.d/eink-sideloaded": ("etc/init.d/eink-sideloaded", "0100755"),

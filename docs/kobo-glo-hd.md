@@ -48,6 +48,9 @@ original boot, root and recovery offsets. Remaining capacity is unpartitioned
 to satisfy QEMU's power-of-two SD capacity requirement. The source image and
 captured firmware remain unchanged.
 
+Startup waits up to ten seconds for the battery driver's first capacity
+reading before launching Nickel, avoiding a false empty-battery shutdown.
+
 USB telnet uses localhost port 2323, and serial accepts `root` without a
 password. See [networking](networking.md) for port options when running
 multiple readers. Click or drag for touch input; press `P` for power.
@@ -70,4 +73,9 @@ Support is experimental. Firmware 3.14.0 boots to Nickel's home screen
 with portrait display, touch input, Wi-Fi association and DHCP, and USB
 networking. Physical e-ink response, battery discharge and frontlight optics
 are not reproduced.
-Deep suspend is incomplete: the stock USB gadget reports busy during suspend.
+
+Deep suspend keeps the virtual USB cable connected. The USB host suspends
+the bus after two seconds without traffic and resumes it for networking
+after the reader wakes. To sleep or wake Nickel, hold `P` briefly
+(about 400 ms). Very short taps can be missed during resume, while longer
+holds request power-off. RTC alarm wake is not modeled.

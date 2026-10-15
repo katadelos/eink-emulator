@@ -75,4 +75,9 @@ The emulator uses captured firmware; neither source tree needs to be built.
 Support is experimental. The captured firmware boots to Nickel with touch
 input, Wi-Fi association and DHCP, and USB networking. Physical e-ink
 response, battery discharge and frontlight optics are not reproduced.
-Deep suspend is incomplete: the stock USB gadget reports busy during suspend.
+
+Deep suspend keeps the virtual USB cable connected. The USB host suspends
+the bus after two seconds without traffic and resumes it for networking
+after the reader wakes. To sleep or wake Nickel, hold `P` briefly
+(about 400 ms). Very short taps can be missed during resume, while longer
+holds request power-off. RTC alarm wake is not modeled.
