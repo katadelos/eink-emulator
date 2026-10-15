@@ -908,6 +908,28 @@
     },
     "rootfs_overrides": ["bellatrix", "bellatrix3"]
   },
+  "kobo-glo": {
+    "description": "Kobo Glo",
+    "qemu_machine": "imx50-kobo-glo",
+    "memory": "256M",
+    "builder": "glo",
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "usb-chipidea",
+        "service": "telnet"
+      },
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "boot_region": ["boot-region.img"],
+      "rootfs": ["rootfs.img"],
+      "recoveryfs": ["recoveryfs.img"]
+    }
+  },
   "kobo-aura-hd": {
     "description": "Kobo Aura HD",
     "qemu_machine": "imx50-kobo-aura-hd",

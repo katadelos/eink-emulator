@@ -37,6 +37,8 @@ class Board:
 
 
 BOARDS = {
+    "kobo-glo": Board("kobo-glo", "Glo", 24, 0x70000000,
+                      "u-boot.bin", True),
     "kobo-clara-hd": Board("kobo-clara-hd", "Clara HD", 74, 0x80000000,
                            "u-boot.imx", False),
     "kobo-aura-hd": Board("kobo-aura-hd", "Aura HD", 28, 0x70000000,

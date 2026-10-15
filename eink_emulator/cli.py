@@ -323,7 +323,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2",
     ])
     runtime = runtime_paths(directory)
-    if model in {"kobo-mini", "kobo-touch", "kobo-aura-hd"}:
+    if model in {"kobo-mini", "kobo-touch", "kobo-glo", "kobo-aura-hd"}:
         chardev = (
             f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on,logfile={runtime['serial_log']}"
             if args.serial_socket
