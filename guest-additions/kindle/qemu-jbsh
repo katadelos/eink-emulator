@@ -1,0 +1,34 @@
+#!/bin/sh
+# Run the pinned jb.sh once, before the framework starts. Its effects are all
+# read at framework startup, so its closing reboot is redundant here.
+state=/var/local/eink-addons
+shims=/usr/share/eink-addons/jbsh-shims
+export PATH=$shims:/usr/sbin:/usr/bin:/sbin:/bin
+# jb.sh itself treats an existing /var/local/kmc/bin as jailbroken.
+[ ! -d /var/local/kmc/bin ] || exit 0
+mkdir -p "$state"
+attempts=$(cat "$state/jbsh-attempts" 2>/dev/null || echo 0)
+if [ "$attempts" -ge 3 ]; then
+    echo "jb.sh did not complete after $attempts attempts; not retrying" >>"$state/jbsh.log"
+    exit 1
+fi
+echo $((attempts + 1)) >"$state/jbsh-attempts"
+sync
+echo "Running jb.sh (attempt $((attempts + 1)))" >>"$state/jbsh.log"
+sh /usr/share/eink-addons/jb.sh >>"$state/jbsh.log" 2>&1
+status=$?
+if [ ! -d /var/local/kmc/bin ] || [ ! -f "$state/jbsh-reboot" ]; then
+    echo "jb.sh exited with status $status before its reboot" >>"$state/jbsh.log"
+    exit 1
+fi
+rm -f "$state/jbsh-reboot"
+# jb.sh's closing "mount -o exec /mnt/us" stacks a second FUSE userstore,
+# and FUSE cannot remount. Mount it once, as the stock userstore job does
+# when /MNTUS_EXEC exists; nothing holds it open before the framework.
+if grep ' /mnt/us ' /proc/mounts | grep -q noexec; then
+    while grep -q ' /mnt/us ' /proc/mounts && umount /mnt/us; do :; done
+    grep -q ' /mnt/us ' /proc/mounts || mount /mnt/us -o exec || mount /mnt/us
+    grep ' /mnt/us ' /proc/mounts >>"$state/jbsh.log"
+fi
+echo "jb.sh finished; continuing boot without its reboot" >>"$state/jbsh.log"
+sync

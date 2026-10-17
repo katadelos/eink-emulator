@@ -19,6 +19,11 @@
     "version": "c6ac782-20250419",
     "url": "https://storage.gra.cloud.ovh.net/v1/AUTH_2ac4bfee353948ec8ea7fd1710574097/mr-public/KUAL/KUAL-c6ac782-20250419.tar.xz"
   },
+  "jbsh": {
+    "version": "2.2.1",
+    "url": "https://github.com/KindleModding/jb.sh/releases/download/v2.2.1/jb.sh",
+    "sha256": "cf60f9f95db3f0a25bea80bbe0c85f4de86d2f900be872f8d22d118163b708ba"
+  },
   "mrpi": {
     "version": "1.7.N-r19303-khf-08f8c5a",
     "url": "https://media.githubusercontent.com/media/KindleModding/kindlemodding.github.io/08f8c5add11ce931123fbaf9417c87d9f1685415/content/jailbreaking/Legacy/post-jailbreak/installing-kual-mrpi/kual-mrinstaller-khf.zip"

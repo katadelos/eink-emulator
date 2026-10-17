@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import shutil
@@ -25,9 +26,24 @@ SUPPORTED = set(KINDLETS) | {
     "kindle-oasis-2", "kindle-paperwhite-4", "kindle-kt4", "kindle-oasis-3",
 }
 HARD_FLOAT = {"kindle-paperwhite-4", "kindle-kt4", "kindle-oasis-3"}
+# jb.sh ships only kindlepw2 and kindlehf binaries, so it starts at Paperwhite 2.
+JBSH_SUPPORTED = (SUPPORTED - set(KINDLETS)) | {
+    "kindle-paperwhite-5", "kindle-basic-2022", "kindle-basic-2024", "kindle-basic-2026",
+    "kindle-colorsoft", "kindle-paperwhite-6", "kindle-scribe-1", "kindle-scribe-2",
+    "kindle-scribe-3", "kindle-scribe-colorsoft",
+}
 
 
-def plan(model: str, *, jailbreak: bool, kual: bool, mrpi: bool) -> dict[str, Any] | None:
+def plan(
+    model: str, *, jailbreak: bool, kual: bool, mrpi: bool, jbsh: bool = False,
+) -> dict[str, Any] | None:
+    if jbsh:
+        if jailbreak or kual or mrpi:
+            raise SystemExit("--jbsh cannot be combined with --jailbreak, --kual or --mrpi")
+        if model not in JBSH_SUPPORTED:
+            raise SystemExit("--jbsh supports Kindle Paperwhite 2 and later; see docs/kindle-addons.md")
+        catalogue = json.loads((SOURCES / "assets.json").read_text())
+        return {"model": model, "jbsh": True, "assets": {"jbsh": catalogue["jbsh"]}}
     if not (jailbreak or kual or mrpi):
         return None
     if model not in SUPPORTED:
@@ -47,10 +63,16 @@ def plan(model: str, *, jailbreak: bool, kual: bool, mrpi: bool) -> dict[str, An
     }
 
 
+def verify(asset: dict[str, str], path: Path) -> None:
+    if "sha256" in asset and hashlib.sha256(path.read_bytes()).hexdigest() != asset["sha256"]:
+        raise SystemExit(f"{path} does not match its pinned SHA-256; delete it and retry")
+
+
 def download(asset: dict[str, str]) -> Path:
     """Cache a versioned asset; publish it only after a complete download."""
     destination = DOWNLOADS / asset["version"] / asset["url"].rsplit("/", 1)[-1]
     if destination.is_file():
+        verify(asset, destination)
         return destination
     destination.parent.mkdir(parents=True, exist_ok=True)
     print(f"Downloading {destination.name}", flush=True)
@@ -61,6 +83,7 @@ def download(asset: dict[str, str]) -> Path:
             with urllib.request.urlopen(request, timeout=60) as response:
                 shutil.copyfileobj(response, output)
             output.close()
+            verify(asset, temporary)
             temporary.replace(destination)
         finally:
             temporary.unlink(missing_ok=True)
@@ -112,8 +135,50 @@ def kindlet_keystore(kindlet: bytes, existing: bytes, work: Path) -> bytes:
     return keystore.read_bytes()
 
 
+def install_root_files(source: Path, output: Path, system: Path, *, check: str) -> None:
+    """Copy source to output and add every file under system, owned by root."""
+    rootfs.copy_source(source, output)
+    commands = []
+    for path in sorted(system.rglob("*")):
+        destination = "/" + path.relative_to(system).as_posix()
+        if path.is_dir():
+            commands.append(f"mkdir {destination}")
+        else:
+            commands.extend([f"rm {destination}", f'write "{path}" {destination}',
+                             f"set_inode_field {destination} mode {0o100000 | (path.stat().st_mode & 0o7777):07o}",
+                             f"set_inode_field {destination} uid 0", f"set_inode_field {destination} gid 0"])
+    rootfs.run_many(output, commands, writable=True)
+    # debugfs does not propagate allocation failures through its exit code.
+    verified = system.parent / "verify.bin"
+    rootfs.run(output, f'dump {check} "{verified}"')
+    if not verified.is_file() or verified.read_bytes() != (system / check.lstrip("/")).read_bytes():
+        raise SystemExit("cannot write add-on payload to rootfs (check free filesystem space)")
+
+
+def prepare_jbsh(source: Path, output: Path, options: dict[str, Any]) -> Path:
+    """Install the pinned jb.sh and a job that runs it before the first framework start."""
+    script = download(options["assets"]["jbsh"])
+    with tempfile.TemporaryDirectory(prefix="eink-jbsh-", dir=output.parent) as temporary:
+        system = Path(temporary) / "root"
+        write(system, "/usr/share/eink-addons/jb.sh", script.read_bytes(), 0o755)
+        write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
+        write(system, "/usr/sbin/qemu-jbsh", (SOURCES / "qemu-jbsh").read_bytes(), 0o755)
+        # jb.sh reboots only so the framework rereads what it installed.
+        write(system, "/usr/share/eink-addons/jbsh-shims/reboot",
+              b"#!/bin/sh\ntouch /var/local/eink-addons/jbsh-reboot\n", 0o755)
+        write(system, "/etc/upstart/qemu-jbsh.conf", b'''# Jailbreak with the pinned jb.sh; the framework then starts jailbroken.
+start on starting framework
+task
+exec /usr/sbin/qemu-jbsh
+''')
+        install_root_files(source, output, system, check="/usr/share/eink-addons/jb.sh")
+    return output
+
+
 def prepare(source: Path, output: Path, options: dict[str, Any]) -> Path:
     """Inject root files plus a first-boot data-volume payload into a copy."""
+    if options.get("jbsh"):
+        return prepare_jbsh(source, output, options)
     model = options["model"]
     assets = {name: download(asset) for name, asset in options["assets"].items()}
     with tempfile.TemporaryDirectory(prefix="eink-addons-", dir=output.parent) as temporary:
@@ -191,20 +256,5 @@ start on starting framework
 task
 exec /usr/sbin/qemu-kindle-addons
 ''')
-        rootfs.copy_source(source, output)
-        commands = []
-        for path in sorted(system.rglob("*")):
-            destination = "/" + path.relative_to(system).as_posix()
-            if path.is_dir():
-                commands.append(f"mkdir {destination}")
-            else:
-                commands.extend([f"rm {destination}", f'write "{path}" {destination}',
-                                 f"set_inode_field {destination} mode {0o100000 | (path.stat().st_mode & 0o7777):07o}",
-                                 f"set_inode_field {destination} uid 0", f"set_inode_field {destination} gid 0"])
-        rootfs.run_many(output, commands, writable=True)
-        # debugfs does not propagate allocation failures through its exit code.
-        verified = work / "verify.tar.gz"
-        rootfs.run(output, f'dump /usr/share/eink-addons/data.tar.gz "{verified}"')
-        if not verified.is_file() or verified.read_bytes() != payload.read_bytes():
-            raise SystemExit("cannot write add-on payload to rootfs (check free filesystem space)")
+        install_root_files(source, output, system, check="/usr/share/eink-addons/data.tar.gz")
     return output

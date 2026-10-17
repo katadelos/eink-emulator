@@ -69,6 +69,9 @@ See [firmware setup](docs/firmware.md). Kobo Forma and Elipsa 2E accept
 Kindle 4 through Oasis 3 also support `create --mrpi` to pre-install KUAL,
 MRPI and their jailbreak prerequisites. Use `--kual` or `--jailbreak` for a
 smaller setup; see [Kindle add-ons and pinned downloads](docs/kindle-addons.md).
+For Paperwhite 2 and later, `create --jbsh` jailbreaks the instance during
+its first boot with the pinned [jb.sh](docs/kindle-addons.md#jailbreak-with-jbsh),
+the payload that current real-device jailbreaks install.
 New instances in this family start at Home with offline setup already prepared.
 
 ## Firmware versions
