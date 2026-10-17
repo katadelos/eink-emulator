@@ -125,6 +125,25 @@ BOARDS = {
         factory_directories=(),
         waveform_file="",
     ),
+    "pocketbook-623": Board(
+        update_model=b"PocketBook623",
+        layout=MX50_LAYOUT,
+        logo_sources={
+            5: {"low_battery_logo": "misc/623_battery_low_rot90.bmp"},
+            9: {
+                "logo_header": "misc/logo_header.bin",
+                "boot_logo": "misc/bootlogo_623_rot90.bmp",
+            },
+        },
+        logo_dimensions=(1024, 758),
+        logo_depth=8,
+        secure_pbpk_mode="040770",
+        factory_state=0x19D85675,
+        raw_settings=(),
+        factory_tar_excludes=(),
+        factory_directories=(),
+        waveform_file="",
+    ),
 }
 
 

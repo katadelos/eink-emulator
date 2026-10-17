@@ -148,6 +148,7 @@ Arguments after `--` also pass through on `run`; see
 | [Tolino Vision Color](docs/tolino-vision-color.md) | Vision Color | E70T04 / Kobo Libra Colour | Experimental |
 | [PocketBook Basic 613](docs/pocketbook-613.md) | PB613 | EP8 | Experimental |
 | [PocketBook Touch 622](docs/pocketbook-622.md) | PB622 | EP7 | Experimental |
+| [PocketBook Touch Lux 623](docs/pocketbook-623.md) | PB623 | EP7A | Experimental |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.

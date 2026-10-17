@@ -1170,6 +1170,30 @@
       "low_battery_logo": ["battery-low.bmp"]
     }
   },
+  "pocketbook-623": {
+    "description": "PocketBook Touch Lux 623",
+    "qemu_machine": "imx50-pocketbook-623",
+    "memory": "128M",
+    "builder": "pocketbook-623",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    },
+    "optional_firmware": {
+      "logo_header": ["logo-header.bin"],
+      "boot_logo": ["bootlogo.bmp"],
+      "low_battery_logo": ["battery-low.bmp"]
+    }
+  },
   "kobo-elipsa-2e": {
     "description": "Kobo Elipsa 2E",
     "qemu_machine": "mt8113-kobo-elipsa2e",
