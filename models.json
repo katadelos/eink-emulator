@@ -1304,6 +1304,29 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-629": {
+    "description": "PocketBook Verse (629)",
+    "qemu_machine": "allwinner-b288-pocketbook-629",
+    "memory": "512M",
+    "builder": "pocketbook-629",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-632": {
     "description": "PocketBook Touch HD 3 (632)",
     "qemu_machine": "allwinner-b288-pocketbook-632",
