@@ -22,7 +22,8 @@ writes data.
 
 Disk writes use write-through caching to match the emulated card's lack of a
 write cache. Shut down through the guest before closing QEMU; guest memory can
-still contain unwritten data.
+still contain unwritten data. Each serial-socket launch retains the preceding
+serial log as `NAME.serial.log.previous`.
 
 Changes to firmware, builder code, guest files or the SSH public key cause
 future instances to use a new prepared revision. Existing instances keep their

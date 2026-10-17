@@ -469,6 +469,10 @@ def command_run(args: argparse.Namespace) -> None:
                 f"serial socket path already exists: {runtime['serial']}\n"
                 "Remove it only after confirming that no QEMU process is using it."
             )
+        if runtime["serial_log"].exists():
+            runtime["serial_log"].replace(
+                runtime["serial_log"].with_suffix(".log.previous")
+            )
         print(f"serial socket: {runtime['serial']}")
     if args.qmp_socket or args.serial_socket:
         sys.stdout.flush()
