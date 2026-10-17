@@ -749,6 +749,9 @@ def command_import(args: argparse.Namespace) -> None:
         installed = pocketbook.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] in pocketbook_b288.BOARDS:
         installed = pocketbook_b288.import_update(package, destination, model=definition["builder"])
+    elif definition["builder"] == "pocketbook-627":
+        from .images import pocketbook_a13
+        installed = pocketbook_a13.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] in {"remarkable1", "remarkable2", "remarkablepp"}:
         from .images import remarkable
         installed = remarkable.import_update(package, destination, model=definition["builder"])

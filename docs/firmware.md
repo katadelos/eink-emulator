@@ -41,6 +41,7 @@ Import is available for these models:
 | [PocketBook Ultra 650](pocketbook-650.md) | `pocketbook-650` |
 | [PocketBook Basic Lux 4](pocketbook-618.md) | `pocketbook-618` |
 | [PocketBook Verse Lite](pocketbook-619.md) | `pocketbook-619` |
+| [PocketBook Touch Lux 4](pocketbook-627.md) | `pocketbook-627` |
 | [PocketBook Touch Lux 5](pocketbook-628.md) | `pocketbook-628` |
 | [PocketBook Verse](pocketbook-629.md) | `pocketbook-629` |
 | [PocketBook Touch HD 3](pocketbook-632.md) | `pocketbook-632` |

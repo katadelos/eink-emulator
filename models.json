@@ -1327,6 +1327,29 @@
       "low_battery_logo": ["battery-low.bmp"]
     }
   },
+  "pocketbook-627": {
+    "description": "PocketBook Touch Lux 4 (627)",
+    "qemu_machine": "allwinner-a13-pocketbook-627",
+    "memory": "512M",
+    "builder": "pocketbook-627",
+    "boot_method": "kernel",
+    "drive_index": 0,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "rtl8188eu"
+      }
+    },
+    "firmware": {
+      "kernel": ["Image"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-628": {
     "description": "PocketBook Touch Lux 5 (628)",
     "qemu_machine": "allwinner-b288-pocketbook-628",
