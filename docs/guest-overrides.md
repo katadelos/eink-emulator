@@ -52,6 +52,11 @@ repairs and skips the missing hibernate payload to reduce startup delays.
 It extends the framework timeout and disables Minerva and automatic suspend.
 Wi-Fi services remain enabled.
 
+Some older releases on the MTP boards (Basic 2024, Paperwhite 6, Colorsoft),
+such as Paperwhite 6 5.18.6, still load a USB storage gadget when the
+userstore mounts. The builder removes it so the controller stays free for USB
+Ethernet.
+
 Colorsoft also disables native debugger stack dumps, which can occupy an
 emulated CPU. See [Colorsoft](colorsoft.md) for display behavior.
 

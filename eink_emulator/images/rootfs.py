@@ -176,15 +176,20 @@ def bellatrix_patch_dump_stack(contents: str) -> str:
 def bellatrix_patch_userstore_mount(contents: str) -> str:
     if BELLATRIX_USERSTORE_MARKER in contents:
         return contents
+    # Older releases (e.g. PW6 5.18.6) mount directly on ${MNTUS_MP}.
+    matches = [
+        target for target in ("${userstore_mount_point}", "${MNTUS_MP}")
+        if f"mount -t ext4 ${{MNTUS_LOOP_DEV}} {target} " in contents
+    ]
     old = (
-        "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
+        f"        mount -t ext4 ${{MNTUS_LOOP_DEV}} {matches[0]} "
         "-o defaults,errors=remount-ro\n"
-    )
-    if contents.count(old) != 1:
+    ) if len(matches) == 1 else None
+    if old is None or contents.count(old) != 1:
         raise SystemExit("stock userstore ext4 mount command was not found exactly once")
     new = (
         f"        # {BELLATRIX_USERSTORE_MARKER}.\n"
-        "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
+        f"        mount -t ext4 ${{MNTUS_LOOP_DEV}} {matches[0]} "
         "-o defaults,errors=remount-ro,noatime,nodiratime\n"
     )
     return contents.replace(old, new, 1)
@@ -288,6 +293,13 @@ def remove_usb_storage(contents: str) -> str:
     )
     if not count:
         raise SystemExit("stock userstore USB storage module setup was not found")
+    return contents
+
+
+def remove_legacy_usb_storage(contents: str) -> str:
+    """Free the UDC on older MTP-era releases (e.g. PW6 5.18.6) that still load a storage gadget."""
+    if re.search(r"\bmodprobe g_(?:mass|file)_storage", contents):
+        return remove_usb_storage(contents)
     return contents
 
 
@@ -618,6 +630,11 @@ def prepare_bellatrix(
                 bellatrix_patch_userstore_mount,
             ),
         )
+        transforms.append((
+            "/etc/upstart/filesystems_userstore.conf",
+            "0100644",
+            remove_legacy_usb_storage,
+        ))
     if board == "sangria-color":
         transforms.insert(
             2,
