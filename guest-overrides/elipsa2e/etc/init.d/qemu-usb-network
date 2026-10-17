@@ -3,6 +3,22 @@ set -e
 
 # Elipsa's stock kernel provides configfs RNDIS, rather than g_ether/ECM.
 gadget=/sys/kernel/config/usb_gadget/qemu
+
+stop_gadget() {
+    [ -d "$gadget" ] || return 0
+    if [ -n "$(cat "$gadget/UDC")" ]; then
+        controller=$(cat "$gadget/UDC")
+        printf disconnect > "/sys/class/udc/$controller/soft_connect"
+        printf '\n' > "$gadget/UDC"
+    fi
+}
+
+case "${1:-start}" in
+    start) ;;
+    stop) stop_gadget; exit 0 ;;
+    restart) stop_gadget ;;
+    *) echo "Usage: $0 [start|stop|restart]" >&2; exit 2 ;;
+esac
 if [ ! -d /sys/kernel/config/usb_gadget ]; then
     mount -t configfs none /sys/kernel/config
 fi
