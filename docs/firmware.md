@@ -54,6 +54,28 @@ Import is available for these models:
 or an extracted update directory through the same `import` command. Their
 zstd-compressed components require `zstd` on the host; KindleTool is not used.
 
+[PocketBook 360 Plus New](pocketbook-512.md),
+[Basic 611](pocketbook-611.md), [Basic 613](pocketbook-613.md),
+[Touch 622](pocketbook-622.md),
+[Touch Lux 623](pocketbook-623.md), [Ultra 650](pocketbook-650.md),
+[Touch Lux 5](pocketbook-628.md), [Touch HD 3](pocketbook-632.md),
+[InkPad 3](pocketbook-740.md), [InkPad 3 Pro](pocketbook-740-2.md),
+[InkPad X](pocketbook-1040.md) and
+[Color Lux 801](pocketbook-801.md) accept their
+official update ZIP or the extracted `SWUPDATE.BIN`. The importer checks the
+selected PocketBook model and extracts the original bootloader, kernel, root
+and application filesystems.
+
+[reMarkable 1](remarkable-1.md) and [reMarkable 2](remarkable-2.md) accept
+their official `.swu` update packages.
+The importer extracts the root filesystem and its bundled vendor U-Boot;
+the kernel and device tree remain in `/boot` inside the root filesystem.
+
+[reMarkable Paper Pro](remarkable-paper-pro.md) accepts its official
+Ferrari `.swu` package. Its boot stages come from the separate `imx-boot`
+member; the importer also extracts the hardware-monitor firmware and
+creates synthetic factory provisioning.
+
 [Kindle Basic 7 (2026)](kt7.md) uses the standard update-package importer.
 Its update packages have not been released; the expected Bellatrix package
 layout remains unverified. The supplied partition dump uses the separate

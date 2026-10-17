@@ -3,8 +3,9 @@
   <img src="images/header.png" alt="E-ink emulator">
 </div>
 
-Run Kindle, Kobo and Tolino firmware in QEMU with persistent storage, touch input and
-network access. Scribe support is experimental; see the model pages below.
+Run Kindle, Kobo, Tolino, PocketBook and reMarkable firmware in QEMU with
+persistent storage and input. Network support varies by model. Scribe
+support is experimental; see the model pages below.
 
 Supply your own firmware. The project is not affiliated with Amazon or
 Rakuten Kobo.
