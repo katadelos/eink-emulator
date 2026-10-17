@@ -45,6 +45,7 @@ Import is available for these models:
 | [PocketBook InkPad 3 Pro](pocketbook-740-2.md) | `pocketbook-740-2` |
 | [PocketBook InkPad X](pocketbook-1040.md) | `pocketbook-1040` |
 | [PocketBook Color Lux 801](pocketbook-801.md) | `pocketbook-801` |
+| [reMarkable 1](remarkable-1.md) | `remarkable-1` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
 [Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive
@@ -76,6 +77,7 @@ For manual setup, place files under `firmware/MODEL/`:
 | Kobo Clara HD | See the [Clara HD file list](kobo-clara-hd.md#firmware) |
 | Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
+| reMarkable 1 | `u-boot.imx`, `rootfs.img`; see [import instructions](remarkable-1.md#firmware) |
 | Tolino Vision Color | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [import instructions](tolino-vision-color.md#firmware) |
 | Tolino Shine 5, Shine Color, Shine 5 TPV | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [kernel selection](tolino-shine.md#firmware) |
 

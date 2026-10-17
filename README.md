@@ -13,7 +13,7 @@ Rakuten Kobo.
 
 - Python 3.10 or newer
 - A C compiler, Ninja and the standard QEMU build dependencies
-- `mke2fs`, `e2fsck`, `tune2fs` and `debugfs` from e2fsprogs
+- `mke2fs`, `e2fsck`, `resize2fs`, `tune2fs` and `debugfs` from e2fsprogs
 - `ssh-keygen` from OpenSSH for Kindle and Tolino SSH access
 - `zstd` to import Tolino updates
 - [KindleTool](https://github.com/NiLuJe/KindleTool) to import Kindle recovery packages
@@ -158,6 +158,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook InkPad 3 Pro](docs/pocketbook-740-2.md) | PB740-2 | Allwinner B288 | Experimental |
 | [PocketBook InkPad X](docs/pocketbook-1040.md) | PB1040 | Allwinner B288 | Experimental |
 | [PocketBook Color Lux 801](docs/pocketbook-801.md) | PB801 | i.MX50 | Experimental |
+| [reMarkable 1](docs/remarkable-1.md) | RM1 | Zero Gravitas / i.MX6 SoloLite | Experimental; offline UI |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.

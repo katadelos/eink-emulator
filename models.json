@@ -1126,6 +1126,19 @@
       "tee": ["tee.img"]
     }
   },
+  "remarkable-1": {
+    "description": "reMarkable 1",
+    "qemu_machine": "imx6sl-remarkable1",
+    "memory": "512M",
+    "builder": "remarkable1",
+    "drive_index": 1,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.imx"],
+      "rootfs": ["rootfs.img"]
+    }
+  },
   "pocketbook-512": {
     "description": "PocketBook 360 Plus New (512)",
     "qemu_machine": "imx50-pocketbook-512",
