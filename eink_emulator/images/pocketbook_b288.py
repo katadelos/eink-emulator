@@ -52,6 +52,7 @@ class Board:
     copy_adobe_fonts: bool
     factory_directories: tuple[str, ...]
     disable_suspend: bool
+    large_applications: bool = False
 
 
 BOARDS = {
@@ -84,7 +85,20 @@ IOC_PATCHES = {
 }
 
 
-def validate_firmware(artifacts: dict[str, Path]) -> None:
+def board_partitions(board: Board) -> tuple[tuple[str, int, int, int, int], ...]:
+    if not board.large_applications:
+        return PARTITIONS
+    # Current updates contain a roughly 500 MiB applications filesystem.
+    # Keep vendor partition numbering and the boot/root offsets unchanged.
+    return PARTITIONS[:4] + (
+        ("ebrmain", 8, 129 * MIB, 511 * MIB, 0x83),
+        ("secure", 9, 641 * MIB, 15 * MIB, 0x83),
+        ("UDISK", 1, 768 * MIB, DISK_SIZE - 768 * MIB, 0x0c),
+    )
+
+
+def validate_firmware(artifacts: dict[str, Path], *, model: str) -> None:
+    partitions = board_partitions(BOARDS[model])
     with artifacts["bootloader"].open("rb") as stream:
         head = stream.read(64)
     if (len(head) != 64 or head[:13] != b"sunxi-package" or
@@ -96,7 +110,7 @@ def validate_firmware(artifacts: dict[str, Path]) -> None:
     if (len(head) != 64 or head[:4] != b"\x27\x05\x19\x56" or
             struct.unpack_from(">I", head, 12)[0] + 64 != artifacts["kernel"].stat().st_size):
         raise ValueError("PocketBook B288 kernel must be a complete vendor uImage")
-    for role, limit in (("rootfs", PARTITIONS[3][3]), ("applications", PARTITIONS[4][3])):
+    for role, limit in (("rootfs", partitions[3][3]), ("applications", partitions[4][3])):
         image = artifacts[role]
         with image.open("rb") as stream:
             stream.seek(1024)
@@ -170,7 +184,7 @@ def import_update(package: Path, destination: Path, *, model: str) -> dict[str, 
             raise ValueError("PocketBook update contains overlapping sections")
         if set(installed) != {role for role, _ in IMPORT_FILES.values()}:
             raise ValueError("PocketBook update is missing required boot or filesystem payloads")
-        validate_firmware(installed)
+        validate_firmware(installed, model=model)
         prepared.replace(destination)
     return {role: destination / path.name for role, path in installed.items()}
 
@@ -222,18 +236,18 @@ def partition_entry(kind: int, start: int, size: int) -> bytes:
                        b"\xfe\xff\xff", start // 512, size // 512)
 
 
-def write_partition_tables(disk) -> None:
+def write_partition_tables(disk, partitions: tuple[tuple[str, int, int, int, int], ...]) -> None:
     extended = 60 * MIB
-    end = 528 * MIB
+    end = partitions[5][2] + partitions[5][3]
     mbr = bytearray(512)
     for index in (0, 1):
-        _, _, start, size, kind = PARTITIONS[-1 if index == 0 else 0]
+        _, _, start, size, kind = partitions[-1 if index == 0 else 0]
         mbr[446 + index * 16:462 + index * 16] = partition_entry(kind, start, size)
     mbr[478:494] = partition_entry(0x0f, extended, end - extended)
     mbr[510:] = b"\x55\xaa"
     disk.seek(0)
     disk.write(mbr)
-    logical = PARTITIONS[1:-1]
+    logical = partitions[1:-1]
     for i, (_, _, start, size, kind) in enumerate(logical):
         ebr_start = start - MIB
         ebr = bytearray(512)
@@ -245,8 +259,8 @@ def write_partition_tables(disk) -> None:
         disk.seek(ebr_start)
         disk.write(ebr)
     table = bytearray(16 * 1024)
-    struct.pack_into("<I8s4I", table, 4, 0x100, b"softw411", 4, 0, len(PARTITIONS), 0)
-    for i, (name, _, start, size, _) in enumerate(PARTITIONS):
+    struct.pack_into("<I8s4I", table, 4, 0x100, b"softw411", 4, 0, len(partitions), 0)
+    for i, (name, _, start, size, _) in enumerate(partitions):
         struct.pack_into("<4I16s16s", table, 32 + i * 128, 0,
                          (start - LOGICAL_OFFSET) // 512, 0, size // 512,
                          b"DISK", name.encode())
@@ -428,7 +442,8 @@ def build_waveform() -> bytes:
 
 def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
     board = BOARDS[model]
-    validate_firmware(artifacts)
+    partitions = board_partitions(board)
+    validate_firmware(artifacts, model=model)
     prepared = output.with_name("prepared-rootfs.img")
     prepare_root(artifacts["rootfs"], prepared, board, applications=artifacts["applications"])
     applications = artifacts["applications"]
@@ -437,7 +452,7 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
         prepare_ioc_applications(artifacts["applications"], applications, model=model)
     secure = output.with_name("secure.img")
     with secure.open("wb") as stream:
-        stream.truncate(PARTITIONS[5][3])
+        stream.truncate(partitions[5][3])
     subprocess.run([str(rootfs.find_debugfs().with_name("mke2fs")), "-q", "-t", "ext2",
                     "-F", "-O", "none,filetype,sparse_super", str(secure)], check=True)
     secure_commands = [
@@ -464,7 +479,7 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
         rootfs.run_many(secure, secure_commands, writable=True)
     with atomic_output(output) as staging, staging.open("w+b") as disk:
         disk.truncate(DISK_SIZE)
-        write_partition_tables(disk)
+        write_partition_tables(disk, partitions)
         package = artifacts["bootloader"].read_bytes()
         for sector in (24576, 32800):
             disk.seek(sector * 512)
@@ -479,8 +494,8 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
         }
         write_bootfs(disk, files)
         for image, part in ((prepared, 3), (applications, 4), (secure, 5)):
-            disk.seek(PARTITIONS[part][2])
+            disk.seek(partitions[part][2])
             with image.open("rb") as source:
                 shutil.copyfileobj(source, disk)
-        write_userstore(disk, start=PARTITIONS[-1][2] // 512,
+        write_userstore(disk, start=partitions[-1][2] // 512,
                          end=DISK_SIZE // 512, label=b"PocketBook ")
