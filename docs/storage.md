@@ -113,6 +113,53 @@ Preserve their relative paths; each overlay depends on its backing image.
 Keep the model's firmware directory because launch still needs the bootloader
 and any separate machine firmware. Keep `build/ssh/` for Kindle SSH access.
 
+## Experimental GUI checkpoints
+
+`scripts/eink-checkpoint.py` captures a running guest's CPU, RAM and device
+state together with its disk. A checkpoint resumes at the captured GUI without
+booting the guest again. The tool currently supports Paperwhite 3. Device
+migration coverage for other models is incomplete; MediaTek machines require
+additional saved-state support before their checkpoints can be relied on.
+
+Start from a stopped instance:
+
+```sh
+python3 scripts/eink-checkpoint.py start my-reader build/checkpoints/pw3-gui
+# Wait for the GUI to finish loading, then capture it from another terminal.
+python3 scripts/eink-checkpoint.py save build/checkpoints/pw3-gui
+python3 scripts/eink-checkpoint.py resume build/checkpoints/pw3-gui /tmp/pw3-run
+```
+
+`start` boots a standalone disk copy and leaves the original instance untouched.
+`save` pauses the copy, captures memory and devices, stops QEMU and seals the
+bundle. `resume` creates a new runtime directory with a writable disk overlay;
+the checkpoint stays unchanged for the next iteration. Each resume requires a
+fresh runtime directory. Stop an iteration with:
+
+```sh
+python3 scripts/eink-qmp.py --socket /tmp/pw3-run/qmp.sock qmp quit
+```
+
+The bundle contains `checkpoint.json`, `memory.state`, `disk.qcow2` and the
+runtime boot firmware under `firmware/`. Copy the entire sealed bundle to
+transfer it; it has no dependency on the source instance or shared image bases.
+Keep the disk and memory together. Editing the checkpoint disk offline or
+substituting a different disk invalidates the captured state.
+
+Use the same QEMU source and build configuration at capture and restore. The
+tool checks the version string, but that check cannot distinguish local source
+edits. Cross-host and cross-platform restoration are experimental. The bundle
+does not include QEMU or the host SSH private key; keep the appropriate key for
+guest access. Reconnect SSH after restoring; existing host connections do not
+transfer.
+
+Both `start` and `resume` accept `--headless` or `--vnc ENDPOINT`; display
+selection belongs to the receiving host. Forwarded ports are recorded at
+`start`, which accepts the usual `--ssh-port`, `--wifi-ssh-port` and
+`--telnet-port` options. Run one copy at a time on those ports. Runtime QMP and
+serial sockets, `serial.log` and `qemu.log` are in the runtime directory.
+During capture, that directory is `BUNDLE/capture/` and is removed by `save`.
+
 ## Scribe partitions
 
 Both Scribe builders create 8 GiB sparse disks. Partition numbers match the
