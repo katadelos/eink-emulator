@@ -171,6 +171,26 @@ def build_ntx_hwconfig(*, pcb: int, keypad: int, panel: int, gsensor: int) -> by
 
 
 BOARDS = {
+    "pocketbook-512": Board(
+        # The 360 Plus New update leaves the model name empty; its revision
+        # identifies D512.15.7 and is checked separately during import.
+        update_model=b"",
+        layout=MX50_NTX_LAYOUT,
+        logo_sources={},
+        logo_dimensions=(800, 600),
+        logo_depth=8,
+        secure_pbpk_mode="040755",
+        factory_state=0x3AC10E17,
+        raw_settings=(
+            (0x203, b"E50602"),
+            (0x80000 - 16, ntx_record(build_ntx_hwconfig(
+                pcb=18, keypad=3, panel=3, gsensor=2,
+            ))),
+        ),
+        factory_tar_excludes=(),
+        factory_directories=("Photo",),
+        waveform_file="",
+    ),
     "pocketbook-611": Board(
         update_model=b"Pocket611",
         layout=MX50_NTX_LAYOUT,
@@ -400,7 +420,9 @@ def import_update(package: Path, destination: Path, *, model: str) -> dict[str, 
             header = source.read(HEADER_SIZE)
             if len(header) != HEADER_SIZE or header[:16] != b"PocketBookUpdate":
                 raise ValueError("PocketBook update has an invalid header")
-            if header[16:36].split(b"\0", 1)[0] != board.update_model:
+            if (header[16:36].split(b"\0", 1)[0] != board.update_model or
+                    (model == "pocketbook-512" and
+                     header[36:48].split(b"\0", 1)[0] != b"D512.15.7")):
                 raise ValueError(f"PocketBook update is not for {model}")
             for position in range(0x100, HEADER_SIZE, 16):
                 tag, _, relative, size = struct.unpack_from("<IIII", header, position)

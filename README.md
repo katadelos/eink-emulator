@@ -146,6 +146,7 @@ Arguments after `--` also pass through on `run`; see
 | [Tolino Shine (5th generation)](docs/tolino-shine.md) | Shine 5 | E60T00 / Kobo Clara BW; E60V00 / TPV revision | Experimental |
 | [Tolino Shine Color](docs/tolino-shine.md) | Shine Color | E60T00 / Kobo Clara Colour | Experimental |
 | [Tolino Vision Color](docs/tolino-vision-color.md) | Vision Color | E70T04 / Kobo Libra Colour | Experimental |
+| [PocketBook 360 Plus New](docs/pocketbook-512.md) | PB512 | i.MX50 | Experimental |
 | [PocketBook Basic 611](docs/pocketbook-611.md) | PB611 | i.MX50 | Experimental |
 | [PocketBook Basic 613](docs/pocketbook-613.md) | PB613 | EP8 | Experimental |
 | [PocketBook Touch 622](docs/pocketbook-622.md) | PB622 | EP7 | Experimental |

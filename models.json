@@ -1126,6 +1126,26 @@
       "tee": ["tee.img"]
     }
   },
+  "pocketbook-512": {
+    "description": "PocketBook 360 Plus New (512)",
+    "qemu_machine": "imx50-pocketbook-512",
+    "memory": "128M",
+    "builder": "pocketbook-512",
+    "drive_index": 0,
+    "serial_index": 1,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    }
+  },
   "pocketbook-611": {
     "description": "PocketBook Basic 611",
     "qemu_machine": "imx50-pocketbook-611",
