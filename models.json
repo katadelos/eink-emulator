@@ -621,6 +621,7 @@
   },
   "kindle-paperwhite-1": {
     "description": "Kindle Paperwhite 1",
+    "allow_reboot": true,
     "qemu_machine": "imx50-celeste",
     "memory": "256M",
     "builder": "celeste",
