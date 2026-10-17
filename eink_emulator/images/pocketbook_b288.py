@@ -76,6 +76,9 @@ class IOCPatch:
     block_size: int
     original: bytes
     replacement: bytes
+    file_offset: int = 0xf0a4
+    compression: int = 1
+    literal: bytes = b""
 
 
 IOC_PATCHES = {
@@ -364,40 +367,47 @@ def prepare_root(source: Path, output: Path, board: Board, *, applications: Path
         rootfs.run_many(output, [f"symlink /lib/modules/tp.ko {board.touch_module}"], writable=True)
 
 
-def prepare_ioc_applications(source: Path, output: Path, *, model: str) -> None:
+def prepare_ioc_applications(source: Path, output: Path, *, model: str,
+                             patch: IOCPatch, maximum_size: int) -> None:
     """Let the selected IOC use its existing unprovisioned serial response."""
-    patch = IOC_PATCHES[model]
-    rootfs.copy_source(source, output, maximum_size=PARTITIONS[4][3])
+    rootfs.copy_source(source, output, maximum_size=maximum_size)
     with tempfile.TemporaryDirectory(prefix=f"{model}-ioc-", dir=output.parent) as temporary:
         squashfs = Path(temporary) / "cramfs.img"
         rootfs.run(output, f'dump /cramfs.img "{squashfs}"')
-        # The first libioc.so data block in this release is a zlib stream.
-        # Its protected ARM word at file offset 0xf0a4 is stored literally
-        # in a deflate block. Change the invalid-pbenv result from fatal (3)
+        # The protected ARM word is stored literally in the first libioc.so
+        # data block. Change the invalid-pbenv result from fatal (3)
         # to unprovisioned (0), without changing the signed-record checks.
-        patch_offset = 0xf0a4
+        patch_offset = patch.file_offset
         with squashfs.open("r+b") as stream:
             header = stream.read(32)
             if (header[:4] != b"hsqs" or struct.unpack_from("<I", header, 12)[0] != 131072 or
-                    struct.unpack_from("<H", header, 20)[0] != 1):
+                    struct.unpack_from("<H", header, 20)[0] != patch.compression):
                 raise ValueError(f"{model} requires its original {patch.release} SquashFS")
             stream.seek(patch.block_offset)
             encoded = bytearray(stream.read(patch.block_size))
             if len(encoded) != patch.block_size:
                 raise ValueError(f"{model} IOC data block is truncated")
-            decoded = bytearray(zlib.decompress(encoded))
-            if (len(decoded) != 131072 or decoded[:4] != b"\x7fELF" or
-                    decoded[patch_offset:patch_offset + 4] != patch.original):
-                raise ValueError(f"{model} IOC guard differs from firmware {patch.release}")
-            context = decoded[patch_offset - 16:patch_offset + 20]
+            decoded = bytearray(zlib.decompress(encoded)) if patch.compression == 1 else None
+            if decoded is not None:
+                if (len(decoded) != 131072 or decoded[:4] != b"\x7fELF" or
+                        decoded[patch_offset:patch_offset + 4] != patch.original):
+                    raise ValueError(f"{model} IOC guard differs from firmware {patch.release}")
+                context = decoded[patch_offset - 16:patch_offset + 20]
+            else:
+                # LZO stores these encrypted words as one literal run. The
+                # release-specific surrounding bytes also guard its location.
+                context = patch.literal
+                if len(context) != 36 or context[16:20] != patch.original:
+                    raise ValueError(f"{model} has an invalid IOC literal patch")
             if encoded.count(context) != 1:
                 raise ValueError(f"{model} IOC guard is not a unique literal")
             position = encoded.index(context) + 16
             encoded[position:position + 4] = patch.replacement
-            decoded[patch_offset:patch_offset + 4] = patch.replacement
-            encoded[-4:] = struct.pack(">I", zlib.adler32(decoded))
-            if zlib.decompress(encoded) != decoded:
-                raise ValueError(f"{model} IOC patch changed unrelated data")
+            if decoded is not None:
+                decoded[patch_offset:patch_offset + 4] = patch.replacement
+                encoded[-4:] = struct.pack(">I", zlib.adler32(decoded))
+                if zlib.decompress(encoded) != decoded:
+                    raise ValueError(f"{model} IOC patch changed unrelated data")
             stream.seek(patch.block_offset)
             stream.write(encoded)
         rootfs.replace_file(output, squashfs, "/cramfs.img", "0100644")
@@ -457,7 +467,8 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
     applications = artifacts["applications"]
     if model in IOC_PATCHES:
         applications = output.with_name("prepared-applications.img")
-        prepare_ioc_applications(artifacts["applications"], applications, model=model)
+        prepare_ioc_applications(artifacts["applications"], applications, model=model,
+                                 patch=IOC_PATCHES[model], maximum_size=partitions[4][3])
     secure = output.with_name("secure.img")
     with secure.open("wb") as stream:
         stream.truncate(partitions[5][3])
@@ -471,7 +482,7 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
         "set_inode_field /runonce uid 102", "set_inode_field /runonce gid 102",
     ]
     # The monitor's callback state includes the eMMC CID. Prepared IOC
-    # fallbacks return twelve ASCII zeroes; other profiles return an empty serial.
+    # responses return twelve ASCII zeroes; other profiles return an empty serial.
     # OTA packages omit this provisioned secure-partition file.
     with tempfile.TemporaryDirectory(prefix="pocketbook-b288-factory-") as temporary:
         files = {".freezestatus": struct.pack("<I", board.factory_state)}
