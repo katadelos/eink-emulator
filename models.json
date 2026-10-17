@@ -1327,6 +1327,29 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-634": {
+    "description": "PocketBook Verse Pro (634)",
+    "qemu_machine": "allwinner-b288-pocketbook-634",
+    "memory": "512M",
+    "builder": "pocketbook-634",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-650": {
     "description": "PocketBook Ultra 650",
     "qemu_machine": "imx6sl-pocketbook-650",

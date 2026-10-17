@@ -41,6 +41,7 @@ Import is available for these models:
 | [PocketBook Ultra 650](pocketbook-650.md) | `pocketbook-650` |
 | [PocketBook Touch Lux 5](pocketbook-628.md) | `pocketbook-628` |
 | [PocketBook Touch HD 3](pocketbook-632.md) | `pocketbook-632` |
+| [PocketBook Verse Pro](pocketbook-634.md) | `pocketbook-634` |
 | [PocketBook Era](pocketbook-700.md) | `pocketbook-700` |
 | [PocketBook InkPad 3](pocketbook-740.md) | `pocketbook-740` |
 | [PocketBook InkPad 3 Pro](pocketbook-740-2.md) | `pocketbook-740-2` |
