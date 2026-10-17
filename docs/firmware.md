@@ -41,6 +41,7 @@ Import is available for these models:
 | [PocketBook Ultra 650](pocketbook-650.md) | `pocketbook-650` |
 | [PocketBook Touch Lux 5](pocketbook-628.md) | `pocketbook-628` |
 | [PocketBook Touch HD 3](pocketbook-632.md) | `pocketbook-632` |
+| [PocketBook Era](pocketbook-700.md) | `pocketbook-700` |
 | [PocketBook InkPad 3](pocketbook-740.md) | `pocketbook-740` |
 | [PocketBook InkPad 3 Pro](pocketbook-740-2.md) | `pocketbook-740-2` |
 | [PocketBook InkPad X](pocketbook-1040.md) | `pocketbook-1040` |
@@ -101,6 +102,7 @@ For manual setup, place files under `firmware/MODEL/`:
 | Kobo Clara HD | See the [Clara HD file list](kobo-clara-hd.md#firmware) |
 | Kobo Forma | See the [Forma file list](kobo-forma.md#firmware) |
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
+| PocketBook B288 models | `u-boot.img`, `uImage`, `rootfs.img`, `applications.img`, `updatefs` |
 | reMarkable 1 | `u-boot.imx`, `rootfs.img`; see [import instructions](remarkable-1.md#firmware) |
 | reMarkable 2 | `u-boot.imx`, `rootfs.img`; see [import instructions](remarkable-2.md#firmware) |
 | reMarkable Paper Pro | `imx-boot`, `rootfs.img`, `hwmon.bin`, `factory.img`; see [import instructions](remarkable-paper-pro.md#firmware) |

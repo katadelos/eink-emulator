@@ -1346,6 +1346,29 @@
       "applications": ["applications.img"]
     }
   },
+  "pocketbook-700": {
+    "description": "PocketBook Era (700)",
+    "qemu_machine": "allwinner-b288-pocketbook-700",
+    "memory": "1G",
+    "builder": "pocketbook-700",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-740": {
     "description": "PocketBook InkPad 3 (740)",
     "qemu_machine": "allwinner-b288-pocketbook-740",
