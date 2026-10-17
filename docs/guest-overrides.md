@@ -96,3 +96,10 @@ bootloader, kernel and rootfs files remain unchanged. The WMT and Wi-Fi kernel
 modules are used unmodified. See
 [Tolino Vision Color](tolino-vision-color.md) and
 [Shine 5 / Shine Color](tolino-shine.md) for storage and calibration limits.
+
+## PocketBook
+
+PocketBook images retain the stock setup wizard. B288 images prepare
+the bundled fontconfig caches for their filesystem timestamps and FAT font
+directories before applications start. Skipping Wi-Fi opens the licence screen
+without rebuilding the font indexes.

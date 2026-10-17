@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import gzip
+import re
+import shlex
 import shutil
 import struct
 import subprocess
+import tarfile
 import tempfile
 import zipfile
 import zlib
@@ -254,7 +257,55 @@ def write_partition_tables(disk) -> None:
         disk.write(table)
 
 
-def prepare_root(source: Path, output: Path, board: Board) -> None:
+def factory_font_cache_seed(applications: Path) -> str:
+    """Match the bundled font indexes to the prepared filesystems."""
+    with tempfile.TemporaryDirectory(prefix="pocketbook-font-cache-") as temporary:
+        archive_path = Path(temporary) / "fsimage.tar.gz"
+        rootfs.run(applications, f'dump /fsimage.tar.gz "{archive_path}"')
+        with tarfile.open(archive_path) as archive:
+            members = archive.getmembers()
+            commands = []
+            for member in members:
+                version = re.search(r"\.cache-(7|8|9)$", member.name)
+                if (not member.isfile() or version is None or
+                        Path(member.name).parent != Path("system/cache/fontconfig")):
+                    continue
+                cache = archive.extractfile(member).read()
+                if (len(cache) < 40 or struct.unpack_from("<4I", cache) !=
+                        (0xfc02fc04, int(version[1]), len(cache), 40)):
+                    raise ValueError("PocketBook requires its bundled ARM fontconfig cache")
+                directory = cache[40:].split(b"\0", 1)[0].decode()
+                if directory.startswith("/ebrmain/"):
+                    metadata = subprocess.check_output([
+                        str(rootfs.find_debugfs()), "-R",
+                        f"stat {directory.removeprefix('/ebrmain')}", str(applications),
+                    ], text=True, stderr=subprocess.DEVNULL)
+                    modified = re.search(r"^mtime: 0x([0-9a-f]+) --", metadata, re.MULTILINE)
+                    if modified is None:
+                        raise ValueError(f"PocketBook font directory has no mtime: {directory}")
+                    checksum = int(modified[1], 16)
+                elif directory.startswith("/mnt/ext1/"):
+                    relative = Path(directory.removeprefix("/mnt/ext1/"))
+                    names = sorted((Path(item.name).name for item in members
+                                    if not item.isdir() and Path(item.name).parent == relative),
+                                   reverse=True)
+                    # Fontconfig uses a directory-listing checksum on FAT.
+                    # Factory font links are copied as regular files (DT_REG=8).
+                    checksum = zlib.adler32(b"".join(
+                        name.encode() + b"\0" + struct.pack("<I", 8) for name in names))
+                else:
+                    raise ValueError(f"Unexpected PocketBook font directory: {directory}")
+                # ARM v7/v8/v9 caches store the directory checksum and nanoseconds
+                # at offsets 28 and 32; the font index itself stays untouched.
+                stamp = "".join(f"\\{byte:03o}" for byte in struct.pack("<II", checksum, 0))
+                destination = shlex.quote(f"/mnt/ext1/{member.name}")
+                commands.append(
+                    f"    printf '%b' '{stamp}' | dd of={destination} "
+                    "bs=1 seek=28 conv=notrunc 2>/dev/null || exit 1\n")
+    return "".join(commands)
+
+
+def prepare_root(source: Path, output: Path, board: Board, *, applications: Path) -> None:
     rootfs.copy_source(source, output, maximum_size=PARTITIONS[3][3])
     # The update's compact root has no spare inodes for the updater's tp link.
     with output.open("r+b") as stream:
@@ -271,6 +322,10 @@ def prepare_root(source: Path, output: Path, board: Board) -> None:
     )
     directories = " ".join(f"/mnt/ext1/{name}" for name in board.factory_directories)
     make_directories = f"    mkdir -p {directories} || exit 1\n" if directories else ""
+    # Update packages retain font indexes from before their final filesystem
+    # timestamps. Reuse those indexes instead of rescanning CJK fonts while the
+    # setup wizard waits for the licence application to draw its first page.
+    font_cache = factory_font_cache_seed(applications)
     # Standby and its wakeup sources are not modeled. Keep the stock monitor's
     # suspend request from freezing userspace while retaining its normal loop.
     suspend = "mount -o bind /dev/null /sys/power/state || exit 1\n" if board.disable_suspend else ""
@@ -283,7 +338,7 @@ def prepare_root(source: Path, output: Path, board: Board) -> None:
             "\nmount -t vfat -o rw,umask=0000,iocharset=utf8 /dev/user_int /mnt/ext1 || exit 1\n"
             "if [ ! -f /mnt/ext1/system/.qemu-factory-content ]; then\n"
             f"    tar xzf /ebrmain/fsimage.tar.gz{exclusion} -C /mnt/ext1 || exit 1\n"
-            + font_copy + make_directories
+            + font_copy + make_directories + font_cache
             + "    touch /mnt/ext1/system/.qemu-factory-content || exit 1\n"
             "    sync\n"
             "fi\n" + suspend + marker
@@ -375,7 +430,7 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
     board = BOARDS[model]
     validate_firmware(artifacts)
     prepared = output.with_name("prepared-rootfs.img")
-    prepare_root(artifacts["rootfs"], prepared, board)
+    prepare_root(artifacts["rootfs"], prepared, board, applications=artifacts["applications"])
     applications = artifacts["applications"]
     if model in IOC_PATCHES:
         applications = output.with_name("prepared-applications.img")
