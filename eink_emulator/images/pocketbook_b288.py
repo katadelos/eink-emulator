@@ -52,6 +52,7 @@ class Board:
     copy_adobe_fonts: bool
     factory_directories: tuple[str, ...]
     disable_suspend: bool
+    waveform_name: bytes = b""
     large_applications: bool = False
 
 
@@ -402,7 +403,7 @@ def prepare_ioc_applications(source: Path, output: Path, *, model: str) -> None:
         rootfs.replace_file(output, squashfs, "/cramfs.img", "0100644")
 
 
-def build_waveform() -> bytes:
+def build_waveform(name: bytes = b"") -> bytes:
     """Neutral transitions for the emulator's directly rendered EINK output."""
     waveform = bytearray(1024)
     waveform[:0x30] = neutral_waveform_header()[:0x30]
@@ -432,6 +433,13 @@ def build_waveform() -> bytes:
     encoded.append(255)
     encoded.append(sum(encoded) & 255)
     waveform[0x64:0x64 + len(encoded)] = encoded
+    if name:
+        # The vendor module selects panel timing and color filtering by
+        # waveform name: ED070 for the Era, EC078 for the InkPad Color.
+        if len(name) > 255 or 0x301 + len(name) > len(waveform):
+            raise ValueError("PocketBook B288 waveform name is too long")
+        waveform[0x1c:0x1f] = (0x300).to_bytes(3, "little")
+        waveform[0x300:0x301 + len(name)] = bytes((len(name),)) + name
     struct.pack_into("<I", waveform, 0, 0)
     struct.pack_into("<I", waveform, 4, len(waveform))
     waveform[0x1f] = sum(waveform[:0x1f]) & 255
@@ -490,7 +498,7 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
             # Select the board's entry in the vendor hwlib platform table.
             b"HWCONFIG   ": struct.pack("<Q", (board.platform_index << 4) | 0x0a),
             b"DEFAULT WBF": (artifacts["waveform"].read_bytes()
-                              if "waveform" in artifacts else build_waveform()),
+                              if "waveform" in artifacts else build_waveform(board.waveform_name)),
         }
         write_bootfs(disk, files)
         for image, part in ((prepared, 3), (applications, 4), (secure, 5)):
