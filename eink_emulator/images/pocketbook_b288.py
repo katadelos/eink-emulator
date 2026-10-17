@@ -61,6 +61,9 @@ class Board:
 BOARDS = {
     "pocketbook-618": Board(b"PocketBook618", 80, "", 0xa6c12675, True,
                            ("Photo", "Downloads"), True, offline_factory=True),
+    "pocketbook-619": Board(b"PocketBook619", 90, "", 0xa6c12675, False,
+                           ("Photo", "Downloads"), True, offline_factory=True,
+                           large_applications=True),
     # Index 52 selects the original 628's XCD touch ID 22, not its FT6336 revision.
     "pocketbook-628": Board(b"PocketBook628", 52, "ektf2k_5B.ko", 0xa6c12675,
                            True, ("Photo", "Downloads"), True),
@@ -107,6 +110,11 @@ IOC_PATCHES = {
     "pocketbook-618": IOCPatch("6.9.1044", 124003433, 127950,
                               bytes.fromhex("2ba65c49"), bytes.fromhex("28a65c49"),
                               file_offset=0xf0f8),
+    "pocketbook-619": IOCPatch("6.11.2022", 195364583, 113544,
+                              bytes.fromhex("fb939e0f"), bytes.fromhex("f8939e0f"),
+                              file_offset=0x12028, compression=3, literal=bytes.fromhex(
+                                  "5d3b6ef851eca02f3fad95f7a8fb1573fb939e0f"
+                                  "e49d36a52b82d780b88d7c2914319a48")),
     "pocketbook-628": IOCPatch("6.5.2890", 157436504, 127961,
                               bytes.fromhex("6f74ced5"), bytes.fromhex("6c74ced5")),
     "pocketbook-629": IOCPatch("6.11.2020", 195291824, 113541,
@@ -159,6 +167,9 @@ MONITOR_610 = FactoryMonitor(677700, 0xa2c28, 0, 0x1000, 0xa2e50, 0x158a4)
 FACTORY_MONITORS = {
     b"PocketBook618": FactoryMonitor(673452, 0xa167c, 0x10000, 0x10000,
                                      0xa1ed4, 0x177d8),
+    b"PocketBook619": FactoryMonitor(674128, 0xa1ba0, 0, 0x1000,
+                                     0xa1e50, 0x17ce0,
+                                     bytes.fromhex("33ff2fe100a0a0e150b0a0e3000054e3")),
     b"PocketBook629": FactoryMonitor(674128, 0xa1ba0, 0, 0x1000,
                                      0xa1e50, 0x17ce0,
                                      bytes.fromhex("33ff2fe100a0a0e150b0a0e3000054e3")),
