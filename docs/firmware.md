@@ -47,6 +47,7 @@ Import is available for these models:
 | [PocketBook Touch HD 3](pocketbook-632.md) | `pocketbook-632` |
 | [PocketBook Color](pocketbook-633.md) | `pocketbook-633` |
 | [PocketBook Verse Pro](pocketbook-634.md) | `pocketbook-634` |
+| [PocketBook Verse Pro Color](pocketbook-634k3.md) | `pocketbook-634k3` |
 | [PocketBook Era](pocketbook-700.md) | `pocketbook-700` |
 | [PocketBook Era Color](pocketbook-700k3.md) | `pocketbook-700k3` |
 | [PocketBook InkPad 3](pocketbook-740.md) | `pocketbook-740` |

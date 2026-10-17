@@ -42,7 +42,7 @@ def build_raw_image(
         pocketbook.build(output, artifacts, model=builder)
     elif builder in pocketbook_b288.BOARDS:
         pocketbook_b288.build(output, artifacts, model=builder)
-    elif builder in {"pocketbook-700k3", "pocketbook-743k3"}:
+    elif builder in {"pocketbook-634k3", "pocketbook-700k3", "pocketbook-743k3"}:
         from . import pocketbook_b300
         pocketbook_b300.build(output, artifacts, model=builder)
     elif builder == "pocketbook-627":

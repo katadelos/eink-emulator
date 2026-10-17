@@ -42,12 +42,19 @@ IMPORT_FILES = {
     ord("e"): ("applications", "applications.img"),
 }
 BOARDS = {
+    "pocketbook-634k3": Board(b"PocketBook634k3", 88, "", 0xa6c12675, True,
+                             ("Photo", "Downloads"), True, offline_factory=True),
     "pocketbook-700k3": Board(b"PocketBook700k3", 87, "", 0xa6c12675, True,
                              ("Photo", "Downloads"), True, offline_factory=True),
     "pocketbook-743k3": Board(b"PocketBook743k3", 86, "", 0xa6c12675, True,
                              ("Photo", "Downloads"), True, offline_factory=True),
 }
 IOC_PATCHES = {
+    "pocketbook-634k3": IOCPatch("6.10.2544", 216257638, 128698,
+        bytes.fromhex("3b672bf1"), bytes.fromhex("38672bf1"),
+        file_offset=0xeea8, compression=3, literal=bytes.fromhex(
+            "d26035afbc52e488945958f3b0e1f42d3b672bf1"
+            "d45a7bab6fcda81710945234f33534a5")),
     "pocketbook-700k3": IOCPatch("6.10.2359", 216251226, 128696,
         bytes.fromhex("63f43e04"), bytes.fromhex("60f43e04"),
         file_offset=0xeea8, compression=3, literal=bytes.fromhex(
@@ -60,6 +67,8 @@ IOC_PATCHES = {
             "a0cc2c841f16a679a470b8b1372d9045")),
 }
 FACTORY_MONITORS = {
+    b"PocketBook634k3": FactoryMonitor(1079104, 0x10493c, 0, 0x1000,
+                                       0x104e50, 0x158ac),
     # This release needs one file-alignment page inserted before its RW tail.
     # Its virtual addresses and native instructions retain their original values.
     b"PocketBook700k3": FactoryMonitor(1079104 + 4096, 0x104da4, 0, 0x1000,
