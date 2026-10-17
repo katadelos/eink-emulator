@@ -319,6 +319,9 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     command = [str(qemu_system(definition))]
     if accel := definition.get("accel"):
         command.extend(["-accel", accel])
+    if icount := definition.get("icount"):
+        # Keep short stock clockevent deadlines tied to guest execution.
+        command.extend(["-icount", icount])
     command.extend([
         "-name", args.name,
         "-machine", ",".join(machine_options),

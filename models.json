@@ -461,7 +461,8 @@
   "kindle-oasis-3": {
     "description": "Kindle Oasis 3",
     "qemu_machine": "imx7d-stinger",
-    "accel": "tcg,thread=multi",
+    "accel": "tcg,thread=single",
+    "icount": "shift=auto,sleep=on",
     "memory": "512M",
     "builder": "stinger",
     "rootfs_package": "com.lab126.eink.stinger.os",
