@@ -58,6 +58,7 @@
     "qemu_machine": "mt8110-bellatrix",
     "memory": "1G",
     "builder": "bellatrix",
+    "ftvdb_package": "com.lab126.eink.rossini.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -104,6 +105,7 @@
     "qemu_machine": "mt8110-bellatrix",
     "memory": "512M",
     "builder": "bellatrix",
+    "ftvdb_package": "com.lab126.eink.malbec.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -151,6 +153,7 @@
     "qemu_machine": "mt8110-bellatrix",
     "memory": "512M",
     "builder": "bellatrix",
+    "ftvdb_package": "com.lab126.eink.cava.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -211,6 +214,7 @@
     "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
     "memory": "4G",
     "builder": "mt8115",
+    "ftvdb_package": "com.lab126.eink.calvados.os",
     "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platcs8",
     "drive_index": 0,
@@ -270,6 +274,7 @@
     "device_profiles": ["production", "dvt", "evt", "hvt1.1"],
     "memory": "4G",
     "builder": "mt8115",
+    "ftvdb_package": "com.lab126.eink.paloma.os",
     "rootfs_overrides": ["bellatrix3"],
     "image_platform": "platpa6",
     "drive_index": 0,
@@ -315,6 +320,7 @@
     "qemu_machine": "mt8113-bellatrix4",
     "memory": "2G",
     "builder": "bellatrix",
+    "ftvdb_package": "com.lab126.eink.seabreeze.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -346,6 +352,15 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
+    },
+    "rootfs_package": "com.lab126.eink.seabreeze.os",
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix4/u-boot.bin",
+      "bl2": "mt8110_bellatrix4/bl2.img",
+      "tee": "mt8110_bellatrix4/tee.img",
+      "quickboot": "mt8110_bellatrix4/quickboot.img",
+      "boot_image": "mt8110_bellatrix4/boot.img",
+      "rootfs": "rootfs.img.gz"
     }
   },
   "kindle-paperwhite-6": {
@@ -354,6 +369,7 @@
     "qemu_machine": "mt8113-bellatrix4",
     "memory": "2G",
     "builder": "bellatrix",
+    "ftvdb_package": "com.lab126.eink.sangria.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -384,6 +400,15 @@
       "quickboot": ["quickboot.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
+    },
+    "rootfs_package": "com.lab126.eink.sangria.os",
+    "recovery_import": {
+      "bootloader": "mt8110_bellatrix4/u-boot.bin",
+      "bl2": "mt8110_bellatrix4/bl2.img",
+      "tee": "mt8110_bellatrix4/tee.img",
+      "quickboot": "mt8110_bellatrix4/quickboot.img",
+      "boot_image": "mt8110_bellatrix4/boot.img",
+      "rootfs": "rootfs.img.gz"
     }
   },
   "kindle-oasis-1": {
@@ -391,6 +416,7 @@
     "qemu_machine": "imx6sl-duet",
     "memory": "512M",
     "builder": "oasis-duet",
+    "ftvdb_package": "com.lab126.eink.whisky.os",
     "rootfs_overrides": ["oasis"],
     "drive_index": 1,
     "network": {
@@ -427,6 +453,7 @@
     "accel": "tcg,thread=multi",
     "memory": "512M",
     "builder": "oasis-zelda",
+    "ftvdb_package": "com.lab126.eink.cognac.os",
     "rootfs_overrides": ["oasis"],
     "drive_index": 2,
     "network": {
@@ -464,6 +491,7 @@
     "icount": "shift=auto,sleep=on",
     "memory": "512M",
     "builder": "stinger",
+    "ftvdb_package": "com.lab126.eink.stinger.os",
     "rootfs_package": "com.lab126.eink.stinger.os",
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 2,
@@ -501,6 +529,8 @@
     "machine_properties": {"board": "icewine"},
     "memory": "512M",
     "builder": "wario",
+    "ftvdb_package": "com.lab126.eink.icewine.os",
+    "rootfs_package": "com.lab126.eink.icewine.os",
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
@@ -517,6 +547,11 @@
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
       "rootfs": ["rootfs.img"]
+    },
+    "recovery_import": {
+      "bootloader": "imx60_wario/u-boot.bin",
+      "kernel": "imx60_wario/uImage",
+      "rootfs": "rootfs.img.gz"
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
@@ -528,6 +563,8 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "256M",
     "builder": "wario",
+    "ftvdb_package": "com.lab126.eink.bourbon.os",
+    "rootfs_package": "com.lab126.eink.bourbon.os",
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
@@ -544,6 +581,11 @@
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],
       "rootfs": ["rootfs.img"]
+    },
+    "recovery_import": {
+      "bootloader": "imx60_wario/u-boot.bin",
+      "kernel": "imx60_wario/uImage",
+      "rootfs": "rootfs.img.gz"
     },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
@@ -556,6 +598,7 @@
     "qemu_machine": "imx6sl-eanab",
     "memory": "512M",
     "builder": "heisenberg",
+    "ftvdb_package": "com.lab126.eink.eanab.os",
     "rootfs_overrides": ["heisenberg"],
     "drive_index": 1,
     "network": {
@@ -583,6 +626,7 @@
     "qemu_machine": "imx6sll-jaeger",
     "memory": "512M",
     "builder": "jaeger",
+    "ftvdb_package": "com.lab126.eink.jaeger.os",
     "rootfs_package": "com.lab126.eink.jaeger.os",
     "rootfs_overrides": ["oasis", "rex", "bellatrix"],
     "drive_index": 1,
@@ -642,6 +686,8 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "256M",
     "builder": "wario",
+    "ftvdb_package": "com.lab126.eink.pinot.os",
+    "rootfs_package": "com.lab126.eink.pinot.os",
     "rootfs_overrides": ["wario"],
     "wario_layout": "pinot",
     "drive_index": 1,
@@ -659,6 +705,11 @@
       "kernel": ["uImage"],
       "rootfs": ["rootfs.img"]
     },
+    "recovery_import": {
+      "bootloader": "imx60_wario/u-boot.bin",
+      "kernel": "imx60_wario/uImage",
+      "rootfs": "rootfs.img.gz"
+    },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"]
@@ -670,6 +721,8 @@
     "qemu_machine": "imx6sl-wario",
     "memory": "512M",
     "builder": "wario",
+    "ftvdb_package": "com.lab126.eink.muscat.os",
+    "rootfs_package": "com.lab126.eink.muscat.os",
     "rootfs_overrides": ["wario"],
     "wario_layout": "wario",
     "drive_index": 1,
@@ -687,6 +740,11 @@
       "kernel": ["uImage"],
       "rootfs": ["rootfs.img"]
     },
+    "recovery_import": {
+      "bootloader": "imx60_wario/u-boot.bin",
+      "kernel": "imx60_wario/uImage",
+      "rootfs": "rootfs.img.gz"
+    },
     "optional_firmware": {
       "diagnostics_kernel": ["diags-uImage"],
       "diagnostics": ["diags.img"]
@@ -698,6 +756,8 @@
     "qemu_machine": "imx6sll-rex",
     "memory": "512M",
     "builder": "rex",
+    "ftvdb_package": "com.lab126.eink.moonshine.os",
+    "rootfs_package": "com.lab126.eink.moonshine.os",
     "drive_index": 1,
     "network": {
       "usb": {
@@ -715,6 +775,13 @@
       "rootfs": ["rootfs.img"],
       "storage_bios": ["s-bios.bin"],
       "falcon_bios": ["bios.bin"]
+    },
+    "recovery_import": {
+      "bootloader": "imx6sll_rex/u-boot.bin",
+      "boot_image": "imx6sll_rex/boot.img",
+      "rootfs": "rootfs.img.gz",
+      "storage_bios": "imx6sll_rex/s-bios.bin",
+      "falcon_bios": "imx6sll_rex/bios.bin"
     }
   },
   "kindle-4": {
@@ -806,6 +873,7 @@
     "qemu_machine": "mt8113-bellatrix3",
     "memory": "1G",
     "builder": "bellatrix3",
+    "ftvdb_package": "com.lab126.eink.barolo.os",
     "drive_index": 0,
     "network": {
       "usb": {
@@ -856,6 +924,7 @@
     "qemu_machine": "mt8113-bellatrix3",
     "memory": "1G",
     "builder": "bellatrix3",
+    "ftvdb_package": "com.lab126.eink.pisco.os",
     "drive_index": 0,
     "network": {
       "usb": {

@@ -13,11 +13,14 @@ import socket
 import subprocess
 import sys
 import tempfile
+import urllib.parse
 from contextlib import nullcontext
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
+from . import ftvdb, kobo
 from .firmware import import_recovery
 from .images import addons, build_raw_image, pocketbook, pocketbook_b288, tolino
 from .qemu import build as build_qemu
@@ -35,9 +38,11 @@ from .storage import (
 ROOT = Path(__file__).resolve().parent.parent
 CATALOGUE = ROOT / "models.json"
 FIRMWARE_ROOT = ROOT / "firmware"
+VERSIONS_ROOT = FIRMWARE_ROOT / "versions"
 MACHINES_ROOT = ROOT / "machines"
 BUILD_ROOT = ROOT / "build"
 BASES_ROOT = BUILD_ROOT / "images"
+DOWNLOADS_ROOT = BUILD_ROOT / "downloads"
 QEMU_BUILD = ROOT / "qemu" / "build"
 QEMU_SYSTEMS = {
     "arm": QEMU_BUILD / "qemu-system-arm",
@@ -74,9 +79,15 @@ def validate_name(name: str) -> None:
         fail("machine name must start with a lowercase letter or digit and contain only lowercase letters, digits, '-' or '_'")
 
 
-def selected_artifacts(model: str, definition: dict[str, Any], *, required: bool) -> dict[str, Path]:
+def firmware_directory(model: str, version: str | None = None) -> Path:
+    return VERSIONS_ROOT / model / version if version else FIRMWARE_ROOT / model
+
+
+def selected_artifacts(
+    model: str, definition: dict[str, Any], *, required: bool, version: str | None = None,
+) -> dict[str, Path]:
     group = "firmware" if required else "optional_firmware"
-    directory = FIRMWARE_ROOT / model
+    directory = firmware_directory(model, version)
     selected: dict[str, Path] = {}
     missing: list[str] = []
     for role, candidates in definition.get(group, {}).items():
@@ -88,14 +99,92 @@ def selected_artifacts(model: str, definition: dict[str, Any], *, required: bool
         elif required:
             missing.append(" or ".join(str(directory / candidate) for candidate in candidates))
     if missing:
-        fail("missing required firmware:\n  " + "\n  ".join(missing) + "\nSee docs/firmware.md.")
+        hint = (
+            f"Download it again with: ./eink download --model {model} {version}"
+            if version else "See docs/firmware.md."
+        )
+        fail("missing required firmware:\n  " + "\n  ".join(missing) + "\n" + hint)
     return selected
 
 
-def firmware_for(model: str, definition: dict[str, Any]) -> dict[str, Path]:
-    return selected_artifacts(model, definition, required=True) | selected_artifacts(
-        model, definition, required=False
+def firmware_for(model: str, definition: dict[str, Any], version: str | None = None) -> dict[str, Path]:
+    return selected_artifacts(model, definition, required=True, version=version) | selected_artifacts(
+        model, definition, required=False, version=version
     )
+
+
+@dataclass(frozen=True)
+class FirmwareSource:
+    """Where a model's downloadable releases are listed and how they import."""
+
+    name: str
+    package: str
+    releases: Callable[[], list[ftvdb.Release]]
+    install: Callable[[Path, Path], object]
+
+
+def downloadable(definition: dict[str, Any]) -> bool:
+    return definition["builder"] == "tolino" or bool(
+        definition.get("ftvdb_package") and "recovery_import" in definition
+    )
+
+
+def firmware_source(model: str, definition: dict[str, Any]) -> FirmwareSource:
+    if definition["builder"] == "tolino":
+        # One update serves every Tolino; the importer picks the model's kernel.
+        return FirmwareSource(
+            "Kobo", "tolino", kobo.releases,
+            lambda package, destination: tolino.import_update(
+                package, destination, profile=definition["image_profile"],
+            ),
+        )
+    if not downloadable(definition):
+        supported = sorted(name for name, value in load_catalogue().items() if downloadable(value))
+        fail(f"firmware downloads are not supported for {model} (supported: {', '.join(supported)})")
+    package = definition["ftvdb_package"]
+    return FirmwareSource(
+        "FTVDB", package, lambda: ftvdb.releases(package),
+        lambda source, destination: import_recovery(
+            package=source, destination=destination, definition=definition,
+        ),
+    )
+
+
+def resolve_release(model: str, source: FirmwareSource, version: str) -> ftvdb.Release:
+    available = source.releases()
+    if not available:
+        fail(f"{source.name} lists no firmware for {model}")
+    if version == "latest":
+        return available[-1]
+    for release in available:
+        if release.version == version:
+            return release
+    fail(
+        f"{source.name} has no {version} release for {model} (available: "
+        + ", ".join(release.version for release in reversed(available)) + ")"
+    )
+
+
+def install_version(model: str, definition: dict[str, Any], version: str) -> str:
+    """Return a concrete installed firmware version, downloading it if needed."""
+    source = firmware_source(model, definition)
+    if version != "latest":
+        if not ftvdb.valid_version(version):
+            fail(f"invalid firmware version '{version}' (expected a version such as 5.20.1, or 'latest')")
+        if firmware_directory(model, version).is_dir():
+            return version
+    release = resolve_release(model, source, version)
+    destination = firmware_directory(model, release.version)
+    if destination.is_dir():
+        if version == "latest":
+            print(f"latest {definition['description']} firmware is {release.version} (already installed)")
+        return release.version
+    suffix = Path(urllib.parse.urlparse(release.urls[0]).path).suffix or ".bin"
+    cached = ftvdb.fetch(release, DOWNLOADS_ROOT / f"{source.package}-{release.version}{suffix}")
+    print(f"Importing firmware {release.version} into {destination.relative_to(ROOT)}", flush=True)
+    source.install(cached, destination)
+    cached.unlink()
+    return release.version
 
 
 def digest_files(definition: dict[str, Any], artifacts: dict[str, Path]) -> str:
@@ -200,10 +289,11 @@ def command_create(args: argparse.Namespace) -> None:
     if addon_plan:
         definition["addons"] = addon_plan
     profile = parse_profile(args.profile, definition)
-    artifacts = firmware_for(args.model, definition)
     target = machine_directory(args.name)
     if target.exists():
         fail(f"machine already exists: {args.name}")
+    version = install_version(args.model, definition, args.firmware) if args.firmware else None
+    artifacts = firmware_for(args.model, definition, version)
     base, fingerprint = ensure_base(args.model, definition, artifacts)
 
     MACHINES_ROOT.mkdir(parents=True, exist_ok=True)
@@ -225,12 +315,14 @@ def command_create(args: argparse.Namespace) -> None:
             manifest["addons"] = addon_plan
         if profile:
             manifest["profile"] = profile
+        if version:
+            manifest["firmware_version"] = version
         write_json(temporary / "machine.json", manifest)
         temporary.replace(target)
     finally:
         if temporary.exists():
             shutil.rmtree(temporary)
-    print(f"created {args.name} ({definition['description']})")
+    print(f"created {args.name} ({definition['description']}" + (f", firmware {version})" if version else ")"))
     print(f"run it with: ./eink run {args.name}")
     if definition["network"].get("usb", {}).get("service") == "ssh":
         print(f"SSH over USB: ssh -i {shlex.quote(str(LOGIN_KEY))} -p 2222 root@127.0.0.1")
@@ -303,7 +395,10 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             if role in runtime_roles
         },
     }
-    artifacts = firmware_for(model, runtime_definition)
+    version = manifest.get("firmware_version")
+    if version is not None and not (isinstance(version, str) and ftvdb.valid_version(version)):
+        fail(f"invalid firmware version in machine manifest: {args.name}")
+    artifacts = firmware_for(model, runtime_definition, version)
     disk = directory / "disk.qcow2"
     if not disk.is_file():
         fail(f"machine disk is missing: {disk}")
@@ -571,11 +666,12 @@ def command_list(_: argparse.Namespace) -> None:
                 disk = directory / "disk.qcow2"
                 state = "ready" if disk.is_file() and (ROOT / manifest["base"]).is_file() else "incomplete"
                 allocated = human_size(allocated_size(disk)) if disk.is_file() else "-"
-                rows.append((directory.name, str(manifest.get("model", "?")), state, allocated, str(manifest.get("created", "-"))[:10]))
+                rows.append((directory.name, str(manifest.get("model", "?")), str(manifest.get("firmware_version", "-")),
+                             state, allocated, str(manifest.get("created", "-"))[:10]))
             except (OSError, KeyError, json.JSONDecodeError):
-                rows.append((directory.name, "?", "invalid", "-", "-"))
+                rows.append((directory.name, "?", "-", "invalid", "-", "-"))
     if rows:
-        print_table(("NAME", "MODEL", "STATE", "OVERLAY", "CREATED"), rows)
+        print_table(("NAME", "MODEL", "FIRMWARE", "STATE", "OVERLAY", "CREATED"), rows)
     else:
         print("No machines. Create one with: ./eink create NAME --model MODEL")
     print_storage_summary()
@@ -754,6 +850,43 @@ def command_firmware(_: argparse.Namespace) -> None:
                 expected = " | ".join(str(Path("firmware") / model / candidate) for candidate in candidates)
                 rows.append((model, role, "required" if required else "optional", status, expected))
     print_table(("MODEL", "ARTIFACT", "NEED", "STATUS", "PATH"), rows)
+    downloaded = [
+        (directory.parent.name, directory.name, str(directory.relative_to(ROOT)))
+        for directory in sorted(VERSIONS_ROOT.glob("*/[!.]*")) if directory.is_dir()
+    ] if VERSIONS_ROOT.is_dir() else []
+    if downloaded:
+        print("\nDownloaded firmware versions (use with create --firmware VERSION):")
+        print_table(("MODEL", "VERSION", "PATH"), downloaded)
+
+
+def installed_versions(model: str) -> set[str]:
+    directory = VERSIONS_ROOT / model
+    return {path.name for path in directory.glob("[!.]*") if path.is_dir()} if directory.is_dir() else set()
+
+
+def command_versions(args: argparse.Namespace) -> None:
+    definition = model_definition(args.model)
+    source = firmware_source(args.model, definition)
+    available = source.releases()
+    installed = installed_versions(args.model)
+    rows = [
+        (release.version, str(release.code), release.uploaded or "-",
+         "installed" if release.version in installed else "-")
+        for release in reversed(available)
+    ]
+    if rows:
+        print_table(("VERSION", "BUILD", "RELEASED", "STATUS"), rows)
+    else:
+        print(f"{source.name} lists no firmware for {args.model}.")
+    for version in sorted(installed - {release.version for release in available}):
+        print(f"{version}: installed, no longer listed by {source.name}")
+
+
+def command_download(args: argparse.Namespace) -> None:
+    definition = model_definition(args.model)
+    version = install_version(args.model, definition, args.version)
+    print(f"{definition['description']} firmware {version}: {firmware_directory(args.model, version).relative_to(ROOT)}")
+    print(f"create a machine with: ./eink create NAME --model {args.model} --firmware {version}")
 
 
 def command_import(args: argparse.Namespace) -> None:
@@ -809,10 +942,23 @@ def parser() -> argparse.ArgumentParser:
     import_package.add_argument("--model", required=True)
     import_package.set_defaults(handler=command_import)
 
+    versions = commands.add_parser("versions", help="list firmware versions available for download")
+    versions.add_argument("--model", required=True)
+    versions.set_defaults(handler=command_versions)
+
+    download = commands.add_parser("download", help="download and import a firmware version from FTVDB or Kobo")
+    download.add_argument("version", help="firmware version, such as 5.20.1, or 'latest'")
+    download.add_argument("--model", required=True)
+    download.set_defaults(handler=command_download)
+
     create = commands.add_parser("create", help="create a persistent machine")
     create.add_argument("name")
     create.add_argument("--model", required=True)
     create.add_argument("--profile", help="hardware profile; required for models that expose profiles")
+    create.add_argument(
+        "--firmware", metavar="VERSION",
+        help="use a specific firmware version (or 'latest'), downloading it if needed",
+    )
     create.add_argument(
         "--sideloaded", action="store_true",
         help="initialize Kobo Aura HD, Forma or Elipsa 2E in offline sideloaded mode, skipping setup",
@@ -870,7 +1016,7 @@ def main() -> None:
         extra = extra[1:]
     args.qemu_args = extra
     try:
-        changes_storage = args.command in {"create", "delete", "reset"} or (
+        changes_storage = args.command in {"create", "delete", "reset", "download"} or (
             args.command == "images" and (args.prune or args.compact)
         )
         with storage_lock(BUILD_ROOT) if changes_storage else nullcontext():

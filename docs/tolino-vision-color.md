@@ -13,14 +13,24 @@ Firmware 5.12.232736 boots Linux 4.9.77 and the stock Tolino setup interface.
 ## Firmware
 
 Install `zstd` alongside the [host requirements](../README.md#host-requirements).
-Import an extracted Tolino update directory:
+`--firmware` downloads a pinned release from Kobo's CDN and imports it; see
+[downloads](firmware.md#download-a-firmware-version):
+
+```sh
+./eink create vision-color --model tolino-vision-color --firmware 5.12.232736
+```
+
+To use an update you already have, import it instead, then create without
+`--firmware`:
 
 ```sh
 ./eink import /path/to/update --model tolino-vision-color
 ```
 
-An update tar archive is also accepted. The importer selects these components
-and decompresses them into `firmware/tolino-vision-color/`:
+The importer accepts an extracted update directory, the update tar or Kobo's
+zip-wrapped update, and checks each file against the update's `sha2-256sums`.
+It selects these components and decompresses them into
+`firmware/tolino-vision-color/`:
 
 | Update component | Imported file |
 | --- | --- |

@@ -5,12 +5,15 @@ It skips account setup and opens Home without registration.
 
 ## Setup
 
-Supply the files listed by `./eink firmware`:
+Supply the files listed by `./eink firmware`, or
+[download a release](firmware.md#download-a-firmware-version):
 
 ```sh
-./eink create pw12 --model kindle-paperwhite-6 --profile production
+./eink create pw12 --model kindle-paperwhite-6 --profile production --firmware 5.20.1
 ./eink run pw12
 ```
+
+5.18.6 and 5.20.1 have been tested.
 
 Click the display to tap. Touch passes through the emulated FT5536G controller
 and stock kernel driver. See [hardware profiles](firmware.md#hardware-profiles)

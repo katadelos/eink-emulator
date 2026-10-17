@@ -21,30 +21,37 @@ on all three boards.
 ## Firmware
 
 Install `zstd` alongside the [host requirements](../README.md#host-requirements).
-Download `update.tar` for Shine 5 / Shine Color from
-[Tolino's update page](https://mytolino.com/software-updates-for-tolino-ereaders/).
-The supported input is firmware
-[5.12.232736](https://ereaderfiles.kobo.com/firmwares/kobo12/Oct2025/tolino-qt6-update-5.12.232736/update.tar).
+`--firmware` downloads a pinned release from Kobo's CDN and imports it; see
+[downloads](firmware.md#download-a-firmware-version):
 
 ```sh
-./eink import /path/to/update.tar --model tolino-shine-5
-./eink create shine-5 --model tolino-shine-5
+./eink versions --model tolino-shine-5
+./eink create shine-5 --model tolino-shine-5 --firmware 5.12.232736
 ./eink run shine-5
 ```
 
 For the color model:
 
 ```sh
-./eink import /path/to/update.tar --model tolino-shine-color
-./eink create shine-color --model tolino-shine-color
+./eink create shine-color --model tolino-shine-color --firmware 5.12.232736
 ./eink run shine-color
 ```
 
 Use `tolino-shine-5-tpv` and an instance name such as `shine-5-tpv` for the
-TPV revision. The same archive contains all three kernels. The selected model
+TPV revision. One update contains all three kernels. The selected model
 determines which kernel is imported; U-Boot, BL2, TEE and rootfs are shared.
-An extracted update directory is also accepted. Import refuses to overwrite
-an existing firmware directory.
+
+To use a file you already have, import it into `firmware/MODEL/` and create
+without `--firmware`:
+
+```sh
+./eink import /path/to/update.tar --model tolino-shine-5
+./eink create shine-5 --model tolino-shine-5
+```
+
+The importer accepts the update tar, Kobo's zip-wrapped update or an
+extracted update directory, and checks each file against the update's
+`sha2-256sums`. It refuses to overwrite an existing firmware directory.
 
 ## Controls and networking
 

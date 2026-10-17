@@ -7,6 +7,7 @@ explicit emulator fixtures, not a recovered physical-device image.
 from __future__ import annotations
 
 import gzip
+import hashlib
 import re
 import shutil
 import struct
@@ -14,8 +15,10 @@ import subprocess
 import tarfile
 import tempfile
 import uuid
+import zipfile
 import zlib
 from pathlib import Path
+from typing import BinaryIO
 
 from . import bellatrix, bellatrix_waveform, rootfs
 from .common import atomic_output
@@ -32,6 +35,8 @@ IMPORT_FILES = {
     "bl2": ("bl2.img", "bl2.img"),
     "tee": ("tee.img", "tee.img"),
 }
+UPDATE_SOC_DIRECTORY = "aud8113tp1/"
+ZSTD_MAGIC = b"\x28\xb5\x2f\xfd"
 SPA_FIELDS = {
     1: 12,   # No page-button keypad
     7: 14,   # Cypress CYTT21X touch
@@ -97,8 +102,105 @@ def import_files(profile: str) -> dict[str, tuple[str, str]]:
     return IMPORT_FILES | {"boot_image": (f"{profile}/kernel.img", "kernel.img")}
 
 
+def member_names(relative: str) -> tuple[str, ...]:
+    # 5.13 moved the shared boot files into the SoC's directory.
+    return (relative, UPDATE_SOC_DIRECTORY + relative)
+
+
+def read_manifest(contents: bytes) -> dict[str, str]:
+    """Parse the update's zstd-compressed sha2-256sums."""
+    if contents.startswith(ZSTD_MAGIC):
+        contents = subprocess.run(
+            [shutil.which("zstd") or "zstd", "--decompress", "--stdout", "--quiet"],
+            input=contents, check=True, capture_output=True,
+        ).stdout
+    manifest = {}
+    for line in contents.decode().splitlines():
+        digest, _, name = line.partition("\t")
+        if name:
+            manifest[name.removeprefix("./")] = digest.lower()
+    return manifest
+
+
+def verify_manifest(manifest: dict[str, str], digests: dict[str, str]) -> None:
+    for name, digest in digests.items():
+        if manifest.get(name) != digest:
+            raise SystemExit(f"Tolino update {name} does not match its sha2-256sums entry")
+
+
+def update_directory_files(
+    directory: Path, files: dict[str, tuple[str, str]],
+) -> dict[str, Path]:
+    sources: dict[str, Path] = {}
+    digests: dict[str, str] = {}
+    for relative, _ in files.values():
+        found = [name for name in member_names(relative) if (directory / name).is_file()]
+        if len(found) != 1:
+            raise SystemExit(f"Tolino update is missing {relative}")
+        sources[relative] = directory / found[0]
+        digest = hashlib.sha256()
+        with sources[relative].open("rb") as source:
+            for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                digest.update(chunk)
+        digests[found[0]] = digest.hexdigest()
+    if (directory / "sha2-256sums").is_file():
+        verify_manifest(read_manifest((directory / "sha2-256sums").read_bytes()), digests)
+    return sources
+
+
+def open_update(package: Path) -> BinaryIO:
+    """Open an update tar, unwrapping the single-member zip Kobo serves."""
+    if zipfile.is_zipfile(package):
+        archive = zipfile.ZipFile(package)
+        if archive.namelist() != ["update.tar"]:
+            raise SystemExit("Tolino update zip does not contain only update.tar")
+        return archive.open("update.tar")
+    return package.open("rb")
+
+
+def extract_update(
+    package: Path, files: dict[str, tuple[str, str]], directory: Path,
+) -> dict[str, Path]:
+    """Copy the named regular files out of an update and verify them."""
+    wanted = {name: relative for relative, _ in files.values() for name in member_names(relative)}
+    sources: dict[str, Path] = {}
+    digests: dict[str, str] = {}
+    manifest = None
+    # Stream the archive once; never extract archive paths, symlinks, device
+    # nodes or the vendor's executable scripts.
+    with open_update(package) as stream, tarfile.open(fileobj=stream, mode="r|") as archive:
+        for member in archive:
+            name = member.name.removeprefix("./")
+            if not member.isfile():
+                continue
+            if name == "sha2-256sums":
+                manifest = read_manifest(archive.extractfile(member).read())
+                continue
+            relative = wanted.get(name)
+            if relative is None:
+                continue
+            if relative in sources:
+                raise SystemExit(f"Tolino update contains more than one {relative}")
+            target = directory / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            digest = hashlib.sha256()
+            with archive.extractfile(member) as source, target.open("wb") as output:
+                for chunk in iter(lambda: source.read(1024 * 1024), b""):
+                    digest.update(chunk)
+                    output.write(chunk)
+            sources[relative] = target
+            digests[name] = digest.hexdigest()
+    for relative, _ in files.values():
+        if relative not in sources:
+            raise SystemExit(f"Tolino update is missing {relative}")
+    if manifest is None:
+        raise SystemExit("Tolino update is missing sha2-256sums")
+    verify_manifest(manifest, digests)
+    return sources
+
+
 def import_update(package: Path, destination: Path, *, profile: str) -> dict[str, Path]:
-    """Install decompressed stock inputs from an update directory or tar file."""
+    """Install decompressed stock inputs from an update directory, tar or zip."""
     files = import_files(profile)
     zstd = shutil.which("zstd")
     if not zstd:
@@ -114,29 +216,12 @@ def import_update(package: Path, destination: Path, *, profile: str) -> dict[str
         workspace = Path(temporary)
         prepared = workspace / "prepared"
         prepared.mkdir()
-        extracted = workspace / "compressed"
         if package.is_dir():
-            extracted = package
+            sources = update_directory_files(package, files)
         else:
-            extracted.mkdir()
-            # Only copy the five named regular files; never extract archive
-            # paths, symlinks, device nodes or the vendor's executable scripts.
-            with tarfile.open(package, "r:*") as archive:
-                members = {member.name.removeprefix("./"): member
-                           for member in archive.getmembers()}
-                for relative, _ in files.values():
-                    member = members.get(relative)
-                    if member is None or not member.isfile():
-                        raise SystemExit(f"Tolino update is missing {relative}")
-                    source = archive.extractfile(member)
-                    target = extracted / relative
-                    target.parent.mkdir(parents=True, exist_ok=True)
-                    with source, target.open("wb") as output:
-                        shutil.copyfileobj(source, output)
+            sources = extract_update(package, files, workspace / "compressed")
         for relative, output_name in files.values():
-            source = extracted / relative
-            if not source.is_file():
-                raise SystemExit(f"Tolino update is missing {relative}")
+            source = sources[relative]
             subprocess.run([
                 zstd, "--decompress", "--quiet", "--sparse", str(source),
                 "-o", str(prepared / output_name),

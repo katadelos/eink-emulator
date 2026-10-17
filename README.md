@@ -55,6 +55,9 @@ with a [Paperwhite 5 recovery package](docs/paperwhite-5.md):
 ./eink run my-reader
 ```
 
+Many Kindle models can skip the manual step and download firmware for you;
+see [Firmware versions](#firmware-versions).
+
 `create` builds QEMU if needed and prepares the instance disk. On macOS,
 `run` opens a Cocoa window. Click to tap; serial uses the launching terminal.
 To reopen the saved instance, use `run` again.
@@ -67,6 +70,33 @@ Kindle 4 through Oasis 3 also support `create --mrpi` to pre-install KUAL,
 MRPI and their jailbreak prerequisites. Use `--kual` or `--jailbreak` for a
 smaller setup; see [Kindle add-ons and pinned downloads](docs/kindle-addons.md).
 New instances in this family start at Home with offline setup already prepared.
+
+## Firmware versions
+
+Basic 2014/2016/2019/2022/2024, Colorsoft, Voyage, Oasis 1–3, Paperwhite 2–6,
+Scribe 1–3 and Scribe Colorsoft can fetch any release listed by
+[FTVDB](https://ftvdb.com/kindle/firmware/) directly from Amazon. The Tolino
+models fetch pinned releases from Kobo. Each instance is pinned to one
+version, so several releases can be installed and run side by side:
+
+```sh
+./eink versions --model kindle-paperwhite-6       # Releases available, newest first.
+./eink create pw6-old --model kindle-paperwhite-6 --profile production --firmware 5.18.6
+./eink create pw6-new --model kindle-paperwhite-6 --profile production --firmware latest
+./eink list                                       # The FIRMWARE column shows each pin.
+```
+
+`--firmware` downloads and imports the release on first use; later instances
+reuse it offline. `./eink download --model MODEL VERSION` fetches a release
+without creating an instance, and `./eink firmware` lists those already
+downloaded. Downloads are MD5-checked and need
+[KindleTool](https://github.com/NiLuJe/KindleTool). Without `--firmware`,
+`create` uses the manually supplied files in `firmware/MODEL/`.
+
+The guest compatibility changes target recent firmware. Older releases may
+need further builder changes; `create` stops with an error naming the file
+it could not patch. See [firmware setup](docs/firmware.md#download-a-firmware-version)
+for details and the supported models.
 
 ## Everyday use
 

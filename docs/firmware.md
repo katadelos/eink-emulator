@@ -5,6 +5,65 @@ Supply firmware from your device or a recovery package for your model.
 Firmware is not distributed with the repository; imported files are ignored
 by Git.
 
+## Download a firmware version
+
+Most Kindle models and the Tolino models can fetch a specific firmware release
+from the vendor; `./eink versions --model MODEL` says whether a model can.
+Kindles use the version list and checksums published by
+[FTVDB](https://ftvdb.com/kindle/firmware/) and download from Amazon:
+
+```sh
+./eink versions --model kindle-paperwhite-6
+./eink create pw12-5186 --model kindle-paperwhite-6 --profile production --firmware 5.18.6
+```
+
+`--firmware VERSION` downloads and imports the release if it is not already
+present, then pins the new machine to it; `run` uses that version's boot
+files. `--firmware latest` selects the newest listed release. Different
+machines may use different versions. Without `--firmware`, `create` uses the
+manually supplied files in `firmware/MODEL/` as before.
+
+To fetch a release without creating a machine:
+
+```sh
+./eink download --model kindle-paperwhite-6 5.20.1
+```
+
+Kindle downloads are verified against FTVDB's MD5 checksum and imported with
+KindleTool into `firmware/versions/MODEL/VERSION/`. Interrupted or stalled
+transfers resume where they stopped, both within a run and on the next run.
+The package is cached in `build/downloads/` until the import succeeds, so a
+failed import does not download it again. Downloads are available for every
+Kindle in the import table below except Basic 2026, whose firmware FTVDB does
+not list.
+
+The four Tolino models download from Kobo's firmware CDN. Kobo's update
+service publishes no version history or checksums, so the supported release,
+5.12.232736, is pinned with a SHA-256 checksum in
+[`eink_emulator/kobo.py`](../eink_emulator/kobo.py). The importer also checks
+each extracted file against the update's own `sha2-256sums`. Later releases
+are not supported: 5.13 removed the OpenSSH server the builder uses for USB
+SSH, and releases from 5.15 ship a recovery filesystem instead of `rootfs.img`.
+
+The newest releases of the models added to downloads have been booted to Home
+with Wi-Fi joined: Paperwhite 2 and Basic 2014 5.12.2.2, Voyage 5.13.6,
+Paperwhite 3 5.16.2.1.1 and Paperwhite 4 5.18.1.1.1.
+
+These Kindle and Kobo models have no public full firmware and still need files
+from a device:
+
+| Models | Reason |
+| --- | --- |
+| Kindle 4 | FTVDB lists only incremental updates |
+| Kindle Touch, Paperwhite 1 | Updates contain the kernel and rootfs but not U-Boot |
+| Kobo Mini, Touch | The builder needs a complete internal-card image |
+| Kobo Glo, Aura HD, Glo HD, Clara HD, Forma, Elipsa 2E | Updates omit the boot region, recovery partition and factory data |
+| Basic 2026 | No update has been published |
+
+The guest compatibility changes were developed against recent releases.
+Older releases may need further changes; `create` stops with an error when a
+patched file no longer matches.
+
 ## Import a recovery package
 
 With the [host requirements](../README.md#host-requirements) installed, run:
@@ -21,14 +80,19 @@ Import is available for these models:
 
 | Device | Model ID |
 | --- | --- |
+| Basic 2014 | `kindle-basic-2014` |
 | Basic 2016 | `kindle-basic-2016` |
 | Basic 2022 | `kindle-basic-2022` |
 | Basic 2024 | `kindle-basic-2024` |
 | [Basic 2026](kt7.md) | `kindle-basic-2026` |
+| [Colorsoft](colorsoft.md) | `kindle-colorsoft` |
+| Voyage | `kindle-voyage` |
 | [Oasis 1 and 2](oasis.md) | `kindle-oasis-1`, `kindle-oasis-2` |
 | [Oasis 3](koa3.md) | `kindle-oasis-3` |
 | [Basic 4 (2019)](kt4.md) | `kindle-kt4` |
+| Paperwhite 2, 3 and 4 | `kindle-paperwhite-2`, `kindle-paperwhite-3`, `kindle-paperwhite-4` |
 | [Paperwhite 5](paperwhite-5.md) | `kindle-paperwhite-5` |
+| [Paperwhite 6](paperwhite-6.md) | `kindle-paperwhite-6` |
 | [Scribe 1](scribe-1.md) | `kindle-scribe-1` |
 | [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
@@ -62,9 +126,10 @@ Import is available for these models:
 | [reMarkable Paper Pro](remarkable-paper-pro.md) | `remarkable-paper-pro` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
-[Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive
-or an extracted update directory through the same `import` command. Their
-zstd-compressed components require `zstd` on the host; KindleTool is not used.
+[Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive, Kobo's
+zip-wrapped update or an extracted update directory through the same `import`
+command. Their zstd-compressed components require `zstd` on the host;
+KindleTool is not used.
 
 [PocketBook 360 Plus New](pocketbook-512.md),
 [Basic 611](pocketbook-611.md), [Basic 613](pocketbook-613.md),
