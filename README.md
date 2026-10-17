@@ -146,6 +146,7 @@ Arguments after `--` also pass through on `run`; see
 | [Tolino Shine (5th generation)](docs/tolino-shine.md) | Shine 5 | E60T00 / Kobo Clara BW; E60V00 / TPV revision | Experimental |
 | [Tolino Shine Color](docs/tolino-shine.md) | Shine Color | E60T00 / Kobo Clara Colour | Experimental |
 | [Tolino Vision Color](docs/tolino-vision-color.md) | Vision Color | E70T04 / Kobo Libra Colour | Experimental |
+| [PocketBook Basic 613](docs/pocketbook-613.md) | PB613 | EP8 | Experimental |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.

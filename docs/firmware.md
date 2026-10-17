@@ -33,6 +33,7 @@ Import is available for these models:
 | [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
 | [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` |
+| [PocketBook Basic 613](pocketbook-613.md) | `pocketbook-613` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
 [Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive

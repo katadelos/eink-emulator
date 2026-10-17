@@ -1126,6 +1126,26 @@
       "tee": ["tee.img"]
     }
   },
+  "pocketbook-613": {
+    "description": "PocketBook Basic 613",
+    "qemu_machine": "imx50-pocketbook-613",
+    "memory": "128M",
+    "builder": "pocketbook-613",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    },
+    "optional_firmware": {
+      "logo_header": ["logo-header.bin"],
+      "boot_logo": ["bootlogo.bmp"],
+      "low_battery_logo": ["battery-low.bmp"]
+    }
+  },
   "kobo-elipsa-2e": {
     "description": "Kobo Elipsa 2E",
     "qemu_machine": "mt8113-kobo-elipsa2e",
