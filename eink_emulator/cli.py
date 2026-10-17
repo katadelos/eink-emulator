@@ -23,10 +23,14 @@ from .images import addons, build_raw_image, tolino
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
 from .storage import (
-    base_families, disk_info, image_references, open_files, storage_lock,
-    unused_bases, write_base,
+    base_families,
+    disk_info,
+    image_references,
+    open_files,
+    storage_lock,
+    unused_bases,
+    write_base,
 )
-
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOGUE = ROOT / "models.json"

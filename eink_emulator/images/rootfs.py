@@ -7,12 +7,11 @@ import re
 import shutil
 import subprocess
 import tempfile
+from collections.abc import Callable
 from functools import cache
 from pathlib import Path
-from typing import Callable
 
 from ..ssh import ensure_login_key
-
 
 ROOT = Path(__file__).resolve().parents[2]
 OVERRIDES = ROOT / "guest-overrides"
