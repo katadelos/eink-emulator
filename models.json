@@ -1576,6 +1576,29 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-743k3": {
+    "description": "PocketBook InkPad Color 3 (743K3)",
+    "qemu_machine": "allwinner-b300-pocketbook-743k3",
+    "memory": "1G",
+    "builder": "pocketbook-743k3",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "aic8800-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.awf"]
+    }
+  },
   "pocketbook-970": {
     "description": "PocketBook InkPad Lite (970)",
     "qemu_machine": "allwinner-b288-pocketbook-970",

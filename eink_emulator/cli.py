@@ -749,6 +749,9 @@ def command_import(args: argparse.Namespace) -> None:
         installed = pocketbook.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] in pocketbook_b288.BOARDS:
         installed = pocketbook_b288.import_update(package, destination, model=definition["builder"])
+    elif definition["builder"] in {"pocketbook-743k3"}:
+        from .images import pocketbook_b300
+        installed = pocketbook_b300.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] == "pocketbook-627":
         from .images import pocketbook_a13
         installed = pocketbook_a13.import_update(package, destination, model=definition["builder"])
