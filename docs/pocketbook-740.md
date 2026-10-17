@@ -28,6 +28,12 @@ the hardware configuration, secure factory state, touchscreen module link and
 a generated waveform. The waveform supports emulation without reproducing
 physical panel calibration. Bundled user content is installed on first boot.
 
+## Network
+
+Wi-Fi uses the XR819 SDIO model with the stock XRadio driver. Select the open
+`PocketBook-QEMU` access point in the guest to connect through QEMU user networking.
+See [networking](networking.md#pocketbook-wi-fi) for addresses and limits.
+
 ## Input
 
 Click or drag in the display to use the touchscreen. Page Up / Page Down,
@@ -44,5 +50,5 @@ The [PocketBook board profiles](../qemu/hw/arm/allwinner-b288-pocketbook.c)
 supply RAM, panel geometry, PMIC wiring and input configuration for the 740 and
 [632](pocketbook-632.md), sharing peripheral attachment and firmware loading.
 
-Wi-Fi, audio, USB data transfer, the power button and cover sensing are not
-implemented. Use the serial console for a root shell; networking is unavailable.
+Audio, USB data transfer, the power button and cover sensing are not
+implemented. Use the serial console for a root shell.

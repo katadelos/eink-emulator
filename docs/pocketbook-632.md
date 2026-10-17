@@ -27,8 +27,11 @@ applications run from an assembled eMMC image. The builder supplies the
 632 hardware configuration, secure factory state and a generated waveform.
 Bundled user content is installed on first boot.
 
-The first reader launch can take a few minutes while the firmware scans its
-bundled fonts.
+## Network
+
+Wi-Fi uses the XR819 SDIO model with the stock XRadio driver. Select the open
+`PocketBook-QEMU` access point in the guest to connect through QEMU user networking.
+See [networking](networking.md#pocketbook-wi-fi) for addresses and limits.
 
 ## Input
 
@@ -46,6 +49,5 @@ The [PocketBook board profiles](../qemu/hw/arm/allwinner-b288-pocketbook.c)
 supply each board's RAM, panel geometry, display power wiring and input
 configuration, sharing peripheral attachment and firmware loading.
 
-Wi-Fi, Bluetooth, audio, USB data transfer, the power button and cover sensing
-are not implemented. Use the serial console for a root shell; networking is
-unavailable.
+Bluetooth, audio, USB data transfer, the power button and cover sensing
+are not implemented. Use the serial console for a root shell.

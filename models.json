@@ -1288,7 +1288,11 @@
     "builder": "pocketbook-628",
     "drive_index": 3,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.img"],
       "kernel": ["uImage"],
@@ -1307,7 +1311,11 @@
     "builder": "pocketbook-632",
     "drive_index": 3,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.img"],
       "kernel": ["uImage"],
@@ -1345,7 +1353,11 @@
     "builder": "pocketbook-740",
     "drive_index": 3,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.img"],
       "kernel": ["uImage"],
@@ -1364,7 +1376,11 @@
     "builder": "pocketbook-740-2",
     "drive_index": 3,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.img"],
       "kernel": ["uImage"],
@@ -1383,7 +1399,11 @@
     "builder": "pocketbook-1040",
     "drive_index": 3,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.img"],
       "kernel": ["uImage"],

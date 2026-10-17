@@ -1,8 +1,9 @@
 # Networking and SSH
 
-New images start USB Ethernet automatically. To use Wi-Fi, select the open
-`Kindle-QEMU` access point in the guest. Both interfaces can run at the same
-time. [Guest configuration changes](guest-overrides.md) require a new instance.
+Kindle, Kobo and Tolino images start USB Ethernet automatically. To use Wi-Fi,
+select the open `Kindle-QEMU` access point in the guest. Both interfaces can run
+at the same time. [PocketBook Wi-Fi](#pocketbook-wi-fi) uses its own radio profiles.
+[Guest configuration changes](guest-overrides.md) require a new instance.
 
 ## Kindle SSH
 
@@ -58,11 +59,27 @@ scp -i build/ssh/id_ed25519 -P 2222 book.epub root@127.0.0.1:/mnt/onboard/
 The USB startup hook writes `resolv.conf.head` so dhcpcd preserves the USB
 DNS server when Wi-Fi connects or disconnects.
 
+## PocketBook Wi-Fi
+
+Select the open access point in the guest's Wi-Fi settings. The original network
+manager handles association and DHCP; the guest uses `10.0.2.15`, with gateway
+`10.0.2.2` and DNS `10.0.2.3`.
+
+| Models | Radio | Access point |
+| --- | --- | --- |
+| 360 Plus New 512, Basic 611, Touch 622, Touch Lux 623, Ultra 650 | BCM43362 SDIO | `Kindle-QEMU` |
+| Touch Lux 5 628, Touch HD 3 632, InkPad 3 740, InkPad 3 Pro 740-2, InkPad X 1040 | XR819 SDIO | `PocketBook-QEMU` |
+
+The Basic 613 has no Wi-Fi hardware. PocketBook images do not start an SSH server;
+use the serial console for a root shell. Their Wi-Fi forward uses `--ssh-port`
+(default 2222), because these models have no USB Ethernet backend. WPA and physical
+radio behavior are not implemented.
+
 ## Host ports
 
 All launcher forwards bind to `127.0.0.1`. Choose unused ports when you run
-several instances. Each instance also reserves a Wi-Fi forward on port 2223,
-even when its guest has no SSH server.
+several instances. Models with both network interfaces also reserve a Wi-Fi
+forward on port 2223, even when the guest has no SSH server.
 
 | Option | Default | Service |
 | --- | --- | --- |
@@ -83,7 +100,8 @@ ssh -i build/ssh/id_ed25519 -p 4022 root@127.0.0.1
 | USB | `192.168.15.244/24` | `192.168.15.201` | `192.168.15.3` |
 
 Each interface has a separate QEMU user-network backend. Wi-Fi is usually
-`wlan0`; Aura HD, Glo HD, Clara HD and Forma use `eth0`. USB is `usb0`.
+`wlan0`. Aura HD, Glo HD, Clara HD, Forma and PocketBooks use `eth0`.
+USB is `usb0`.
 
 Kindle images assign the USB default route metric 2048. Wi-Fi events and DHCP
 completion restore USB routes and DNS after the stock network manager changes

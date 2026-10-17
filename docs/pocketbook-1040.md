@@ -37,9 +37,11 @@ is absent from the update, and the unmodified library stops without it.
 Imported firmware remains unchanged; the patch applies only when building
 this model's image.
 
-The first application launch can take a few minutes while the firmware scans
-its bundled fonts. Use **Skip** at the Wi-Fi setup step; radio initialization
-can delay the transition to the bundled licence documents.
+## Network
+
+Wi-Fi uses the XR819 SDIO model with the stock XRadio driver. Select the open
+`PocketBook-QEMU` access point in the guest to connect through QEMU user networking.
+See [networking](networking.md#pocketbook-wi-fi) for addresses and limits.
 
 ## Input
 
@@ -47,7 +49,6 @@ Click or drag in the display to use the Cypress touchscreen. Page Up / Page Down
 or Left / Right, operate the page buttons. Home operates the home button;
 Escape or Backspace operates Back.
 
-Support is experimental. Wi-Fi, Bluetooth, audio, USB data transfer, the power
+Support is experimental. Bluetooth, audio, USB data transfer, the power
 button, cover sensing and orientation sensor are not implemented. Use the serial
-console for a root shell; networking is unavailable. Recovery and firmware
-updates are unverified.
+console for a root shell. Recovery and firmware updates are unverified.

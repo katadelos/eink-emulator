@@ -35,11 +35,11 @@ to use a fixed emulator identity. The vendor-signed record is absent from the
 update, and the unmodified library stops without it. Imported firmware remains
 unchanged; the patch applies only when building this model's image.
 
-The first reader launch can take a few minutes while the firmware scans its
-bundled fonts.
+## Network
 
-Use **Skip** at the Wi-Fi setup step. Radio initialization can delay the
-transition to the bundled licence documents.
+Wi-Fi uses the XR819 SDIO model with the stock XRadio driver. Select the open
+`PocketBook-QEMU` access point in the guest to connect through QEMU user networking.
+See [networking](networking.md#pocketbook-wi-fi) for addresses and limits.
 
 ## Input
 
@@ -48,6 +48,6 @@ Click or drag in the display to use the touchscreen. Page Up / Page Down,
 or Left / Right, operate the page buttons. Home operates the home button;
 Escape or Backspace operates Back.
 
-Support is experimental. Wi-Fi, Bluetooth, audio, USB data transfer, the power
+Support is experimental. Bluetooth, audio, USB data transfer, the power
 button and cover sensing are not implemented. Use the serial console for a
-root shell; networking is unavailable.
+root shell.
