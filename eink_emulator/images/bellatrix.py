@@ -97,12 +97,14 @@ def partition_layout(
 
 def create_image(
     path: Path, size: int, *, partitions: list[tuple[str, int]] = PARTITIONS,
-    namespace: str = "bellatrix",
+    namespace: str = "bellatrix", user_partition: str = "userstore",
 ) -> dict[str, tuple[int, int]]:
     sectors = size // SECTOR_SIZE
     first_usable = 34
     last_usable = sectors - 34
     layout = partition_layout(size, partitions)
+    _, start, count = layout[-1]
+    layout[-1] = (user_partition, start, count)
 
     entries = bytearray(ENTRY_COUNT * ENTRY_SIZE)
     for index, (name, start, count) in enumerate(layout):
