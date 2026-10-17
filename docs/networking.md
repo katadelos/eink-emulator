@@ -91,6 +91,23 @@ them. This keeps USB access available during Wi-Fi changes. Kobo uses
 `resolv.conf.tail` to retain USB DNS. Elipsa 2E uses configfs RNDIS because its
 kernel has no `g_ether` module.
 
+## USB ADB forwarding
+
+MT8110 and MT8113 models accept `--usb-adb-port` for a local host connection to
+an ADB USB function:
+
+```sh
+./eink run my-reader --usb-adb-port 5666
+adb connect 127.0.0.1:5666
+```
+
+The guest must configure the FunctionFS ADB endpoints and run an authenticating
+`adbd` with the host key authorized. The bridge carries bytes through the guest
+USB controller; it does not enable the daemon's TCP listener. The host socket
+binds only to `127.0.0.1`. USB gadget disconnect closes the host connection;
+connect again after the gadget is configured. Use a port outside 5555–5585,
+which the host `adb` server scans automatically for Android emulators.
+
 ## Wi-Fi diagnosis from serial
 
 Prefer the guest Wi-Fi controls, which also start DHCP. For manual association

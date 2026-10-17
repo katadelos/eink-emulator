@@ -385,6 +385,16 @@ def launch_command(args: argparse.Namespace) -> list[str]:
             "-global", f"{controller}.netdev=usb",
             "-global", f"{controller}.mac=ee:19:00:00:00:00",
         ])
+    if args.usb_adb_port is not None:
+        controller = network.get("usb", {}).get("device")
+        if controller not in {"mt8110", "mt8113"}:
+            fail("USB ADB forwarding requires an MT8110 or MT8113 model")
+        adb_port = port(args.usb_adb_port)
+        command.extend([
+            "-chardev",
+            f"socket,id=usb-adb,host=127.0.0.1,port={adb_port},server=on,wait=off",
+            "-global", f"{controller}.usb-adb=usb-adb",
+        ])
     if args.headless:
         command.extend(["-display", "none"])
     elif args.vnc:
@@ -798,6 +808,7 @@ def parser() -> argparse.ArgumentParser:
     run.add_argument("--ssh-port", type=int, default=2222, help="host USB SSH port, or Wi-Fi SSH port on Wi-Fi-only models (default: 2222)")
     run.add_argument("--wifi-ssh-port", type=int, default=2223, help="host Wi-Fi SSH port when USB networking is also configured (default: 2223)")
     run.add_argument("--telnet-port", type=int, default=2323, help="host USB telnet forwarding port for Kobos (default: 2323)")
+    run.add_argument("--usb-adb-port", type=int, help="host localhost port for an MT8110/MT8113 USB ADB function")
     run.add_argument("--serial-socket", action="store_true", help="redirect serial to an instance-scoped Unix socket and log instead of this terminal")
     run.add_argument("--qmp-socket", action="store_true", help="expose QMP on an instance-scoped Unix socket")
     run.add_argument("--dry-run", action="store_true", help="print the QEMU command")
