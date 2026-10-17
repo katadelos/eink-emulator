@@ -11,6 +11,8 @@
 /oasis-1-2-work/
 /tolino-vision-color-work/
 /pw5-work/
+/pocketbook-*-work/
+/port-documentation/
 /firmware/*
 !/firmware/README.md
 !/firmware/.gitkeep
