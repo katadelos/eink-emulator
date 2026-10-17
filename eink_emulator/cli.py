@@ -331,6 +331,9 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2,cache=writethrough",
     ])
     runtime = runtime_paths(directory)
+    serial_index = definition.get("serial_index", 0)
+    for _ in range(serial_index):
+        command.extend(["-serial", "null"])
     if model in {"kobo-mini", "kobo-touch", "kobo-glo", "kobo-aura-hd"}:
         chardev = (
             f"socket,id=console,path={runtime['serial']},server=on,wait=off,mux=on,logfile={runtime['serial_log']}"
@@ -346,8 +349,8 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     elif args.serial_socket:
         command.extend([
             "-chardev",
-            f"socket,id=serial0,path={runtime['serial']},server=on,wait=off,logfile={runtime['serial_log']}",
-            "-serial", "chardev:serial0",
+            f"socket,id=serial{serial_index},path={runtime['serial']},server=on,wait=off,logfile={runtime['serial_log']}",
+            "-serial", f"chardev:serial{serial_index}",
             "-monitor", "none",
         ])
     else:
