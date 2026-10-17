@@ -194,7 +194,7 @@ class Builder:
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", default="koxtoolchain:build-env")
-    parser.add_argument("--toolchains", type=Path, default=Path("/Volumes/Dev/toolchain-home/x-tools"))
+    parser.add_argument("--toolchains", type=Path, help="path to the koxtoolchain x-tools directory")
     parser.add_argument("--jobs", type=int, default=6)
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("checkout")
@@ -210,6 +210,8 @@ def main():
     if args.command == "checkout":
         checkout()
         return
+    if args.toolchains is None:
+        parser.error("--toolchains is required for builds")
     builder = Builder(args)
     if args.command == "userspace":
         builder.userspace()

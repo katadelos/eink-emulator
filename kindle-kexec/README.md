@@ -35,17 +35,16 @@ architecture module.
 ## Build
 
 Run commands from the repository root. Builds use the existing
-`koxtoolchain:build-env` Docker image and the existing koxtoolchain installation
-at `/Volumes/Dev/toolchain-home/x-tools`. The scripts do not pull or create Docker
-images. Set `--image` or `--toolchains` before the subcommand to select another
-existing installation.
+`koxtoolchain:build-env` Docker image. Pass the koxtoolchain `x-tools` directory
+with `--toolchains` before each build subcommand. The scripts do not pull or
+create Docker images; use `--image` to select another existing image.
 
 ```sh
 python3 kindle-kexec/build.py checkout
-python3 kindle-kexec/build.py userspace
+python3 kindle-kexec/build.py --toolchains /path/to/x-tools userspace
 
-python3 kindle-kexec/build.py kernel pw4 --source /path/to/matching/linux-4.1.15
-python3 kindle-kexec/build.py module pw4 --kernel kindle-kexec/build/kernel/pw4
+python3 kindle-kexec/build.py --toolchains /path/to/x-tools kernel pw4 --source /path/to/matching/linux-4.1.15
+python3 kindle-kexec/build.py --toolchains /path/to/x-tools module pw4 --kernel kindle-kexec/build/kernel/pw4
 ```
 
 `kernel` copies the supplied source into the ignored build directory, applies
