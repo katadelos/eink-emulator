@@ -57,6 +57,8 @@ BOARDS = {
                            True, ("Photo", "Downloads"), True),
     "pocketbook-632": Board(b"PocketBook632", 34, "", 0x19d85675, False, (), False),
     "pocketbook-740": Board(b"PocketBook740", 31, "cyttsp5.ko", 0x19d85675, False, (), False),
+    "pocketbook-740-2": Board(b"PocketBook740-2", 45, "cyttsp5.ko", 0x19d85675,
+                             True, ("Photo", "Downloads"), True),
 }
 
 

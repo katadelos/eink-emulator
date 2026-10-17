@@ -42,6 +42,7 @@ Import is available for these models:
 | [PocketBook Touch Lux 5](pocketbook-628.md) | `pocketbook-628` |
 | [PocketBook Touch HD 3](pocketbook-632.md) | `pocketbook-632` |
 | [PocketBook InkPad 3](pocketbook-740.md) | `pocketbook-740` |
+| [PocketBook InkPad 3 Pro](pocketbook-740-2.md) | `pocketbook-740-2` |
 | [PocketBook Color Lux 801](pocketbook-801.md) | `pocketbook-801` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
