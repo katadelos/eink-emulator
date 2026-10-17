@@ -185,7 +185,7 @@ def bellatrix_patch_userstore_mount(contents: str) -> str:
     new = (
         f"        # {BELLATRIX_USERSTORE_MARKER}.\n"
         "        mount -t ext4 ${MNTUS_LOOP_DEV} ${userstore_mount_point} "
-        "-o defaults,errors=remount-ro,noatime,nodiratime,nobarrier,commit=60\n"
+        "-o defaults,errors=remount-ro,noatime,nodiratime\n"
     )
     return contents.replace(old, new, 1)
 
@@ -198,7 +198,7 @@ def bellatrix_patch_varlocal_mount(contents: str) -> str:
         raise SystemExit("stock var-local ext4 mount command was not found exactly once")
     new = (
         f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
-        "     mount -t ext4 -o rw,noatime,nodiratime,nobarrier,commit=60 "
+        "     mount -t ext4 -o rw,noatime,nodiratime "
         "$local $mount_point\n"
     )
     return contents.replace(old, new, 1)
@@ -212,7 +212,7 @@ def bellatrix_patch_ext3_varlocal_mount(contents: str) -> str:
         raise SystemExit("stock Bellatrix var-local ext3 mount command was not found exactly once")
     new = (
         f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
-        "     mount -t ext3 -o rw,noatime,nodiratime,nobarrier,commit=60 "
+        "     mount -t ext3 -o rw,noatime,nodiratime "
         "$local $mount_point\n"
     )
     return contents.replace(old, new, 1)

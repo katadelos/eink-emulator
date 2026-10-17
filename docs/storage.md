@@ -20,6 +20,10 @@ machines/NAME/NAME.serial.log   Serial log with --serial-socket
 Git ignores runtime files. An overlay starts empty and grows as the guest
 writes data.
 
+Disk writes use write-through caching to match the emulated card's lack of a
+write cache. Shut down through the guest before closing QEMU; guest memory can
+still contain unwritten data.
+
 Changes to firmware, builder code, guest files or the SSH public key cause
 future instances to use a new prepared revision. Existing instances keep their
 original revision and contents. Revisions layer directly on a standalone

@@ -324,7 +324,8 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-machine", ",".join(machine_options),
         "-m", definition["memory"],
         "-bios", str(artifacts["bootloader"]),
-        "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2",
+        # The emulated card advertises no write cache; complete writes durably.
+        "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2,cache=writethrough",
     ])
     runtime = runtime_paths(directory)
     if model in {"kobo-mini", "kobo-touch", "kobo-glo", "kobo-aura-hd"}:
