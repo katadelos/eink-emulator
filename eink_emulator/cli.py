@@ -272,9 +272,12 @@ def launch_command(args: argparse.Namespace) -> list[str]:
     directory, manifest = read_machine(args.name)
     model = manifest.get("model")
     definition = model_definition(model)
-    # A saved disk already contains the kernel, rootfs and other image inputs.
-    # Only files actually passed to QEMU are required to launch it.
-    runtime_roles = {"bootloader", *definition.get("machine_firmware_properties", {}).values()}
+    # Only files passed directly to QEMU are required to launch a saved disk.
+    boot_method = definition.get("boot_method", "bios")
+    if boot_method not in {"bios", "kernel"}:
+        fail(f"unsupported firmware boot method: {boot_method}")
+    boot_role = "kernel" if boot_method == "kernel" else "bootloader"
+    runtime_roles = {boot_role, *definition.get("machine_firmware_properties", {}).values()}
     if model == "kindle-paperwhite-4":
         runtime_roles.update({"storage_bios", "falcon_bios"})
     missing_roles = runtime_roles - definition["firmware"].keys()
@@ -326,7 +329,7 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-name", args.name,
         "-machine", ",".join(machine_options),
         "-m", definition["memory"],
-        "-bios", str(artifacts["bootloader"]),
+        f"-{boot_method}", str(artifacts[boot_role]),
         # The emulated card advertises no write cache; complete writes durably.
         "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2,cache=writethrough",
     ])
