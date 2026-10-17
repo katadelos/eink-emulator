@@ -36,6 +36,7 @@ Import is available for these models:
 | [PocketBook Basic 613](pocketbook-613.md) | `pocketbook-613` |
 | [PocketBook Touch 622](pocketbook-622.md) | `pocketbook-622` |
 | [PocketBook Touch Lux 623](pocketbook-623.md) | `pocketbook-623` |
+| [PocketBook Ultra 650](pocketbook-650.md) | `pocketbook-650` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
 [Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive

@@ -73,6 +73,25 @@ MX50_LAYOUT = Layout(
     logo_offsets={role: offset for role, (_, offset) in LOGO_FILES.items()},
     logo_limit=MIB,
 )
+MX6SL_LAYOUT = Layout(
+    disk_size=DISK_SIZE,
+    env_offset=768 * 1024,
+    kernel_offset=0x100000,
+    kernel_size=0x400000,
+    vcom_offset=0xF00600,
+    vcom=b"-1250",
+    waveform_offset=0x500200,
+    user_device="/dev/mmcblk0p4",
+    # The bootloader reserves raw BMP slots at 16 and 20 MiB.
+    partitions=(
+        (32 * MIB, 16 * MIB, 0x83),
+        (48 * MIB, 256 * MIB, 0x83),
+        (304 * MIB, 16 * MIB, 0x83),
+        (320 * MIB, DISK_SIZE - 320 * MIB, 0x0C),
+    ),
+    logo_offsets={},
+    logo_limit=MIB,
+)
 @dataclass(frozen=True)
 class Board:
     update_model: bytes
@@ -142,6 +161,29 @@ BOARDS = {
         raw_settings=(),
         factory_tar_excludes=(),
         factory_directories=(),
+        waveform_file="",
+    ),
+    "pocketbook-650": Board(
+        update_model=b"PocketBook650",
+        layout=MX6SL_LAYOUT,
+        logo_sources={},
+        logo_dimensions=(1024, 758),
+        logo_depth=8,
+        secure_pbpk_mode="040770",
+        factory_state=0xCF269875,
+        raw_settings=(
+            (0x500000, b"QEMU_650_NEUTRAL\0"),
+            (0xF00000, b"00000000000000000000"),
+            (0xF00200, b"52:54:00:12:34:57\0"),
+        ),
+        # The archive carries three Unix symlinks that the original updater
+        # cannot install on FAT either. Its S53 cleanup also removes osd data.
+        factory_tar_excludes=(
+            "system/tessdata/osd.traineddata",
+            "system/tessdata/configs",
+            "system/tessdata/tessconfigs",
+        ),
+        factory_directories=("Photo", "Downloads"),
         waveform_file="",
     ),
 }
@@ -365,6 +407,36 @@ def build_waveform() -> bytes:
     return bytes(waveform)
 
 
+def build_mx6sl_waveform() -> bytes:
+    """Provide a neutral compressed waveform for the vendor's CPU decoder."""
+    # Both U-Boot and Linux unpack WJ mode/temperature tables on this board.
+    # Four neutral frames keep their generated A2 sequences nonempty. QEMU's
+    # EPDC renders the framebuffer directly; this is not panel calibration.
+    waveform = bytearray(0x5FE)
+    waveform[:0x30] = build_waveform()[:0x30]
+    waveform[0x20:0x24] = bytes((0x40, 0, 0, 1))
+    waveform[0x30:0x33] = bytes((0, 35, 35))
+
+    def pointer(offset: int, value: int) -> None:
+        encoded = value.to_bytes(3, "little")
+        waveform[offset:offset + 4] = encoded + bytes((sum(encoded) & 0xFF,))
+
+    for mode in range(4):
+        table = 0x50 + mode * 8
+        pointer(0x40 + mode * 4, table)
+        pointer(table, 0x70)
+        pointer(table + 4, 0x70)
+    waveform[0x70:0x74] = bytes((0, 255, 255, 254))
+    # Keep the length just below a sector boundary: the vendor U-Boot reads
+    # complete sectors into its allocation, whose allocator rounds up to 8.
+    struct.pack_into("<I", waveform, 4, len(waveform))
+    waveform[0x1F] = sum(waveform[0x08:0x1F]) & 0xFF
+    waveform[0x2F] = sum(waveform[0x20:0x2F]) & 0xFF
+    struct.pack_into("<I", waveform, 0, 0)
+    struct.pack_into("<I", waveform, 0, zlib.crc32(waveform))
+    return bytes(waveform)
+
+
 def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
     """Keep the stock bootloader/kernel/filesystems and create writable storage."""
     board = BOARDS[model]
@@ -434,6 +506,9 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
                 disk.seek(offset)
                 disk.write(artifacts[role].read_bytes())
         disk.seek(layout.waveform_offset)
-        disk.write(build_waveform())
+        if layout is MX6SL_LAYOUT:
+            disk.write(build_mx6sl_waveform())
+        else:
+            disk.write(build_waveform())
         write_userstore(disk, start=partitions[3][0] // SECTOR_SIZE,
                         end=layout.disk_size // SECTOR_SIZE, label=b"POCKETBOOK ")
