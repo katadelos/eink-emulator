@@ -55,6 +55,7 @@ BOARDS = {
     # Index 52 selects the original 628's XCD touch ID 22, not its FT6336 revision.
     "pocketbook-628": Board(b"PocketBook628", 52, "ektf2k_5B.ko", 0xa6c12675,
                            True, ("Photo", "Downloads"), True),
+    "pocketbook-632": Board(b"PocketBook632", 34, "", 0x19d85675, False, (), False),
 }
 
 

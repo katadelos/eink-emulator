@@ -1253,6 +1253,25 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-632": {
+    "description": "PocketBook Touch HD 3 (632)",
+    "qemu_machine": "allwinner-b288-pocketbook-632",
+    "memory": "512M",
+    "builder": "pocketbook-632",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-650": {
     "description": "PocketBook Ultra 650",
     "qemu_machine": "imx6sl-pocketbook-650",
