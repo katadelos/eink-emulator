@@ -21,6 +21,7 @@ from .forma import write_userstore
 MIB = 1024**2
 SECTOR_SIZE = 512
 DISK_SIZE = 2032 * MIB
+NTX_DISK_SIZE = 2 * 1024**3
 PB801_DISK_SIZE = 4 * 1024**3
 UBOOT_OFFSET = 0x400
 HEADER_SIZE = 0x400
@@ -112,6 +113,26 @@ MX50_RGB_LAYOUT = Layout(
     logo_offsets={"boot_logo": 0x1000000},
     logo_limit=2 * MIB,
 )
+MX50_NTX_LAYOUT = Layout(
+    disk_size=NTX_DISK_SIZE,
+    env_offset=768 * 1024,
+    kernel_offset=0x100000,
+    kernel_size=0x600000 - 16,
+    vcom_offset=0,
+    vcom=b"",
+    waveform_offset=0x700000,
+    user_device="/dev/mmcblk0p4",
+    partitions=(
+        (32 * MIB, 16 * MIB, 0x83),
+        (48 * MIB, 256 * MIB, 0x83),
+        (304 * MIB, 16 * MIB, 0x83),
+        (320 * MIB, NTX_DISK_SIZE - 320 * MIB, 0x0C),
+    ),
+    logo_offsets={},
+    logo_limit=MIB,
+)
+
+
 @dataclass(frozen=True)
 class Board:
     update_model: bytes
@@ -127,7 +148,44 @@ class Board:
     waveform_file: str
 
 
+def ntx_record(payload: bytes) -> bytes:
+    """Prepend the NTX size record occupying the previous sector's last bytes."""
+    return struct.pack("<4s4xI4x", b"\xff\xf5\xaf\xff", len(payload)) + payload
+
+
+def build_ntx_hwconfig(*, pcb: int, keypad: int, panel: int, gsensor: int) -> bytes:
+    """Describe a Netronix PocketBook in the vendor's v1.0 format."""
+    fields = bytearray(32)
+    fields[0] = pcb
+    fields[1] = keypad
+    fields[4] = 6  # WC121 Wi-Fi
+    fields[9] = 4  # i.MX508 EPDC
+    fields[10] = panel
+    fields[11] = gsensor
+    fields[18] = 2  # External microSD
+    fields[27] = 2  # i.MX50 CPU
+    fields[28] = 1  # Customer UI
+    # Remaining zero values select 128 MiB RAM, ext2 root, partition 1,
+    # 800x600 resolution, and absent audio/touch peripherals.
+    return (b"HW CONFIG v1.0\0" + bytes((len(fields),)) + fields).ljust(110, b"\0")
+
+
 BOARDS = {
+    "pocketbook-611": Board(
+        update_model=b"Pocket611",
+        layout=MX50_NTX_LAYOUT,
+        logo_sources={},
+        logo_dimensions=(800, 600),
+        logo_depth=8,
+        secure_pbpk_mode="040755",
+        factory_state=0x3AC10E17,
+        raw_settings=((0x80000 - 16, ntx_record(build_ntx_hwconfig(
+            pcb=16, keypad=8, panel=0, gsensor=0,
+        ))),),
+        factory_tar_excludes=(),
+        factory_directories=(),
+        waveform_file="",
+    ),
     "pocketbook-613": Board(
         update_model=b"PocketBook613",
         layout=MX50_LAYOUT,
@@ -572,7 +630,10 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
                 disk.seek(offset)
                 disk.write(artifacts[role].read_bytes())
         disk.seek(layout.waveform_offset)
-        if layout is MX50_RGB_LAYOUT:
+        if layout is MX50_NTX_LAYOUT:
+            disk.seek(layout.waveform_offset - 16)
+            disk.write(ntx_record(build_waveform()))
+        elif layout is MX50_RGB_LAYOUT:
             disk.write(build_rgb_waveform()[0x33:])
         elif layout is MX6SL_LAYOUT:
             disk.write(build_mx6sl_waveform())

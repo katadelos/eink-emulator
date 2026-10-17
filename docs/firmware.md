@@ -33,6 +33,7 @@ Import is available for these models:
 | [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
 | [Scribe Colorsoft](scribe-colorsoft.md) | `kindle-scribe-colorsoft` |
+| [PocketBook Basic 611](pocketbook-611.md) | `pocketbook-611` |
 | [PocketBook Basic 613](pocketbook-613.md) | `pocketbook-613` |
 | [PocketBook Touch 622](pocketbook-622.md) | `pocketbook-622` |
 | [PocketBook Touch Lux 623](pocketbook-623.md) | `pocketbook-623` |

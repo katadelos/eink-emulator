@@ -1126,6 +1126,26 @@
       "tee": ["tee.img"]
     }
   },
+  "pocketbook-611": {
+    "description": "PocketBook Basic 611",
+    "qemu_machine": "imx50-pocketbook-611",
+    "memory": "128M",
+    "builder": "pocketbook-611",
+    "drive_index": 0,
+    "serial_index": 1,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    }
+  },
   "pocketbook-613": {
     "description": "PocketBook Basic 613",
     "qemu_machine": "imx50-pocketbook-613",
