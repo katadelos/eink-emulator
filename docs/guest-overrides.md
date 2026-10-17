@@ -99,7 +99,31 @@ modules are used unmodified. See
 
 ## PocketBook
 
-PocketBook images retain the stock setup wizard. B288 images prepare
+PocketBook images retain the stock setup wizard. B288 and B300 images prepare
 the bundled fontconfig caches for their filesystem timestamps and FAT font
 directories before applications start. Skipping Wi-Fi opens the licence screen
 without rebuilding the font indexes.
+
+Basic Lux 4 (618), Verse Lite (619), Verse (629), Color (633), Verse Pro (634),
+Era (700), InkPad Color (741), InkPad Lite (970), Verse Pro Color (634K3),
+Era Color (700K3) and InkPad Color 3 (743K3) updates omit the provisioned
+IOC identity and signed partner configuration. Their prepared images select the
+IOC's unprovisioned identity
+response and wrap the monitor's safebox reader.
+The wrapper calls the native reader first. Failed reads for the emulator's
+`000000000000` serial receive a cleared response; chunk 0 supplies a local
+noncontract configuration so the stock setup wizard can complete offline. Native
+records and the signed write path retain their original handling. The monitor
+copy is prepared at boot with firmware-specific guards; imported files remain
+unchanged.
+
+The Era Color 6.10.2359 monitor needs an aligned file gap before its writable
+segment to hold that wrapper. Its prepared copy shifts ELF file offsets by one
+page while preserving virtual addresses and writable data.
+
+The B300 images omit automatic loading of the Mali module in the prepared
+startup scripts. Mali 3D acceleration is not emulated; the stock interface uses
+CPU rendering. The original module remains in the imported firmware.
+
+The original network manager and radio modules handle Wi-Fi. See
+[PocketBook Wi-Fi](networking.md#pocketbook-wi-fi) for the access point names.

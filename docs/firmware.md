@@ -70,13 +70,21 @@ zstd-compressed components require `zstd` on the host; KindleTool is not used.
 [Basic 611](pocketbook-611.md), [Basic 613](pocketbook-613.md),
 [Touch 622](pocketbook-622.md),
 [Touch Lux 623](pocketbook-623.md), [Ultra 650](pocketbook-650.md),
-[Touch Lux 5](pocketbook-628.md), [Touch HD 3](pocketbook-632.md),
+[Basic Lux 4](pocketbook-618.md), [Verse Lite](pocketbook-619.md),
+[Touch Lux 4](pocketbook-627.md),
+[Touch Lux 5](pocketbook-628.md), [Verse](pocketbook-629.md),
+[Touch HD 3](pocketbook-632.md), [Color](pocketbook-633.md),
+[Verse Pro](pocketbook-634.md), [Era](pocketbook-700.md),
+[Verse Pro Color](pocketbook-634k3.md), [Era Color](pocketbook-700k3.md),
 [InkPad 3](pocketbook-740.md), [InkPad 3 Pro](pocketbook-740-2.md),
+[InkPad Color](pocketbook-741.md), [InkPad Lite](pocketbook-970.md),
+[InkPad Color 3](pocketbook-743k3.md),
 [InkPad X](pocketbook-1040.md) and
 [Color Lux 801](pocketbook-801.md) accept their
 official update ZIP or the extracted `SWUPDATE.BIN`. The importer checks the
-selected PocketBook model and extracts the original bootloader, kernel, root
-and application filesystems.
+selected PocketBook model and extracts the original kernel, root and application
+filesystems, plus the bootloader when included in the update. Touch Lux 4 (627)
+boots its supplied kernel directly because its update has no bootloader.
 
 [reMarkable 1](remarkable-1.md) and [reMarkable 2](remarkable-2.md) accept
 their official `.swu` update packages.
