@@ -68,6 +68,9 @@ Paloma and Calvados use development copies of the rootfs and boot FIT. The
 builder enables a serial root shell, USB Ethernet and SSH. It disables verity
 for the modified rootfs and updates the FIT device-tree hash. The rootfs
 partition retains the source size and AVB footer, but its contents are changed.
+The language picker retries its powerd startup call for up to 60 seconds so
+delayed LIPC initialization does not immediately reboot the guest. A persistent
+failure still takes the firmware's normal recovery path.
 
 The catalogue enables QEMU development mode. This removes the production-key
 requirement from U-Boot's in-memory control tree. The kernel binary stays

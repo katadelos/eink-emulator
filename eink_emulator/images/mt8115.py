@@ -15,6 +15,21 @@ MIB = 1024**2
 PLATFORM_NAMESPACES = {"platcs8": "scribe-colorsoft", "platpa6": "scribe-3"}
 
 
+def patch_langpicker(contents: str) -> str:
+    """Allow powerd's LIPC properties to become ready before requesting a reboot."""
+    command = "      lipc-set-prop com.lab126.powerd flStartup 1\n"
+    if contents.count(command) != 1:
+        raise SystemExit("stock MT8115 langpicker powerd startup call was not found exactly once")
+    return contents.replace(command, (
+        "      # QEMU: powerd may still be publishing its properties under TCG.\n"
+        "      timeout 60 sh -c '\n"
+        "        until lipc-set-prop com.lab126.powerd flStartup 1; do\n"
+        "          sleep 1\n"
+        "        done\n"
+        "      '\n"
+    ), 1)
+
+
 def _fdt_property(blob: bytes, path: str, name: str) -> tuple[int, int, bytes]:
     """Locate an inline property in the v17 FDT used by the published FIT."""
     header = struct.unpack_from(">10I", blob)
@@ -147,6 +162,9 @@ def build(
         rootfs.replace_file(
             prepared_root, rootfs.OVERRIDES / "bellatrix3/console.conf",
             "/etc/upstart/console.conf", "0100644",
+        )
+        rootfs.transform_file(
+            prepared_root, "/etc/upstart/langpicker.conf", "0100644", patch_langpicker,
         )
         rootfs.prepare_usb_network(prepared_root, mass_storage=False)
         prepare_boot(boot_image, prepared_boot)
