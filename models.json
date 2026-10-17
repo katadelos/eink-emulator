@@ -1291,6 +1291,25 @@
       "applications": ["applications.img"]
     }
   },
+  "pocketbook-740": {
+    "description": "PocketBook InkPad 3 (740)",
+    "qemu_machine": "allwinner-b288-pocketbook-740",
+    "memory": "1G",
+    "builder": "pocketbook-740",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-801": {
     "description": "PocketBook Color Lux 801",
     "qemu_machine": "imx50-pocketbook-801",
