@@ -748,7 +748,7 @@ def command_import(args: argparse.Namespace) -> None:
     elif definition["builder"] in {"pocketbook-628", "pocketbook-632", "pocketbook-740", "pocketbook-740-2", "pocketbook-1040"}:
         from .images import pocketbook_b288
         installed = pocketbook_b288.import_update(package, destination, model=definition["builder"])
-    elif definition["builder"] in {"remarkable1"}:
+    elif definition["builder"] in {"remarkable1", "remarkable2"}:
         from .images import remarkable
         installed = remarkable.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] == "tolino":

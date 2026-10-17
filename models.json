@@ -1126,6 +1126,19 @@
       "tee": ["tee.img"]
     }
   },
+  "remarkable-2": {
+    "description": "reMarkable 2",
+    "qemu_machine": "imx7d-remarkable2",
+    "memory": "1G",
+    "builder": "remarkable2",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.imx"],
+      "rootfs": ["rootfs.img"]
+    }
+  },
   "remarkable-1": {
     "description": "reMarkable 1",
     "qemu_machine": "imx6sl-remarkable1",

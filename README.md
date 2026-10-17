@@ -159,6 +159,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook InkPad X](docs/pocketbook-1040.md) | PB1040 | Allwinner B288 | Experimental |
 | [PocketBook Color Lux 801](docs/pocketbook-801.md) | PB801 | i.MX50 | Experimental |
 | [reMarkable 1](docs/remarkable-1.md) | RM1 | Zero Gravitas / i.MX6 SoloLite | Experimental; offline UI |
+| [reMarkable 2](docs/remarkable-2.md) | RM2 | Zero Sugar / i.MX7D | Experimental; offline UI |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.

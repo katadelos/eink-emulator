@@ -42,7 +42,7 @@ def build_raw_image(
         pocketbook.build(output, artifacts, model=builder)
     elif builder in pocketbook_b288.BOARDS:
         pocketbook_b288.build(output, artifacts, model=builder)
-    elif builder in {"remarkable1"}:
+    elif builder in {"remarkable1", "remarkable2"}:
         remarkable.build(output, artifacts, model=builder)
     elif builder == "bellatrix":
         prepared = output.with_name("prepared-rootfs.img")

@@ -5,6 +5,7 @@ import gzip
 import shutil
 import struct
 import subprocess
+import tarfile
 import tempfile
 from pathlib import Path
 
@@ -51,7 +52,7 @@ def import_update(package: Path, destination: Path, *, model: str = "remarkable1
     if destination.exists():
         raise SystemExit(f"firmware destination already exists: {destination}")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    generation = {"remarkable1": 1}[model]
+    generation = {"remarkable1": 1, "remarkable2": 2}[model]
     product = f"rm{generation}"
     suffix = ".ext4.gz"
     with tempfile.TemporaryDirectory(prefix=f".rm{generation}-import-", dir=destination.parent) as temporary:
@@ -223,11 +224,15 @@ def write_partition_table(disk, partitions=PARTITIONS, disk_size=DISK_SIZE) -> N
 
 def build(output: Path, artifacts: dict[str, Path], *, model: str = "remarkable1") -> None:
     validate_firmware(artifacts)
-    disk_size = DISK_SIZE
+    rm2 = model == "remarkable2"
+    disk_size = 8 * 1024**3 if rm2 else DISK_SIZE
     partitions = tuple(
         (number, start, disk_size - start if number == 7 else size, kind)
         for number, start, size, kind in PARTITIONS
     )
+    if rm2:
+        home_start = 1044 * MIB
+        partitions = PARTITIONS[:3] + ((4, home_start, disk_size - home_start, 0x83),)
     prepared = output.with_name("prepared-rootfs.img")
     rootfs.copy_source(artifacts["rootfs"], prepared, maximum_size=ROOT_SIZE)
     with prepared.open("r+b") as stream:
@@ -242,10 +247,31 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str = "remarkable1
 
     rootfs.transform_file(prepared, "/usr/lib/systemd/system/serial-getty@.service",
                            "0100644", serial_login)
+    if rm2:
+        # Offline boards have no network interface for these socket units.
+        # Their device dependencies otherwise delay basic.target for 90 s.
+        rootfs.run_many(prepared, [
+            f"symlink /etc/systemd/system/{unit} /dev/null"
+            for unit in ("dropbear-usb0.socket", "dropbear-usb1.socket",
+                         "dropbear-wlan.socket", "wpa_supplicant.service")
+        ], writable=True)
     factory_files = {}
-    waveform = output.with_name("waveform.bin")
-    dump_file(prepared, "/lib/firmware/imx/epdc/epdc_ES103CS1.fw", waveform)
-    factory_files["waveform.bin"] = waveform.read_bytes()
+    if rm2:
+        collection = output.with_name("waveforms.tar.gz")
+        dump_file(prepared, "/usr/share/remarkable/waveforms.tar.gz", collection)
+        # The emulated ED103TC2M1 panel uses the corresponding factory WBF.
+        # Real devices keep one selected waveform, rather than the OTA bundle.
+        waveform_name = "320_R259_AFAB21_ED103TC2M1_TC.wbf"
+        with tarfile.open(collection) as archive:
+            for member in archive:
+                if member.isfile() and Path(member.name).name == waveform_name:
+                    factory_files[Path(member.name).name] = archive.extractfile(member).read()
+        if not factory_files:
+            raise ValueError(f"reMarkable 2 firmware is missing {waveform_name}")
+    else:
+        waveform = output.with_name("waveform.bin")
+        dump_file(prepared, "/lib/firmware/imx/epdc/epdc_ES103CS1.fw", waveform)
+        factory_files["waveform.bin"] = waveform.read_bytes()
     with atomic_output(output) as staging, staging.open("w+b") as disk:
         disk.truncate(disk_size)
         write_partition_table(disk, partitions, disk_size)
