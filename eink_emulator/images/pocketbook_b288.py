@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import gzip
 import re
 import shlex
@@ -53,6 +54,7 @@ class Board:
     factory_directories: tuple[str, ...]
     disable_suspend: bool
     waveform_name: bytes = b""
+    offline_factory: bool = False
     large_applications: bool = False
 
 
@@ -86,6 +88,21 @@ IOC_PATCHES = {
                               bytes.fromhex("6f74ced5"), bytes.fromhex("6c74ced5")),
     "pocketbook-1040": IOCPatch("6.5.2920", 165964900, 127969,
                                bytes.fromhex("07523114"), bytes.fromhex("04523114")),
+}
+
+
+@dataclass(frozen=True)
+class FactoryMonitor:
+    file_size: int
+    rx_size: int
+    rx_address: int
+    rx_alignment: int
+    rw_file_offset: int
+    call_file_offset: int
+    call_context: bytes = bytes.fromhex("33ff2fe10060a0e15080a0e3000054e3")
+
+
+FACTORY_MONITORS = {
 }
 
 
@@ -323,6 +340,91 @@ def factory_font_cache_seed(applications: Path) -> str:
     return "".join(commands)
 
 
+def offline_factory_seed(board: Board, *, monitor: FactoryMonitor | None = None,
+                         source: str = "/ebrmain/cramfs/bin/monitor.app") -> str:
+    """Supply the blank emulator's local, non-contract configuration."""
+    if not board.offline_factory:
+        return ""
+    # These monitors expect a safebox record even before enrolment.
+    # The update has neither a provisioned IOC nor its vendor-signed partner
+    # configuration. Invoke the native read first; retain every valid record.
+    # Only failed reads for serial "000000000000\0" receive a zeroed header,
+    # preventing its cache from copying an uninitialized length. For chunk 0,
+    # supply 64 zero metadata bytes and an explicit non-contract profile.
+    # Missing is_contract/lock_device fields default to locked in stock code.
+    # Other failed chunks still return failure. Write/record verification
+    # remain untouched. ARM code occupies the monitor's unused RX padding
+    # and wraps its native IOC call. Query identity through IOC request 1:
+    # the IPC service fork does not initialize the monitor's serialnum BSS.
+    # All code and constants are position-independent, including under ASLR.
+    # Call ABI: r0=operation/result, r1=chunk, r2=reply, r3=native function.
+    # push {r1,r2,r3,lr}; sub sp,#24 saves the arguments and reserves an aligned
+    # serial buffer without relying on compiler-specific register allocation.
+    # Nonzero reads return directly. Otherwise call r3 with r0=1,r1=0,r2=sp, matching
+    # ioc_getserialnumber. Three words plus a NUL identify the emulator.
+    # A str/add/cmp loop clears 68 bytes; chunk 0 receives length/payload.
+    # The byte-copy loop includes NUL for the stock C-string base64 decoder.
+    # add sp,#24; pop {r1,r2,r3,pc} returns; callee-saved registers stay untouched.
+    monitor = monitor if monitor is not None else FACTORY_MONITORS[board.update_model]
+    configuration = base64.b64encode(
+        b'{"is_contract":0,"lock_device":0,"next_check":0,"contract_end":-1}') + b"\0"
+    provider = bytearray.fromhex(
+        "0e402de918d04de233ff2fe1000050e32800001a1c209de5000052e32500000a"
+        "0100a0e30010a0e30d20a0e120309de533ff2fe1000050e30000a0e31d00000a"
+        "0d20a0e174c09fe5003092e50c0053e1043092050c005301083092050c005301"
+        "0c30d205000053031200001a1c109de50020a0e30030a0e3032081e7043083e2"
+        "440053e3fbffff3a18209de5000052e30800001a0020a0e3402081e544c081e2"
+        "1c108fe20130d1e40130cce4012052e2fbffff1a0100a0e318d08de20e80bde8"
+        "30303030")
+    if len(configuration) > 255:
+        raise ValueError("PocketBook local configuration exceeds its ARM immediate")
+    # mov r2, #length at offset 0x94 supplies both reply length and copy count.
+    struct.pack_into("<I", provider, 0x94, 0xe3a02000 | len(configuration))
+    provider.extend(configuration)
+    if len(provider) > monitor.rw_file_offset - monitor.rx_size:
+        raise ValueError("PocketBook factory provider exceeds the monitor's RX padding")
+    patches = (
+        (0xa4, struct.pack("<II", monitor.rx_size + len(provider), monitor.rx_size + len(provider))),
+        (monitor.call_file_offset, struct.pack("<I", 0xeb000000 |
+            (((monitor.rx_size - monitor.call_file_offset - 8) // 4) & 0xffffff))),
+        (monitor.rx_size, provider),
+    )
+    commands = [
+        f"qemu_monitor={shlex.quote(source)}\n",
+        "qemu_monitor_bytes() {\n",
+        "    dd if=\"$qemu_monitor\" bs=1 skip=\"$1\" count=\"$2\" 2>/dev/null "
+        "| hexdump -v -e '1/1 \"%02x\"'\n",
+        "}\n",
+        f"[ \"$(wc -c < \"$qemu_monitor\")\" -eq {monitor.file_size} ] || exit 1\n",
+    ]
+    guards = (
+        (0, bytes.fromhex("7f454c46010101000000000000000000")),
+        (0x94, struct.pack("<8I", 1, 0, monitor.rx_address, monitor.rx_address,
+                          monitor.rx_size, monitor.rx_size, 5, monitor.rx_alignment)),
+        (monitor.call_file_offset, monitor.call_context),
+    )
+    for offset, expected in guards:
+        commands.append(
+            f"[ \"$(qemu_monitor_bytes {offset} {len(expected)})\" = "
+            f"{expected.hex()} ] || exit 1\n")
+    commands.extend((
+        f"[ -z \"$(qemu_monitor_bytes {monitor.rx_size} "
+        f"{monitor.rw_file_offset - monitor.rx_size} | tr -d 0)\" ] || exit 1\n",
+        "cp \"$qemu_monitor\" /tmp/qemu-pocketbook-monitor.app || exit 1\n",
+    ))
+    for offset, replacement in patches:
+        octal = "".join(f"\\{byte:03o}" for byte in replacement)
+        commands.append(
+            f"printf '%b' '{octal}' | dd of=/tmp/qemu-pocketbook-monitor.app "
+            f"bs=1 seek={offset} conv=notrunc 2>/dev/null || exit 1\n")
+    commands.extend((
+        "chmod 755 /tmp/qemu-pocketbook-monitor.app || exit 1\n",
+        "mount -o bind /tmp/qemu-pocketbook-monitor.app /ebrmain/cramfs/bin/monitor.app || exit 1\n",
+        "unset qemu_monitor\n",
+    ))
+    return "".join(commands)
+
+
 def prepare_root(source: Path, output: Path, board: Board, *, applications: Path) -> None:
     rootfs.copy_source(source, output, maximum_size=PARTITIONS[3][3])
     # The update's compact root has no spare inodes for the updater's tp link.
@@ -359,7 +461,7 @@ def prepare_root(source: Path, output: Path, board: Board, *, applications: Path
             + font_copy + make_directories + font_cache
             + "    touch /mnt/ext1/system/.qemu-factory-content || exit 1\n"
             "    sync\n"
-            "fi\n" + suspend + marker
+            "fi\n" + suspend + offline_factory_seed(board) + marker
         ))
     rootfs.transform_file(output, "/etc/init.d/rcS", "0100755", seed)
     if board.touch_module:
