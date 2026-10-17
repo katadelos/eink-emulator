@@ -19,5 +19,9 @@ and [development boot settings](guest-overrides.md#scribe-3-and-colorsoft)
 with Scribe 3, using different touch firmware and a CS8 waveform.
 
 See [hardware profiles](firmware.md#hardware-profiles) for board configurations
-and [networking](networking.md) for SSH access. The display does not reproduce
-physical panel colour or ghosting.
+and [networking](networking.md) for SSH access.
+
+The display preview retains MDP input pixels before CFA and waveform processing.
+It presents queued tiles at the HWTCON pipeline trigger, after the guest supplies
+the image geometry, so headless capture also receives the first complete frame.
+The display does not reproduce physical panel colour or ghosting.
