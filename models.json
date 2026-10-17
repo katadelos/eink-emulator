@@ -1146,6 +1146,30 @@
       "low_battery_logo": ["battery-low.bmp"]
     }
   },
+  "pocketbook-622": {
+    "description": "PocketBook Touch 622",
+    "qemu_machine": "imx50-pocketbook-622",
+    "memory": "128M",
+    "builder": "pocketbook-622",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "bcm43362-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    },
+    "optional_firmware": {
+      "logo_header": ["logo-header.bin"],
+      "boot_logo": ["bootlogo.bmp"],
+      "low_battery_logo": ["battery-low.bmp"]
+    }
+  },
   "kobo-elipsa-2e": {
     "description": "Kobo Elipsa 2E",
     "qemu_machine": "mt8113-kobo-elipsa2e",

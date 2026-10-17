@@ -106,6 +106,25 @@ BOARDS = {
         factory_directories=(),
         waveform_file="",
     ),
+    "pocketbook-622": Board(
+        update_model=b"PocketBook622",
+        layout=MX50_LAYOUT,
+        logo_sources={
+            5: {"low_battery_logo": "misc/622_battery_low_rot90.bmp"},
+            8: {
+                "logo_header": "misc/logo_header.bin",
+                "boot_logo": "misc/bootlogo_622_rot90.bmp",
+            },
+        },
+        logo_dimensions=(800, 600),
+        logo_depth=8,
+        secure_pbpk_mode="040770",
+        factory_state=0x3AC10E17,
+        raw_settings=(),
+        factory_tar_excludes=(),
+        factory_directories=(),
+        waveform_file="",
+    ),
 }
 
 
