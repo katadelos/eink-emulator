@@ -1422,7 +1422,11 @@
     "builder": "pocketbook-801",
     "drive_index": 2,
     "allow_reboot": true,
-    "network": {},
+    "network": {
+      "wifi": {
+        "device": "rtl8188eu"
+      }
+    },
     "firmware": {
       "bootloader": ["u-boot.bin"],
       "kernel": ["uImage"],

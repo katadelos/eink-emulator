@@ -31,6 +31,12 @@ operate the navigation buttons. `P` operates the power button. The bracket keys
 The stock power action suspends the guest and shows its sleep overlay. Press
 `P` again to resume.
 
+## Network
+
+Wi-Fi uses the RTL8188EU USB model with the original driver. Select the open
+`Kindle-QEMU` access point in the guest to connect through QEMU user networking.
+See [networking](networking.md#pocketbook-wi-fi) for addresses and limits.
+
 ## Storage and display
 
 The builder assembles a 4 GiB internal card on eSDHC3 with root, application,
@@ -46,5 +52,5 @@ The emulator combines the panel's red, green and blue subpixels into a colour
 display surface. A generated neutral waveform supplies the factory calibration
 file omitted by the update; it is not physical panel calibration.
 
-Support is experimental. Wi-Fi and audio are not emulated. Recovery and firmware
+Support is experimental. Audio is not emulated. Recovery and firmware
 updates are unverified.
