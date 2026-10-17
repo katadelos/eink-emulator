@@ -162,6 +162,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook Color](docs/pocketbook-633.md) | PB633 | Allwinner B288 | Experimental |
 | [PocketBook Verse Pro](docs/pocketbook-634.md) | PB634 | Allwinner B288 | Experimental |
 | [PocketBook Era](docs/pocketbook-700.md) | PB700 | Allwinner B288 | Experimental |
+| [PocketBook Era Color](docs/pocketbook-700k3.md) | PB700K3 | Allwinner B300 | Experimental |
 | [PocketBook InkPad 3](docs/pocketbook-740.md) | PB740 | Allwinner B288 | Experimental |
 | [PocketBook InkPad 3 Pro](docs/pocketbook-740-2.md) | PB740-2 | Allwinner B288 | Experimental |
 | [PocketBook InkPad Color](docs/pocketbook-741.md) | PB741 | Allwinner B288 | Experimental |

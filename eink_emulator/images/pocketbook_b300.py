@@ -42,10 +42,17 @@ IMPORT_FILES = {
     ord("e"): ("applications", "applications.img"),
 }
 BOARDS = {
+    "pocketbook-700k3": Board(b"PocketBook700k3", 87, "", 0xa6c12675, True,
+                             ("Photo", "Downloads"), True, offline_factory=True),
     "pocketbook-743k3": Board(b"PocketBook743k3", 86, "", 0xa6c12675, True,
                              ("Photo", "Downloads"), True, offline_factory=True),
 }
 IOC_PATCHES = {
+    "pocketbook-700k3": IOCPatch("6.10.2359", 216251226, 128696,
+        bytes.fromhex("63f43e04"), bytes.fromhex("60f43e04"),
+        file_offset=0xeea8, compression=3, literal=bytes.fromhex(
+            "feb30f22486f042434c80ebe70d4b11763f43e04"
+            "cc66eafcd3a674fdd4e9041463183c48")),
     "pocketbook-743k3": IOCPatch("6.10.2854", 216266204, 128698,
         bytes.fromhex("abfe0223"), bytes.fromhex("a8fe0223"),
         file_offset=0xeea8, compression=3, literal=bytes.fromhex(
@@ -53,6 +60,10 @@ IOC_PATCHES = {
             "a0cc2c841f16a679a470b8b1372d9045")),
 }
 FACTORY_MONITORS = {
+    # This release needs one file-alignment page inserted before its RW tail.
+    # Its virtual addresses and native instructions retain their original values.
+    b"PocketBook700k3": FactoryMonitor(1079104 + 4096, 0x104da4, 0, 0x1000,
+                                       0x105e50, 0x158cc),
     b"PocketBook743k3": FactoryMonitor(1079104, 0x10493c, 0, 0x1000,
                                        0x104e50, 0x158ac),
 }
@@ -191,6 +202,55 @@ def write_partition_tables(disk, *, model: str) -> None:
         disk.write(table)
 
 
+def era_monitor_layout_seed() -> str:
+    """Insert one aligned file page while preserving every ELF virtual address."""
+    source = "/ebrmain/cramfs/bin/monitor.app"
+    target = "/tmp/qemu-pocketbook-monitor-layout.app"
+    tail, shift = 0x104e50, 4096
+    # File-offset fields: e_shoff; RW/DYNAMIC/TLS/RELRO p_offset; section sh_offset.
+    # The section table itself moves with the RW tail, so its patch addresses move.
+    offsets = (
+        (0x20, 0x1072b8), (0xb8, 0x104e50), (0xd8, 0x104ef0),
+        (0x118, 0x104e50), (0x158, 0x104e50),
+        (0x107598, 0x104e50), (0x1075c0, 0x104e50),
+        (0x1075e8, 0x104e54), (0x107610, 0x104e58),
+        (0x107638, 0x104ef0), (0x107660, 0x105000),
+        (0x107688, 0x1053d0), (0x1076b0, 0x107150),
+        (0x1076d8, 0x107150), (0x107700, 0x107187),
+        (0x107728, 0x1071c0),
+    )
+    commands = [
+        f"[ \"$(wc -c < {source})\" -eq 1079104 ] || exit 1\n",
+        "qemu_layout_bytes() {\n",
+        f"    dd if={source} bs=1 skip=\"$1\" count=\"$2\" 2>/dev/null "
+        "| hexdump -v -e '1/1 \"%02x\"'\n",
+        "}\n",
+    ]
+    guards = (
+        (0, bytes.fromhex("7f454c46010101000000000000000000")),
+        (0x94, struct.pack("<8I", 1, 0, 0, 0, 0x104da4, 0x104da4, 5, 4096)),
+        (0xb4, struct.pack("<8I", 1, tail, 0x105e50, 0x105e50,
+                          0x2300, 0x2fa4, 6, 4096)),
+        (0x2a, struct.pack("<5H", 32, 10, 40, 29, 28)),
+    ) + tuple((offset, struct.pack("<I", value)) for offset, value in offsets)
+    for offset, expected in guards:
+        commands.append(f"[ \"$(qemu_layout_bytes {offset} {len(expected)})\" = "
+                        f"{expected.hex()} ] || exit 1\n")
+    commands.extend((
+        f"cp {source} {target} || exit 1\n",
+        f"dd if={source} of={target} bs=1 skip={tail} seek={tail + shift} "
+        "conv=notrunc 2>/dev/null || exit 1\n",
+        f"dd if=/dev/zero of={target} bs=1 seek={tail} count={shift} "
+        "conv=notrunc 2>/dev/null || exit 1\n",
+    ))
+    for offset, value in offsets:
+        replacement = "".join(f"\\{byte:03o}" for byte in struct.pack("<I", value + shift))
+        address = offset + (shift if offset >= tail else 0)
+        commands.append(f"printf '%b' '{replacement}' | dd of={target} bs=1 "
+                        f"seek={address} conv=notrunc 2>/dev/null || exit 1\n")
+    return "".join(commands)
+
+
 def prepare_root(source: Path, output: Path, board: Board, *, applications: Path) -> None:
     rootfs.copy_source(source, output, maximum_size=PARTITIONS[2][3])
     with output.open("r+b") as stream:
@@ -200,6 +260,9 @@ def prepare_root(source: Path, output: Path, board: Board, *, applications: Path
     font_cache = factory_font_cache_seed(applications)
     monitor_source = "/ebrmain/cramfs/bin/monitor.app"
     layout = ""
+    if board.update_model == b"PocketBook700k3":
+        layout = era_monitor_layout_seed()
+        monitor_source = "/tmp/qemu-pocketbook-monitor-layout.app"
     factory = offline_factory_seed(board, monitor=FACTORY_MONITORS[board.update_model],
                                    source=monitor_source)
 
