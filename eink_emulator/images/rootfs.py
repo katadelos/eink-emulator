@@ -331,6 +331,9 @@ def prepare_usb_network(
         **{f"/etc/upstart/{name}.conf": ("disabled.conf", "0100644")
            for name in ("mtp", "usbnetd", "usbnet-autostart")},
     })
+    install_overrides(image=image, group="kindle", replacements={
+        "/etc/upstart/qemu-sdk-activate.conf": ("qemu-sdk-activate.conf", "0100644"),
+    })
     prepare_ssh(image, early_kindle=early_gadget)
 
 
