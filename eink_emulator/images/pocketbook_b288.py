@@ -75,6 +75,9 @@ BOARDS = {
     "pocketbook-740": Board(b"PocketBook740", 31, "cyttsp5.ko", 0x19d85675, False, (), False),
     "pocketbook-740-2": Board(b"PocketBook740-2", 45, "cyttsp5.ko", 0x19d85675,
                              True, ("Photo", "Downloads"), True),
+    "pocketbook-741": Board(b"PocketBook741", 53, "cyttsp5.ko", 0xa6c12675,
+                           True, ("Photo", "Downloads"), True, waveform_name=b"EC078",
+                           offline_factory=True, large_applications=True),
     "pocketbook-970": Board(b"PocketBook970", 67, "", 0xa6c12675, True,
                            ("Photo", "Downloads"), True, offline_factory=True),
     "pocketbook-1040": Board(b"PocketBook1040", 47, "", 0xa6c12675,
@@ -112,6 +115,11 @@ IOC_PATCHES = {
                               file_offset=0xee78, compression=3, literal=bytes.fromhex(
                                   "ee261618e87429c5d0c4036bdc84fec42ff2bd37"
                                   "0c8137abbbd4973ff8ec56540fa6bc05")),
+    "pocketbook-741": IOCPatch("6.8.4079", 187215067, 128482,
+                              bytes.fromhex("6f7790dd"), bytes.fromhex("6c7790dd"),
+                              file_offset=0xf0f8, compression=3, literal=bytes.fromhex(
+                                  "ca30fef63078751264cc044324ae48026f7790dd"
+                                  "88eafe2a3e5083eaf029ec556bdea666")),
     "pocketbook-970": IOCPatch("6.8.4644", 186382527, 128480,
                               bytes.fromhex("83fd9f3d"), bytes.fromhex("80fd9f3d"),
                               file_offset=0xf0f8, compression=3, literal=bytes.fromhex(
@@ -139,6 +147,8 @@ FACTORY_MONITORS = {
                                      0x54ed4, 0x17b10),
     b"PocketBook634": MONITOR_610,
     b"PocketBook700": MONITOR_610,
+    b"PocketBook741": FactoryMonitor(1083088, 0x1052c0, 0x10000, 0x10000,
+                                     0x105ed4, 0x17a20),
     b"PocketBook970": FactoryMonitor(673472, 0xa1618, 0x10000, 0x10000,
                                      0xa1ed4, 0x17a20),
 }

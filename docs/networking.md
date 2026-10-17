@@ -68,7 +68,7 @@ manager handles association and DHCP; the guest uses `10.0.2.15`, with gateway
 | Models | Radio | Access point |
 | --- | --- | --- |
 | 360 Plus New 512, Basic 611, Touch 622, Touch Lux 623, Ultra 650 | BCM43362 SDIO | `Kindle-QEMU` |
-| Touch Lux 5 628, Touch HD 3 632, Color 633, Verse Pro 634, Era 700, InkPad 3 740, InkPad 3 Pro 740-2, InkPad Lite 970, InkPad X 1040 | XR819 SDIO | `PocketBook-QEMU` |
+| Touch Lux 5 628, Touch HD 3 632, Color 633, Verse Pro 634, Era 700, InkPad 3 740, InkPad 3 Pro 740-2, InkPad Color 741, InkPad Lite 970, InkPad X 1040 | XR819 SDIO | `PocketBook-QEMU` |
 | Color Lux 801 | RTL8188EU USB | `Kindle-QEMU` |
 
 The Basic 613 has no Wi-Fi hardware. PocketBook images do not start an SSH server;

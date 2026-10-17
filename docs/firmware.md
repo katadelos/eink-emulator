@@ -46,6 +46,7 @@ Import is available for these models:
 | [PocketBook Era](pocketbook-700.md) | `pocketbook-700` |
 | [PocketBook InkPad 3](pocketbook-740.md) | `pocketbook-740` |
 | [PocketBook InkPad 3 Pro](pocketbook-740-2.md) | `pocketbook-740-2` |
+| [PocketBook InkPad Color](pocketbook-741.md) | `pocketbook-741` |
 | [PocketBook InkPad Lite](pocketbook-970.md) | `pocketbook-970` |
 | [PocketBook InkPad X](pocketbook-1040.md) | `pocketbook-1040` |
 | [PocketBook Color Lux 801](pocketbook-801.md) | `pocketbook-801` |
