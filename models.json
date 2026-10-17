@@ -1213,6 +1213,24 @@
       "applications": ["applications.img"]
     }
   },
+  "pocketbook-801": {
+    "description": "PocketBook Color Lux 801",
+    "qemu_machine": "imx50-pocketbook-801",
+    "memory": "256M",
+    "builder": "pocketbook-801",
+    "drive_index": 2,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"]
+    },
+    "optional_firmware": {
+      "boot_logo": ["bootlogo.bmp"]
+    }
+  },
   "kobo-elipsa-2e": {
     "description": "Kobo Elipsa 2E",
     "qemu_machine": "mt8113-kobo-elipsa2e",

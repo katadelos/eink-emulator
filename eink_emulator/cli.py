@@ -742,7 +742,7 @@ def command_import(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     package = Path(args.package).resolve()
     destination = FIRMWARE_ROOT / args.model
-    if definition["builder"] in {"pocketbook-613", "pocketbook-622", "pocketbook-623", "pocketbook-650"}:
+    if definition["builder"] in {"pocketbook-613", "pocketbook-622", "pocketbook-623", "pocketbook-650", "pocketbook-801"}:
         from .images import pocketbook
         installed = pocketbook.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] == "tolino":

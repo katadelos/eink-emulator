@@ -21,6 +21,7 @@ from .forma import write_userstore
 MIB = 1024**2
 SECTOR_SIZE = 512
 DISK_SIZE = 2032 * MIB
+PB801_DISK_SIZE = 4 * 1024**3
 UBOOT_OFFSET = 0x400
 HEADER_SIZE = 0x400
 IMPORT_FILES = {
@@ -91,6 +92,25 @@ MX6SL_LAYOUT = Layout(
     ),
     logo_offsets={},
     logo_limit=MIB,
+)
+MX50_RGB_LAYOUT = Layout(
+    # This loader takes capacity directly from EXT_CSD, requiring eMMC >2 GiB.
+    disk_size=PB801_DISK_SIZE,
+    env_offset=768 * 1024,
+    kernel_offset=0x100000,
+    kernel_size=0x400000,
+    vcom_offset=0,
+    vcom=b"",
+    waveform_offset=0x500000,
+    user_device="/dev/mmcblk0p4",
+    partitions=(
+        (32 * MIB, 16 * MIB, 0x83),
+        (48 * MIB, 256 * MIB, 0x83),
+        (304 * MIB, 16 * MIB, 0x83),
+        (320 * MIB, PB801_DISK_SIZE - 320 * MIB, 0x0C),
+    ),
+    logo_offsets={"boot_logo": 0x1000000},
+    logo_limit=2 * MIB,
 )
 @dataclass(frozen=True)
 class Board:
@@ -185,6 +205,19 @@ BOARDS = {
         ),
         factory_directories=("Photo", "Downloads"),
         waveform_file="",
+    ),
+    "pocketbook-801": Board(
+        update_model=b"PocketBook801",
+        layout=MX50_RGB_LAYOUT,
+        logo_sources={5: {"boot_logo": "misc/readrat.bmp"}},
+        logo_dimensions=(600, 800),
+        logo_depth=24,
+        secure_pbpk_mode="040770",
+        factory_state=0xCF269875,
+        raw_settings=((0xF00000, b"00000000000000000000"),),
+        factory_tar_excludes=(),
+        factory_directories=("Photo", "Downloads"),
+        waveform_file="/lib/firmware/imx/epdc_E80_V250.fw",
     ),
 }
 
@@ -357,6 +390,15 @@ def import_update(package: Path, destination: Path, *, model: str) -> dict[str, 
 
 def prepare_root(source: Path, output: Path, board: Board) -> None:
     rootfs.copy_source(source, output, maximum_size=board.layout.partitions[0][1])
+    if board.waveform_file:
+        with tempfile.NamedTemporaryFile(prefix="pocketbook-rgb-waveform-") as waveform:
+            waveform.write(build_rgb_waveform())
+            waveform.flush()
+            rootfs.run_many(output, [
+                "mkdir /lib/firmware/imx",
+                f'write "{waveform.name}" {board.waveform_file}',
+                f"set_inode_field {board.waveform_file} mode 0100644",
+            ], writable=True)
     exclusions = "".join(f" --exclude={name}" for name in board.factory_tar_excludes)
     directories = " ".join(f"/mnt/ext1/{name}" for name in board.factory_directories)
     make_directories = f"    mkdir -p {directories} || exit 1\n" if directories else ""
@@ -437,6 +479,30 @@ def build_mx6sl_waveform() -> bytes:
     return bytes(waveform)
 
 
+def build_rgb_waveform() -> bytes:
+    """Create a neutral EPDC waveform file with native 64-bit mode tables."""
+    # Unlike EP7's reserved memory and MX6SL's compressed WJ file, the 801
+    # loads a named firmware file and sends its unpacked body to the EPDC.
+    # Eight modes and two temperature ranges share four neutral frames.
+    modes, temperatures, frames = 8, 2, 4
+    sequence = modes * 8 + modes * temperatures * 8
+    body = bytearray(sequence + 8 + frames * 256)
+    for mode in range(modes):
+        table = modes * 8 + mode * temperatures * 8
+        struct.pack_into("<Q", body, mode * 8, table)
+        for temperature in range(temperatures):
+            struct.pack_into("<Q", body, table + temperature * 8, sequence)
+    struct.pack_into("<II", body, sequence, frames, 0)
+    waveform = bytearray(build_waveform()[:0x30] + bytes((0, 35, 35)) + body)
+    waveform[0x25] = modes - 1
+    struct.pack_into("<I", waveform, 4, len(waveform))
+    waveform[0x1F] = sum(waveform[0x08:0x1F]) & 0xFF
+    waveform[0x2F] = sum(waveform[0x20:0x2F]) & 0xFF
+    struct.pack_into("<I", waveform, 0, 0)
+    struct.pack_into("<I", waveform, 0, zlib.crc32(waveform))
+    return bytes(waveform)
+
+
 def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
     """Keep the stock bootloader/kernel/filesystems and create writable storage."""
     board = BOARDS[model]
@@ -506,7 +572,9 @@ def build(output: Path, artifacts: dict[str, Path], *, model: str) -> None:
                 disk.seek(offset)
                 disk.write(artifacts[role].read_bytes())
         disk.seek(layout.waveform_offset)
-        if layout is MX6SL_LAYOUT:
+        if layout is MX50_RGB_LAYOUT:
+            disk.write(build_rgb_waveform()[0x33:])
+        elif layout is MX6SL_LAYOUT:
             disk.write(build_mx6sl_waveform())
         else:
             disk.write(build_waveform())

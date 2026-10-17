@@ -150,6 +150,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook Touch 622](docs/pocketbook-622.md) | PB622 | EP7 | Experimental |
 | [PocketBook Touch Lux 623](docs/pocketbook-623.md) | PB623 | EP7A | Experimental |
 | [PocketBook Ultra 650](docs/pocketbook-650.md) | PB650 | i.MX6 SoloLite | Experimental |
+| [PocketBook Color Lux 801](docs/pocketbook-801.md) | PB801 | i.MX50 | Experimental |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders
 adapt vendor firmware to the emulated hardware.
