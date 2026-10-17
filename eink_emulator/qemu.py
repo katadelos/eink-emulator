@@ -30,6 +30,7 @@ def configure() -> None:
         "--disable-docs",
         "--disable-werror",
         "--enable-slirp",
+        "--disable-pvg",
         "-Dforce_fallback_for=slirp",
         "-Dqom_cast_debug=false",
         "-Db_lto=true",
