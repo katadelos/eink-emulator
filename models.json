@@ -1327,6 +1327,29 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-633": {
+    "description": "PocketBook Color (633)",
+    "qemu_machine": "allwinner-b288-pocketbook-633",
+    "memory": "1G",
+    "builder": "pocketbook-633",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-634": {
     "description": "PocketBook Verse Pro (634)",
     "qemu_machine": "allwinner-b288-pocketbook-634",

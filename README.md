@@ -155,6 +155,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook Ultra 650](docs/pocketbook-650.md) | PB650 | i.MX6 SoloLite | Experimental |
 | [PocketBook Touch Lux 5](docs/pocketbook-628.md) | PB628 | Allwinner B288 | Experimental |
 | [PocketBook Touch HD 3](docs/pocketbook-632.md) | PB632 | Allwinner B288 | Experimental |
+| [PocketBook Color](docs/pocketbook-633.md) | PB633 | Allwinner B288 | Experimental |
 | [PocketBook Verse Pro](docs/pocketbook-634.md) | PB634 | Allwinner B288 | Experimental |
 | [PocketBook Era](docs/pocketbook-700.md) | PB700 | Allwinner B288 | Experimental |
 | [PocketBook InkPad 3](docs/pocketbook-740.md) | PB740 | Allwinner B288 | Experimental |
