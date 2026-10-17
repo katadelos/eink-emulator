@@ -63,8 +63,7 @@ BCM43362 Wi-Fi uses USDHC3. The board includes Neonode v3 infrared touch,
 Ricoh619 power management, TPS65185 display power and a Netronix MSP430
 frontlight controller.
 
-Reference sources live under the ignored `kobo-glohd-work/` directory.
-Both checkouts use Git SSH and the `kobolabs/imx6sl-glohd` branch of
+Hardware references use the `kobolabs/imx6sl-glohd` branch of
 [linux-ereader](https://github.com/katadelos/linux-ereader/tree/kobolabs/imx6sl-glohd)
 and [u-boot-ereader](https://github.com/katadelos/u-boot-ereader/tree/kobolabs/imx6sl-glohd).
 The emulator uses captured firmware; neither source tree needs to be built.

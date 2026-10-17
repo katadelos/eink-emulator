@@ -66,8 +66,7 @@ multiple readers. Click or drag for touch input; press `P` for power and
 eSDHC2. The board includes MC13892 power management on SPI3, TPS65185 display
 power, a Netronix MSP430 controller and zForce v2 infrared touch.
 
-Reference sources live under the ignored `kobo-aurahd-work/` directory.
-Both checkouts use Git SSH and the `kobolabs/imx507-aurahd` branch of
+Hardware references use the `kobolabs/imx507-aurahd` branch of
 [linux-ereader](https://github.com/katadelos/linux-ereader/tree/kobolabs/imx507-aurahd)
 and [u-boot-ereader](https://github.com/katadelos/u-boot-ereader/tree/kobolabs/imx507-aurahd).
 The emulator uses captured firmware; neither source tree needs to be built.

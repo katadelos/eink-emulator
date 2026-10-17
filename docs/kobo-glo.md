@@ -61,8 +61,7 @@ machine. Internal storage uses eSDHC1, the external card slot uses eSDHC2,
 and Broadcom BCM43362 Wi-Fi uses eSDHC3. Touch uses Neonode zForce v2;
 the frontlight button connects through the i.MX keypad matrix.
 
-Reference sources live under the ignored `glo-work/` directory. Both
-checkouts use Git SSH and the `kobolabs/imx507` branch of
+Hardware references use the `kobolabs/imx507` branch of
 [linux-ereader](https://github.com/katadelos/linux-ereader/tree/kobolabs/imx507)
 and [u-boot-ereader](https://github.com/katadelos/u-boot-ereader/tree/kobolabs/imx507).
 The emulator uses captured firmware; neither source tree needs to be built.

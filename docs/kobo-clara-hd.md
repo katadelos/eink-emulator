@@ -71,9 +71,8 @@ Internal storage connects to USDHC2;
 RTL8189FS Wi-Fi connects to USDHC3. The I2C devices include Ricoh619 power
 management, TPS65185 display power, CYTTSP5 touch and LM3630A frontlight control.
 
-Linux and U-Boot source references live in the ignored `clarahd-work/`
-directory. Both checkouts use SSH remotes and the `kobolabs/imx6sll-clara`
-source branch from [linux-ereader](https://github.com/katadelos/linux-ereader/tree/kobolabs/imx6sll-clara)
+Linux and U-Boot hardware references use the `kobolabs/imx6sll-clara`
+branch from [linux-ereader](https://github.com/katadelos/linux-ereader/tree/kobolabs/imx6sll-clara)
 and [u-boot-ereader](https://github.com/katadelos/u-boot-ereader/tree/kobolabs/imx6sll-clara).
 They are hardware references; running the emulator uses the captured
 firmware and does not require building either source tree.
