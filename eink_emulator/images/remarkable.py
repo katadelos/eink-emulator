@@ -52,9 +52,9 @@ def import_update(package: Path, destination: Path, *, model: str = "remarkable1
     if destination.exists():
         raise SystemExit(f"firmware destination already exists: {destination}")
     destination.parent.mkdir(parents=True, exist_ok=True)
-    generation = {"remarkable1": 1, "remarkable2": 2}[model]
-    product = f"rm{generation}"
-    suffix = ".ext4.gz"
+    generation = {"remarkable1": 1, "remarkable2": 2, "remarkablepp": 3}[model]
+    product = "ferrari" if generation == 3 else f"rm{generation}"
+    suffix = ".ext4.verity.gz" if generation == 3 else ".ext4.gz"
     with tempfile.TemporaryDirectory(prefix=f".rm{generation}-import-", dir=destination.parent) as temporary:
         work = Path(temporary)
         prepared = work / "prepared"
@@ -83,6 +83,10 @@ def import_update(package: Path, destination: Path, *, model: str = "remarkable1
                     if manifest is not None:
                         raise ValueError("reMarkable update repeats its manifest")
                     manifest = source.read(size)
+                elif generation == 3 and name == "imx-boot":
+                    if (prepared / name).exists() or size > 4 * MIB:
+                        raise ValueError("Invalid Paper Pro boot package")
+                    (prepared / name).write_bytes(source.read(size))
                 elif name.endswith(f"-{product}-public{suffix}"):
                     if payload is not None or fields[1] & 0o170000 != 0o100000:
                         raise ValueError("reMarkable update has an invalid root filesystem member")
@@ -98,15 +102,24 @@ def import_update(package: Path, destination: Path, *, model: str = "remarkable1
                 else:
                     source.seek(size, 1)
                 source.seek((-source.tell()) % 4, 1)
-        manifest_product = f"reMarkable{generation}".encode()
+        manifest_product = b"ferrari" if generation == 3 else f"reMarkable{generation}".encode()
         if manifest is None or manifest_product not in manifest or payload is None:
             raise ValueError(f"SWU does not contain reMarkable {generation} firmware")
         image = prepared / "rootfs.img"
         with gzip.open(payload, "rb") as source, image.open("wb") as target:
             shutil.copyfileobj(source, target)
-        dump_file(image, "/boot/u-boot.imx", prepared / "u-boot.imx")
-        installed = {"rootfs": image, "bootloader": prepared / "u-boot.imx"}
-        validate_firmware(installed)
+        if generation == 3:
+            from . import remarkablepp
+            installed = {"rootfs": image, "bootloader": prepared / "imx-boot"}
+            dump_file(image, "/lib/firmware/hwmon.bin", prepared / "hwmon.bin")
+            installed["hwmon"] = prepared / "hwmon.bin"
+            installed["factory"] = prepared / "factory.img"
+            remarkablepp.create_factory(installed["factory"])
+            remarkablepp.validate_firmware(installed)
+        else:
+            dump_file(image, "/boot/u-boot.imx", prepared / "u-boot.imx")
+            installed = {"rootfs": image, "bootloader": prepared / "u-boot.imx"}
+            validate_firmware(installed)
         prepared.replace(destination)
     return {role: destination / path.name for role, path in installed.items()}
 

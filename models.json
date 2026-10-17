@@ -1126,6 +1126,27 @@
       "tee": ["tee.img"]
     }
   },
+  "remarkable-paper-pro": {
+    "description": "reMarkable Paper Pro",
+    "qemu_machine": "imx8mm-remarkable-paper-pro",
+    "qemu_arch": "aarch64",
+    "memory": "2G",
+    "builder": "remarkablepp",
+    "drive_index": 0,
+    "serial_index": 1,
+    "allow_reboot": true,
+    "network": {},
+    "machine_firmware_properties": {
+      "factory-image": "factory",
+      "hwmon-firmware": "hwmon"
+    },
+    "firmware": {
+      "bootloader": ["imx-boot"],
+      "rootfs": ["rootfs.img"],
+      "factory": ["factory.img"],
+      "hwmon": ["hwmon.bin"]
+    }
+  },
   "remarkable-2": {
     "description": "reMarkable 2",
     "qemu_machine": "imx7d-remarkable2",

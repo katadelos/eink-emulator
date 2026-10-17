@@ -47,6 +47,7 @@ Import is available for these models:
 | [PocketBook Color Lux 801](pocketbook-801.md) | `pocketbook-801` |
 | [reMarkable 1](remarkable-1.md) | `remarkable-1` |
 | [reMarkable 2](remarkable-2.md) | `remarkable-2` |
+| [reMarkable Paper Pro](remarkable-paper-pro.md) | `remarkable-paper-pro` |
 
 [Tolino Vision Color](tolino-vision-color.md) and
 [Shine 5 / Shine Color](tolino-shine.md) accept an update tar archive
@@ -80,6 +81,7 @@ For manual setup, place files under `firmware/MODEL/`:
 | Kobo Elipsa 2E | See the [Elipsa 2E file list](kobo-elipsa-2e.md#firmware) |
 | reMarkable 1 | `u-boot.imx`, `rootfs.img`; see [import instructions](remarkable-1.md#firmware) |
 | reMarkable 2 | `u-boot.imx`, `rootfs.img`; see [import instructions](remarkable-2.md#firmware) |
+| reMarkable Paper Pro | `imx-boot`, `rootfs.img`, `hwmon.bin`, `factory.img`; see [import instructions](remarkable-paper-pro.md#firmware) |
 | Tolino Vision Color | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [import instructions](tolino-vision-color.md#firmware) |
 | Tolino Shine 5, Shine Color, Shine 5 TPV | `uboot.img`, `kernel.img`, `rootfs.img`, `bl2.img`, `tee.img`; see [kernel selection](tolino-shine.md#firmware) |
 
