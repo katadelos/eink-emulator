@@ -1233,6 +1233,29 @@
       "low_battery_logo": ["battery-low.bmp"]
     }
   },
+  "pocketbook-618": {
+    "description": "PocketBook Basic Lux 4 (618)",
+    "qemu_machine": "allwinner-b288-pocketbook-618",
+    "memory": "512M",
+    "builder": "pocketbook-618",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-622": {
     "description": "PocketBook Touch 622",
     "qemu_machine": "imx50-pocketbook-622",
