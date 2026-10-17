@@ -7,7 +7,7 @@ from typing import Any
 
 from . import (
     addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kobo_sd, kt4, kt7, mt8115, oasis,
-    pocketbook, rex, rootfs, tequila, tolino, wario, whitney,
+    pocketbook, pocketbook_b288, rex, rootfs, tequila, tolino, wario, whitney,
 )
 
 
@@ -40,6 +40,8 @@ def build_raw_image(
         tolino.build(output, artifacts, profile=definition["image_profile"])
     elif builder in pocketbook.BOARDS:
         pocketbook.build(output, artifacts, model=builder)
+    elif builder in pocketbook_b288.BOARDS:
+        pocketbook_b288.build(output, artifacts, model=builder)
     elif builder == "bellatrix":
         prepared = output.with_name("prepared-rootfs.img")
         board = definition["machine_properties"]["board"]

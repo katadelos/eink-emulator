@@ -1234,6 +1234,25 @@
       "low_battery_logo": ["battery-low.bmp"]
     }
   },
+  "pocketbook-628": {
+    "description": "PocketBook Touch Lux 5 (628)",
+    "qemu_machine": "allwinner-b288-pocketbook-628",
+    "memory": "512M",
+    "builder": "pocketbook-628",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {},
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-650": {
     "description": "PocketBook Ultra 650",
     "qemu_machine": "imx6sl-pocketbook-650",
