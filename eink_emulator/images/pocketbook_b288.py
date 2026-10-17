@@ -72,6 +72,8 @@ BOARDS = {
     "pocketbook-740": Board(b"PocketBook740", 31, "cyttsp5.ko", 0x19d85675, False, (), False),
     "pocketbook-740-2": Board(b"PocketBook740-2", 45, "cyttsp5.ko", 0x19d85675,
                              True, ("Photo", "Downloads"), True),
+    "pocketbook-970": Board(b"PocketBook970", 67, "", 0xa6c12675, True,
+                           ("Photo", "Downloads"), True, offline_factory=True),
     "pocketbook-1040": Board(b"PocketBook1040", 47, "", 0xa6c12675,
                             True, ("Photo", "Downloads"), True),
 }
@@ -102,6 +104,11 @@ IOC_PATCHES = {
                               file_offset=0xee78, compression=3, literal=bytes.fromhex(
                                   "ee261618e87429c5d0c4036bdc84fec42ff2bd37"
                                   "0c8137abbbd4973ff8ec56540fa6bc05")),
+    "pocketbook-970": IOCPatch("6.8.4644", 186382527, 128480,
+                              bytes.fromhex("83fd9f3d"), bytes.fromhex("80fd9f3d"),
+                              file_offset=0xf0f8, compression=3, literal=bytes.fromhex(
+                                  "b68a7af00857273948f80bbcc8511e6583fd9f3d"
+                                  "e45199f00a281d83002174d75f555588")),
     "pocketbook-1040": IOCPatch("6.5.2920", 165964900, 127969,
                                bytes.fromhex("07523114"), bytes.fromhex("04523114")),
 }
@@ -122,6 +129,8 @@ MONITOR_610 = FactoryMonitor(677700, 0xa2c28, 0, 0x1000, 0xa2e50, 0x158a4)
 FACTORY_MONITORS = {
     b"PocketBook634": MONITOR_610,
     b"PocketBook700": MONITOR_610,
+    b"PocketBook970": FactoryMonitor(673472, 0xa1618, 0x10000, 0x10000,
+                                     0xa1ed4, 0x17a20),
 }
 
 

@@ -1438,6 +1438,29 @@
       "waveform": ["default.wbf"]
     }
   },
+  "pocketbook-970": {
+    "description": "PocketBook InkPad Lite (970)",
+    "qemu_machine": "allwinner-b288-pocketbook-970",
+    "memory": "512M",
+    "builder": "pocketbook-970",
+    "drive_index": 3,
+    "allow_reboot": true,
+    "network": {
+      "wifi": {
+        "device": "xradio-sdio"
+      }
+    },
+    "firmware": {
+      "bootloader": ["u-boot.img"],
+      "kernel": ["uImage"],
+      "rootfs": ["rootfs.img"],
+      "applications": ["applications.img"],
+      "recoveryfs": ["updatefs"]
+    },
+    "optional_firmware": {
+      "waveform": ["default.wbf"]
+    }
+  },
   "pocketbook-1040": {
     "description": "PocketBook InkPad X (1040)",
     "qemu_machine": "allwinner-b288-pocketbook-1040",
