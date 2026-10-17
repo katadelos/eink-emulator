@@ -772,6 +772,7 @@
   },
   "kobo-touch": {
     "description": "Kobo Touch",
+    "allow_reboot": true,
     "qemu_machine": "imx50-kobotouch",
     "memory": "256M",
     "builder": "disk-copy",
