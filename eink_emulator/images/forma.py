@@ -34,8 +34,11 @@ def boot_environment(region: bytes, *, sideloaded: bool) -> bytes:
     return struct.pack('<I', zlib.crc32(data)) + data
 
 
-def write_userstore(disk, *, start: int = USER_START, end: int = DISK_SIZE // 512) -> None:
+def write_userstore(disk, *, start: int = USER_START, end: int = DISK_SIZE // 512,
+                    label: bytes = b'KOBOeReader') -> None:
     """Write a fresh FAT32 userstore within the supplied sector range."""
+    if len(label) != 11:
+        raise ValueError('FAT32 volume label must contain exactly 11 bytes')
     sectors = end - start
     cluster_sectors, reserved = 8, 32
     fat_sectors = 1
@@ -52,7 +55,7 @@ def write_userstore(disk, *, start: int = USER_START, end: int = DISK_SIZE // 51
     struct.pack_into('<IHHIHH', boot, 36, fat_sectors, 0, 0, 2, 1, 6)
     boot[64:67] = b'\x80\0\x29'
     struct.pack_into('<I', boot, 67, 0x464f524d)
-    boot[71:82] = b'KOBOeReader'
+    boot[71:82] = label
     boot[82:90] = b'FAT32   '
     boot[510:] = b'\x55\xaa'
     info = bytearray(512)
