@@ -745,7 +745,7 @@ def command_import(args: argparse.Namespace) -> None:
     if definition["builder"] in {"pocketbook-512", "pocketbook-611", "pocketbook-613", "pocketbook-622", "pocketbook-623", "pocketbook-650", "pocketbook-801"}:
         from .images import pocketbook
         installed = pocketbook.import_update(package, destination, model=definition["builder"])
-    elif definition["builder"] in {"pocketbook-628", "pocketbook-632", "pocketbook-740", "pocketbook-740-2"}:
+    elif definition["builder"] in {"pocketbook-628", "pocketbook-632", "pocketbook-740", "pocketbook-740-2", "pocketbook-1040"}:
         from .images import pocketbook_b288
         installed = pocketbook_b288.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] == "tolino":

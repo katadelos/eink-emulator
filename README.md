@@ -156,6 +156,7 @@ Arguments after `--` also pass through on `run`; see
 | [PocketBook Touch HD 3](docs/pocketbook-632.md) | PB632 | Allwinner B288 | Experimental |
 | [PocketBook InkPad 3](docs/pocketbook-740.md) | PB740 | Allwinner B288 | Experimental |
 | [PocketBook InkPad 3 Pro](docs/pocketbook-740-2.md) | PB740-2 | Allwinner B288 | Experimental |
+| [PocketBook InkPad X](docs/pocketbook-1040.md) | PB1040 | Allwinner B288 | Experimental |
 | [PocketBook Color Lux 801](docs/pocketbook-801.md) | PB801 | i.MX50 | Experimental |
 
 [Guest compatibility changes](docs/guest-overrides.md) explains how the builders

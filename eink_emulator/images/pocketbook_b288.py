@@ -59,6 +59,8 @@ BOARDS = {
     "pocketbook-740": Board(b"PocketBook740", 31, "cyttsp5.ko", 0x19d85675, False, (), False),
     "pocketbook-740-2": Board(b"PocketBook740-2", 45, "cyttsp5.ko", 0x19d85675,
                              True, ("Photo", "Downloads"), True),
+    "pocketbook-1040": Board(b"PocketBook1040", 47, "", 0xa6c12675,
+                            True, ("Photo", "Downloads"), True),
 }
 
 
@@ -74,6 +76,8 @@ class IOCPatch:
 IOC_PATCHES = {
     "pocketbook-628": IOCPatch("6.5.2890", 157436504, 127961,
                               bytes.fromhex("6f74ced5"), bytes.fromhex("6c74ced5")),
+    "pocketbook-1040": IOCPatch("6.5.2920", 165964900, 127969,
+                               bytes.fromhex("07523114"), bytes.fromhex("04523114")),
 }
 
 
