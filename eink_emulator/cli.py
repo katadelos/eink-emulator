@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .firmware import import_recovery
-from .images import addons, build_raw_image, tolino
+from .images import addons, build_raw_image, pocketbook, pocketbook_b288, tolino
 from .qemu import build as build_qemu
 from .ssh import LOGIN_KEY, ensure_login_key
 from .storage import (
@@ -742,11 +742,9 @@ def command_import(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     package = Path(args.package).resolve()
     destination = FIRMWARE_ROOT / args.model
-    if definition["builder"] in {"pocketbook-512", "pocketbook-611", "pocketbook-613", "pocketbook-622", "pocketbook-623", "pocketbook-650", "pocketbook-801"}:
-        from .images import pocketbook
+    if definition["builder"] in pocketbook.BOARDS:
         installed = pocketbook.import_update(package, destination, model=definition["builder"])
-    elif definition["builder"] in {"pocketbook-628", "pocketbook-632", "pocketbook-740", "pocketbook-740-2", "pocketbook-1040"}:
-        from .images import pocketbook_b288
+    elif definition["builder"] in pocketbook_b288.BOARDS:
         installed = pocketbook_b288.import_update(package, destination, model=definition["builder"])
     elif definition["builder"] in {"remarkable1", "remarkable2", "remarkablepp"}:
         from .images import remarkable
