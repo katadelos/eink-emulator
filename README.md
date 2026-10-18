@@ -21,6 +21,22 @@ Rakuten Kobo.
 
 On macOS, install e2fsprogs through Homebrew.
 
+### Nix users
+
+If you use [Nix](https://nixos.org/), you can enter an environment with all host requirements and dependencies preconfigured:
+
+```sh
+nix develop
+```
+
+Alternatively, if you use [direnv](https://direnv.net/) / [nix-direnv](https://github.com/nix-community/nix-direnv), run:
+
+```sh
+direnv allow
+```
+
+and the development environment will be loaded automatically when entering this directory.
+
 ## Quick start
 
 ```sh
