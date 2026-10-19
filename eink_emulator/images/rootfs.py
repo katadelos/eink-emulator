@@ -684,7 +684,9 @@ def prepare_bellatrix(
             "0100644",
             remove_legacy_usb_storage,
         ))
-    if board == "sangria-color":
+    # 5.20.1 still calls dump-stack on a framework timeout but no longer
+    # ships it, so there is no gdb run to suppress.
+    if board == "sangria-color" and file_exists(output, "/usr/bin/dump-stack"):
         transforms.insert(
             2,
             ("/usr/bin/dump-stack", "0100755", bellatrix_patch_dump_stack),

@@ -74,7 +74,8 @@ With an older QEMU build, every Wi-Fi power-on fails
 startup for up to eight minutes.
 
 Colorsoft also disables native debugger stack dumps, which can occupy an
-emulated CPU. See [Colorsoft](colorsoft.md) for display behavior.
+emulated CPU. 5.20.1 no longer ships the stack-dump script, so it is left
+alone there. See [Colorsoft](colorsoft.md) for display behavior.
 
 ## Scribe 1 and 2
 
