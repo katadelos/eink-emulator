@@ -131,6 +131,7 @@ The framework then starts already jailbroken, so no extra boot or second
 | Tested | Time to jailbroken Home, one run |
 | --- | --- |
 | Paperwhite 6, 5.20.1 | About 5 minutes |
+| Basic 2022, 5.16.3 | About 3 minutes |
 | Basic 2016, 5.16.2.1.1 | About 3 minutes |
 
 Confirm the jailbreak before testing. If `/var/local/kmc/bin` is missing,

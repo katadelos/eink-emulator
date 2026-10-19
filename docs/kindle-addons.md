@@ -114,6 +114,7 @@ FUSE userstore mount on top of the first, which a reboot would clear.
 | Tested | Userspace | Time to jailbroken Home, one run |
 | --- | --- | --- |
 | Paperwhite 6, 5.20.1 | `kindlehf` | About 5 minutes |
+| Basic 2022, 5.16.3 | `kindlehf` | About 3 minutes |
 | Basic 2016, 5.16.2.1.1 | `kindlepw2` | About 3 minutes |
 
 To jailbreak an existing instance instead, copy the script in and run it

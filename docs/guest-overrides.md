@@ -62,6 +62,10 @@ Releases up to at least 5.16.3 mount var-local directly in
 erase the hibernate partition. The layout depends on the firmware version,
 not the model: Basic 2022 and Paperwhite 5 ship identical files in 5.16.3.
 The builder patches the mount where it is and skips the hibernate step.
+These releases also copy `/opt/amazon/factory_fresh` when they format a
+blank var-local partition, but do not ship that directory. The copy fails,
+and the system monitor hard-reboots the first boot. The builder skips the
+copy when the directory is absent, as later releases do.
 
 Colorsoft also disables native debugger stack dumps, which can occupy an
 emulated CPU. See [Colorsoft](colorsoft.md) for display behavior.

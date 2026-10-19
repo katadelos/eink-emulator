@@ -28,6 +28,7 @@ BELLATRIX_VARLOCAL_MARKER = "Bellatrix QEMU: coalesce emulated var-local writes"
 BELLATRIX_JAVA_MARKER = "Bellatrix QEMU: trust the immutable firmware class path"
 BELLATRIX_HIBERNATE_MARKER = "Bellatrix QEMU: skip absent hibernate payload"
 BELLATRIX_LOOPBACK_MARKER = "Bellatrix QEMU: create packaged loopback mountpoints"
+BELLATRIX_FACTORY_FRESH_MARKER = "Bellatrix QEMU: skip absent factory_fresh seed"
 
 
 @cache
@@ -242,6 +243,23 @@ def bellatrix_patch_ext3_varlocal_mount(contents: str) -> str:
         + command.replace("-o rw ", "-o rw,noatime,nodiratime ")
     )
     return contents.replace(indent + command, new, 1)
+
+
+def bellatrix_patch_factory_fresh(contents: str) -> str:
+    """Guard the seed copies that later releases dropped with factory_fresh itself.
+
+    Under set -e, the copy fails on a blank var-local partition and the system
+    monitor hard-reboots the first boot.
+    """
+    if BELLATRIX_FACTORY_FRESH_MARKER in contents:
+        return contents
+    old = "cp -arf /opt/amazon/factory_fresh/. /var/local/system/.\n"
+    if not 1 <= contents.count(old) <= 3:
+        raise SystemExit("stock Bellatrix factory_fresh copies were not found")
+    contents = contents.replace(
+        old, "[ ! -d /opt/amazon/factory_fresh ] || " + old,
+    )
+    return f"# {BELLATRIX_FACTORY_FRESH_MARKER}.\n" + contents
 
 
 def bellatrix_patch_java_verification(contents: str) -> str:
@@ -650,6 +668,8 @@ def prepare_bellatrix(
         ),
         ("/etc/shadow", "0100600", blank_root_password),
     ]
+    if inline_varlocal and not file_exists(output, "/opt/amazon/factory_fresh"):
+        transforms.append((*varlocal_mount, bellatrix_patch_factory_fresh))
     if board not in {"cava", "malbec"}:
         transforms.insert(
             2,
