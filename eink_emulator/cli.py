@@ -268,6 +268,20 @@ def parse_profile(value: str | None, definition: dict[str, Any]) -> str | None:
     return value
 
 
+def drive_cache(path: Path) -> str:
+    """Use writeback on btrfs, where writethrough's per-write fsync stalls boot."""
+    try:
+        result = subprocess.run(
+            ["stat", "-f", "-c", "%T", str(path)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return "writethrough"
+    return "writeback" if result.stdout.strip() == "btrfs" else "writethrough"
+
+
 def launch_command(args: argparse.Namespace) -> list[str]:
     directory, manifest = read_machine(args.name)
     model = manifest.get("model")
@@ -330,8 +344,9 @@ def launch_command(args: argparse.Namespace) -> list[str]:
         "-machine", ",".join(machine_options),
         "-m", definition["memory"],
         f"-{boot_method}", str(artifacts[boot_role]),
-        # The emulated card advertises no write cache; complete writes durably.
-        "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2,cache=writethrough",
+        # The emulated card advertises no write cache. Complete writes durably,
+        # except on btrfs where writethrough stalls the first boot.
+        "-drive", f"file={disk},if=sd,index={definition['drive_index']},format=qcow2,cache={drive_cache(disk)}",
     ])
     runtime = runtime_paths(directory)
     serial_index = definition.get("serial_index", 0)
