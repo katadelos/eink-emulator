@@ -104,6 +104,8 @@ def transform_file(
     with tempfile.TemporaryDirectory(prefix="eink-rootfs-file-") as directory:
         host_file = Path(directory) / Path(destination).name
         run(image, f"dump {destination} {host_file}")
+        if not host_file.exists():
+            raise SystemExit(f"{destination} is missing from the guest rootfs")
         host_file.write_text(transform(host_file.read_text()))
         replace_file(image, host_file, destination, mode)
 
