@@ -67,6 +67,12 @@ blank var-local partition, but do not ship that directory. The copy fails,
 and the system monitor hard-reboots the first boot. The builder skips the
 copy when the directory is absent, as later releases do.
 
+The Wi-Fi/Bluetooth driver in these releases needs the connectivity
+chip-ID register that QEMU reports since the MT8113 CONSYS chip-ID change.
+With an older QEMU build, every Wi-Fi power-on fails
+(`WMT_CTRL_HW_PWR_ON fail` in the serial log), and the retries can stall
+startup for up to eight minutes.
+
 Colorsoft also disables native debugger stack dumps, which can occupy an
 emulated CPU. See [Colorsoft](colorsoft.md) for display behavior.
 
