@@ -17,7 +17,10 @@ the guest changes its Wi-Fi connection. See [networking](networking.md).
 
 MediaTek Kindle and Tolino images retain the stock WMT and Wi-Fi kernel modules
 from the imported firmware. Connectivity power, bus protection and reset
-behavior are implemented in QEMU's device models.
+behavior are implemented in QEMU's device models. Tolino Wi-Fi needs the bus
+protection status that QEMU reports since its MT8113 bus-protection change.
+With an older QEMU build, Wi-Fi power-on often hangs with
+`opId(3) completion timeout` in the serial log and `wlan0` never appears.
 
 ## Older Kindle models
 
@@ -67,8 +70,9 @@ blank var-local partition, but do not ship that directory. The copy fails,
 and the system monitor hard-reboots the first boot. The builder skips the
 copy when the directory is absent, as later releases do.
 
-The Wi-Fi/Bluetooth driver in these releases needs the connectivity
-chip-ID register that QEMU reports since the MT8113 CONSYS chip-ID change.
+The Wi-Fi/Bluetooth driver in these releases, and in Basic 2024 5.17.1.0.2
+and Colorsoft 5.18.1, needs the connectivity chip-ID register that QEMU
+reports since the MT8113 CONSYS chip-ID change.
 With an older QEMU build, every Wi-Fi power-on fails
 (`WMT_CTRL_HW_PWR_ON fail` in the serial log), and the retries can stall
 startup for up to eight minutes.
