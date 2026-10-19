@@ -95,6 +95,16 @@ def replace_file(image: Path, source: Path, destination: str, mode: str) -> None
     ], writable=True)
 
 
+def file_exists(image: Path, path: str) -> bool:
+    result = subprocess.run(
+        [str(find_debugfs()), "-R", f"stat {path}", str(image)],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.startswith("Inode:")
+
+
 def transform_file(
     image: Path,
     destination: str,
@@ -214,15 +224,24 @@ def bellatrix_patch_varlocal_mount(contents: str) -> str:
 def bellatrix_patch_ext3_varlocal_mount(contents: str) -> str:
     if BELLATRIX_VARLOCAL_MARKER in contents:
         return contents
-    old = "     mount -t ext3 -o rw $local $mount_point\n"
-    if contents.count(old) != 1:
+    # Releases up to at least 5.16.3 mount inline in filesystems_var_local.conf.
+    matches = [
+        (indent, command)
+        for indent, command in (
+            ("     ", "mount -t ext3 -o rw $local $mount_point\n"),
+            ("  ", "if ! mount -t ext3 -o rw $local /var/local; then\n"),
+        )
+        if contents.count(indent + command) == 1
+    ]
+    if len(matches) != 1:
         raise SystemExit("stock Bellatrix var-local ext3 mount command was not found exactly once")
+    indent, command = matches[0]
     new = (
-        f"     # {BELLATRIX_VARLOCAL_MARKER}.\n"
-        "     mount -t ext3 -o rw,noatime,nodiratime "
-        "$local $mount_point\n"
+        f"{indent}# {BELLATRIX_VARLOCAL_MARKER}.\n"
+        + indent
+        + command.replace("-o rw ", "-o rw,noatime,nodiratime ")
     )
-    return contents.replace(old, new, 1)
+    return contents.replace(indent + command, new, 1)
 
 
 def bellatrix_patch_java_verification(contents: str) -> str:
@@ -242,6 +261,9 @@ def bellatrix_patch_java_verification(contents: str) -> str:
 
 def bellatrix_patch_filesystems_setup(contents: str) -> str:
     if BELLATRIX_HIBERNATE_MARKER in contents:
+        return contents
+    # Releases up to at least 5.16.3 never blast the hibernate partition.
+    if "blast_hibernate_partition" not in contents:
         return contents
     old = (
         "  if [[ -e $FIRST_BOOT_AFTER_UPDATE_FILE ]]; then\n"
@@ -601,6 +623,12 @@ def prepare_bellatrix(
     if board not in {"cava", "malbec", "rossini", "sangria", "sangria-color"}:
         raise ValueError(f"unsupported Bellatrix board: {board}")
     copy_source(source, output, maximum_size=maximum_size)
+    varlocal_mount = ("/etc/upstart/varlocal_functions", "0100755")
+    inline_varlocal = not file_exists(output, varlocal_mount[0])
+    if inline_varlocal:
+        # Releases up to at least 5.16.3, on every board, mount var-local in
+        # the upstart job; the layout follows the firmware version.
+        varlocal_mount = ("/etc/upstart/filesystems_var_local.conf", "0100644")
     transforms = [
         ("/etc/upstart/framework.conf", "0100644", bellatrix_patch_framework),
         (
@@ -609,8 +637,7 @@ def prepare_bellatrix(
             bellatrix_patch_framework_setup,
         ),
         (
-            "/etc/upstart/varlocal_functions",
-            "0100755",
+            *varlocal_mount,
             bellatrix_patch_ext3_varlocal_mount
             if board in {"cava", "malbec"}
             else bellatrix_patch_varlocal_mount,

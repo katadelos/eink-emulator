@@ -57,6 +57,12 @@ such as Paperwhite 6 5.18.6, still load a USB storage gadget when the
 userstore mounts. The builder removes it so the controller stays free for USB
 Ethernet.
 
+Releases up to at least 5.16.3 mount var-local directly in
+`filesystems_var_local.conf` rather than `varlocal_functions`, and never
+erase the hibernate partition. The layout depends on the firmware version,
+not the model: Basic 2022 and Paperwhite 5 ship identical files in 5.16.3.
+The builder patches the mount where it is and skips the hibernate step.
+
 Colorsoft also disables native debugger stack dumps, which can occupy an
 emulated CPU. See [Colorsoft](colorsoft.md) for display behavior.
 
