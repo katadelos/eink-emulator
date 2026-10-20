@@ -167,8 +167,9 @@ they do not reproduce physical panel response.
 
 ## QEMU device identity
 
-Kindle machines provide synthetic IDME defaults. To override a value for one
-run, pass QEMU options after `--`:
+Kindle machines provide synthetic IDME defaults in QEMU for the selected board
+and hardware profile. To override a value for one run, pass QEMU options after
+`--`:
 
 ```sh
 ./eink run NAME --qmp-socket -- -idme-serial '<value>' -idme-mac '<value>'
@@ -177,8 +178,13 @@ run, pass QEMU options after `--`:
 Keep a launcher option, such as `--qmp-socket`, between `NAME` and `--`.
 The current parser otherwise discards the separator and rejects the QEMU flags.
 
-Supported `-idme-*` flags depend on the QEMU machine. Overrides apply to that
-run and do not change the saved disk.
+Supported `-idme-*` flags depend on the QEMU machine. Explicit values take
+precedence over board and profile defaults, regardless of option order.
+Overrides apply to that run and do not change the saved disk.
+
+For raw QEMU use, `imx6sl-wario` accepts `board=icewine` (Voyage, the default),
+`board=bourbon` (Basic 2014), `board=pinot` (Paperwhite 2), or `board=muscat`
+(Paperwhite 3). Each selection supplies its model's IDME values.
 
 ## Hardware profiles
 
