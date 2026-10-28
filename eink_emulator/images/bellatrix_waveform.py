@@ -14,10 +14,10 @@ import struct
 from pathlib import Path
 
 PRODUCTS = (
-    "barolo", "pisco", "cava", "malbec", "rossini", "prosecco",
+    "barolo", "pisco", "cava", "malbec", "rossini", "prosecco", "amaro",
     "sangria", "sangria-color", "elipsa2e",
 )
-DUAL_MODE_PRODUCTS = {"sangria", "sangria-color"}
+DUAL_MODE_PRODUCTS = {"sangria", "sangria-color", "amaro"}
 TEMPERATURES = 32
 MODES = 16
 FRAME_BYTES = 0x100
@@ -41,8 +41,9 @@ def build_waveform(product: str = "barolo") -> bytes:
     data[0x50] = 0x59  # WF_MODE_VERSION_TL: includes swipe and night DU modes.
     data[0x53] = 2     # Stock driver reports WAVEFORM_TYPE_5BIT.
     data[0x56] = 1     # Synthetic revision, not a factory revision.
-    # 31 boundaries produce 32 zones; the loader rejects 32 boundaries.
-    thresholds = bytes(range(1, 62, 2))
+    # FP9937 supports 30 voltage-table rows; the older PMICs use 32 zones.
+    temperatures = 30 if product == "amaro" else TEMPERATURES
+    thresholds = bytes(range(1, temperatures * 2 - 2, 2))
     data[0x80:0x80 + len(thresholds)] = thresholds
     data[0xA2] = len(thresholds)
     # Positive magnitudes, in the FT9930 header's 12.5 mV units.
@@ -51,6 +52,18 @@ def build_waveform(product: str = "barolo") -> bytes:
         struct.pack_into(">H", data, offset, millivolts * 2 // 25)
     data[0x74] = 251  # XON_LEN=2510; delay=0 and VGH/VGL extensions=0.
     data[0x7E] = 30   # VGHNM_EXT=1500 mV.
+    if product == "amaro":
+        # AO5's FP9937 driver reads VGH/VGL from the extended header and
+        # six source rails from one 16-byte record per temperature zone.
+        # Values follow the signed AO5 DT; all rails use 12.5 mV units.
+        for offset, millivolts in ((0x76, 35000), (0x78, 30000), (0x7C, 4000)):
+            struct.pack_into(">H", data, offset, millivolts * 2 // 25)
+        data[0x75] = 100  # XON_DELAY=500 us, in 5 us units.
+        for temperature in range(temperatures):
+            for rail, millivolts in enumerate((24000, 24000, 12000, 12000,
+                                              6000, 6000)):
+                struct.pack_into(">H", data, 0x120 + temperature * 16 + rail * 2,
+                                 millivolts * 2 // 25)
     # 32x32 transitions, four two-bit symbols per byte. Direction is an
     # explicit emulator convention, not a claim about physical voltage codes.
     frame = bytearray(FRAME_BYTES)
@@ -79,7 +92,7 @@ def write_waveform(directory: Path, product: str = "barolo") -> Path:
     (directory / "README.json").write_text(json.dumps({
         "product": product, "synthetic": True, "file": output.name,
         "format": "HWTCON, 256-byte frames",
-        "temperatures": TEMPERATURES,
+        "temperatures": raw[0xA2] + 1,
         "modes": 36 if product in DUAL_MODE_PRODUCTS else MODES,
         "frames_per_mode": FRAMES, "raw_bytes": len(raw),
         "physical_panel_calibration": False,

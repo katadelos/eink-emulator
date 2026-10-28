@@ -737,6 +737,26 @@ def prepare_kt7(source: Path, output: Path) -> None:
     prepare_usb_network(output, mass_storage=False)
 
 
+def prepare_pw7(source: Path, output: Path) -> None:
+    """Prepare Amaro's stock startup with offline Home and local access."""
+    copy_source(source, output, maximum_size=1280 * 1024**2)
+    prepare_offline_setup(output)
+    transform_file(output, "/etc/shadow", "0100600", blank_root_password)
+    transform_file(
+        output, "/etc/upstart/framework_setup.conf", "0100644",
+        extend_framework_timeout,
+    )
+    install_overrides(image=output, group="oasis", replacements={
+        "/etc/upstart/console.conf": ("console.conf", "0100644"),
+    })
+    install_overrides(image=output, group="bellatrix", replacements={
+        "/etc/upstart/prevent-screensaver.conf": (
+            "prevent-screensaver.conf", "0100644",
+        ),
+    })
+    prepare_usb_network(output, mass_storage=False)
+
+
 def bellatrix3_patch_framework(contents: str) -> str:
     """Move stock permission setup before producers; keep restarts constant cost."""
     if BELLATRIX3_FRAMEWORK_MARKER in contents:

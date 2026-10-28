@@ -1,4 +1,42 @@
 {
+  "kindle-paperwhite-7": {
+    "description": "Kindle Paperwhite 7",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-bellatrix4",
+    "memory": "1G",
+    "builder": "pw7",
+    "rootfs_overrides": ["bellatrix", "oasis"],
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "device_profiles": ["production", "dvt", "evt-doe", "evt", "hvt", "proto"],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "amaro",
+      "boot-stage": "u-boot"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "rootfs_package": "com.lab126.eink.amaro.os"
+  },
   "kindle-basic-2026": {
     "description": "Kindle Basic 7 (2026)",
     "qemu_arch": "aarch64",
