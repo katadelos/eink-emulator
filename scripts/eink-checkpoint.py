@@ -102,8 +102,8 @@ def start(args: argparse.Namespace) -> None:
     if bundle.exists():
         raise ValueError(f"destination already exists: {bundle}")
     source, machine = cli.read_machine(args.machine)
-    if machine["model"] != "kindle-paperwhite-3":
-        raise ValueError("experimental checkpoints currently support kindle-paperwhite-3; "
+    if machine["model"] not in {"kindle-paperwhite-3", "kindle-basic-2026"}:
+        raise ValueError("experimental checkpoints currently support kindle-paperwhite-3 and kindle-basic-2026; "
                          "other models need device-state support and restore validation")
     definition = cli.model_definition(machine["model"])
     options = cli.parser().parse_args(["run", args.machine])

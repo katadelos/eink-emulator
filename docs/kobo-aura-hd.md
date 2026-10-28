@@ -79,4 +79,6 @@ Deep suspend keeps the virtual USB cable connected. The USB host suspends
 the bus after two seconds without traffic and resumes it for networking
 after the reader wakes. To sleep or wake Nickel, hold `P` briefly
 (about 400 ms). Very short taps can be missed during resume, while longer
-holds request power-off. RTC alarm wake is not modeled.
+holds request power-off. The MSP430 RTC provides calendar time and a
+seconds-countdown alarm; expiry latches its wake flag and asserts the
+GPIO4_11 interrupt. Reading the status acknowledges the alarm.
