@@ -214,6 +214,7 @@ Arguments after `--` also pass through on `run`; see
 | [Kindle Basic 7 (2026)](docs/kt7.md) | KT7 | Prosecco | Experimental |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Sangria Color | |
 | [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Sangria | |
+| [Kindle Paperwhite 7](docs/paperwhite-7.md) | PW7 | Amaro / AO5 | Experimental |
 | [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | Experimental |
 | [Kindle Scribe 3](docs/scribe-3.md) | KS3 | Paloma | Experimental |
 | [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | Experimental |

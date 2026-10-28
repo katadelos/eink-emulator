@@ -168,6 +168,11 @@ layout remains unverified. The supplied partition dump uses the separate
 kernel partition supplied through `--boot-image`. Touch firmware is extracted
 from the rootfs into `peripherals/tt_fw.bin` by either workflow.
 
+[Kindle Paperwhite 7](paperwhite-7.md) uses the separate
+[`scripts/carve-pw7.py`](../scripts/carve-pw7.py) utility for its partition-dump
+archive. It extracts `0boot0.img`, `p1.img` and `p8.img`; no update-package
+layout is assumed.
+
 ## Directory layout
 
 For manual setup, place files under `firmware/MODEL/`:
@@ -264,6 +269,7 @@ It is saved in the instance configuration and applied on each run.
 | Basic 2026 | `production`, `dvt`, `evt`, `hvt`, `proto` |
 | Basic 2022/2024, Colorsoft | `production`, `dvt`, `evt`, `hvt`, `proto` |
 | Paperwhite 6 | `production`, `dvt`, `evt`, `hvt1.1`, `hvt`, `proto` |
+| Paperwhite 7 | `production`, `dvt`, `evt-doe`, `evt`, `hvt`, `proto` |
 | Scribe 1 | `production`, `dvt`, `evt`, `evt-doe`, `hvt`, `hvt-a`, `proto` |
 | Scribe 2 | `production`, `dvt` |
 | Scribe 3, Scribe Colorsoft | `production`, `dvt`, `evt`, `hvt1.1` |
