@@ -294,6 +294,8 @@ def prepare_root(source: Path, output: Path, *, profile: str) -> None:
     rootfs.run_many(output, [
         "mkdir /etc/eink-ssh",
         "set_inode_field /etc/eink-ssh mode 040700",
+        "set_inode_field /etc/eink-ssh uid 0",
+        "set_inode_field /etc/eink-ssh gid 0",
         f'write "{key}" /etc/eink-ssh/authorized_keys',
         "set_inode_field /etc/eink-ssh/authorized_keys mode 0100600",
         "set_inode_field /etc/eink-ssh/authorized_keys uid 0",

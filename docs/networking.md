@@ -25,6 +25,10 @@ The first Kindle image build creates one Ed25519 login key at
 public keys only. Keep the private key when you clean build files, or you
 will lose this login method for existing instances.
 
+If the private key is replaced, image preparation derives its public key again
+and corrects a missing or stale `.pub` file. Existing disks retain the key they
+were built with.
+
 Each guest creates a separate server key in `/var/local/eink-ssh` on first
 boot. If you run different instances on the same port, use `HostKeyAlias`
 to keep their host records separate:

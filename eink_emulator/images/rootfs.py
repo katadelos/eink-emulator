@@ -410,7 +410,8 @@ def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) 
     }
     if not sysv:
         files["/etc/upstart/sshd.conf"] = (ADDITIONS / "ssh/sshd.conf", "0100644")
-    commands = ["mkdir /etc/eink-ssh", "set_inode_field /etc/eink-ssh mode 040700"]
+    commands = ["mkdir /etc/eink-ssh", "set_inode_field /etc/eink-ssh mode 040700",
+                "set_inode_field /etc/eink-ssh uid 0", "set_inode_field /etc/eink-ssh gid 0"]
     for destination, (source, mode) in files.items():
         if not source.is_file():
             raise SystemExit(f"missing Kindle guest addition: {source}")

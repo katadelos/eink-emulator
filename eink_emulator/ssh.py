@@ -32,11 +32,18 @@ def ensure_login_key() -> Path:
                 ], check=True)
                 staging.replace(LOGIN_KEY)
                 staging.with_suffix(".pub").replace(public_key)
-        elif not public_key.exists():
-            result = subprocess.run(
-                [keygen, "-y", "-f", str(LOGIN_KEY)],
-                check=True, capture_output=True, text=True,
-            )
-            public_key.write_text(result.stdout)
         os.chmod(LOGIN_KEY, 0o600)
+        # A copied/replaced private key may have a stale public-key sidecar.
+        # Always derive the identity used by SSH before authorizing an image.
+        result = subprocess.run(
+            [keygen, "-y", "-P", "", "-f", str(LOGIN_KEY)],
+            check=True, capture_output=True, text=True,
+        )
+        identity = result.stdout.split()[:2]
+        existing = public_key.read_text().split()[:2] if public_key.exists() else []
+        if existing != identity:
+            with tempfile.TemporaryDirectory(dir=LOGIN_KEY.parent) as temporary:
+                staging = Path(temporary) / "id_ed25519.pub"
+                staging.write_text(" ".join(identity) + " eink-emulator\n")
+                staging.replace(public_key)
     return public_key
