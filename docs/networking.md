@@ -27,7 +27,23 @@ will lose this login method for existing instances.
 
 If the private key is replaced, image preparation derives its public key again
 and corrects a missing or stale `.pub` file. Existing disks retain the key they
-were built with.
+were built with. To recover access, stop the guest and create a repaired copy:
+
+```sh
+./eink repair-ssh machines/my-reader/disk.qcow2 /tmp/my-reader-repaired.qcow2
+```
+
+The command creates the host key if missing, locates the ext rootfs on a GPT or
+primary MBR disk, and installs the current public key with root ownership and
+SSH permissions. It requires `debugfs` and QEMU's `qemu-img`. The output is a
+standalone disk; the source and its backing images remain unchanged. With the
+instance stopped, keep the original disk as a backup and put the repaired copy
+at the instance's `disk.qcow2` path before launching it. Resetting the instance
+restores its original prepared image, including that image's SSH key.
+
+Cold-boot the repaired disk. Do not restore saved RAM captured with the old
+disk: cached file contents can retain the old key. For checkpoint bundles, use
+the [checkpoint rekey workflow](storage.md#experimental-gui-checkpoints).
 
 Each guest creates a separate server key in `/var/local/eink-ssh` on first
 boot. If you run different instances on the same port, use `HostKeyAlias`

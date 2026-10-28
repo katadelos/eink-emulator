@@ -808,6 +808,17 @@ def command_images(args: argparse.Namespace) -> None:
     print_storage_summary()
 
 
+def command_repair_ssh(args: argparse.Namespace) -> None:
+    from .ssh_repair import repair_disk
+
+    try:
+        repair_disk(QEMU_IMG, args.source.resolve(), args.output.resolve())
+    except ValueError as error:
+        fail(str(error))
+    print(f"Repaired disk: {args.output}")
+    print("Cold-boot this disk. Saved RAM from the source disk cannot be restored with it.")
+
+
 def command_compact(args: argparse.Namespace) -> None:
     families = base_families(ROOT, QEMU_IMG)
     pairs = [(path, paths[0]) for paths in families.values() for path in paths[1:]]
@@ -1006,6 +1017,11 @@ def parser(extensions: dict[str, LocalCommand] | None = None) -> argparse.Argume
     machines = commands.add_parser("list", help="list persistent machines")
     machines.set_defaults(handler=command_list)
 
+    repair = commands.add_parser("repair-ssh", help="copy a stopped QCOW2 disk and install the current SSH login key")
+    repair.add_argument("source", type=Path)
+    repair.add_argument("output", type=Path, help="new standalone QCOW2 disk for cold boot")
+    repair.set_defaults(handler=command_repair_ssh)
+
     images = commands.add_parser("images", help="list every generated disk image")
     maintenance = images.add_mutually_exclusive_group()
     maintenance.add_argument("--prune", action="store_true", help="remove shared bases no longer used by workspace disks")
@@ -1033,7 +1049,7 @@ def main() -> None:
         extra = extra[1:]
     args.qemu_args = extra
     try:
-        changes_storage = args.command in {"create", "delete", "reset", "download"} or (
+        changes_storage = args.command in {"create", "delete", "reset", "download", "repair-ssh"} or (
             args.command == "images" and (args.prune or args.compact)
         )
         with storage_lock(BUILD_ROOT) if changes_storage else nullcontext():

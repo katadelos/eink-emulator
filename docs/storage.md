@@ -146,6 +146,22 @@ transfer it; it has no dependency on the source instance or shared image bases.
 Keep the disk and memory together. Editing the checkpoint disk offline or
 substituting a different disk invalidates the captured state.
 
+To use the current host SSH key with an existing sealed bundle, create a new
+bundle and cold-boot its repaired disk:
+
+```sh
+python3 scripts/eink-checkpoint.py rekey build/checkpoints/pw3-gui build/checkpoints/pw3-new-key --headless
+# Wait for the GUI and confirm SSH access with build/ssh/id_ed25519.
+python3 scripts/eink-checkpoint.py save build/checkpoints/pw3-new-key
+python3 scripts/eink-checkpoint.py resume build/checkpoints/pw3-new-key /tmp/pw3-new-key-run --headless
+```
+
+`rekey` preserves the original bundle and installs the current public key in a
+standalone disk copy. It retains the recorded ports, so stop other guests using
+those ports first. The new bundle stays in the capture stage until `save`
+records fresh RAM. A cold boot alone does not repair an old `memory.state`;
+every subsequent restore of that file can reintroduce the stale key cache.
+
 Use the same QEMU source and build configuration at capture and restore. The
 tool checks the version string, but that check cannot distinguish local source
 edits. Cross-host and cross-platform restoration are experimental. The bundle

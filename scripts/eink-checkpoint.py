@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT))
 
 from eink_emulator import cli
 from eink_emulator.qmp import QMPClient, QMPError
+from eink_emulator.ssh_repair import repair_disk
 
 
 def checked_path(value: str) -> Path:
@@ -230,6 +231,22 @@ def resume(args: argparse.Namespace) -> None:
     launch(args.bundle, args.runtime, manifest, args, resume=True)
 
 
+def rekey(args: argparse.Namespace) -> None:
+    manifest = read_bundle(args.source, "ready")
+    if args.bundle.exists():
+        raise ValueError(f"destination already exists: {args.bundle}")
+    with cli.storage_lock(cli.BUILD_ROOT):
+        runtime = args.bundle / "capture"
+        runtime.mkdir(parents=True)
+        repair_disk(cli.QEMU_IMG, args.source / "disk.qcow2", runtime / "disk.qcow2")
+        shutil.copytree(args.source / "firmware", args.bundle / "firmware")
+        manifest["status"] = "booting"
+        cli.write_json(args.bundle / "checkpoint.json", manifest)
+    # Never pair the patched disk with old memory, even for the first run.
+    launch(args.bundle, runtime, manifest, args, resume=False)
+    print(f"When the GUI is ready: python3 scripts/eink-checkpoint.py save {args.bundle}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -253,6 +270,13 @@ def main() -> None:
     display.add_argument("--headless", action="store_true")
     display.add_argument("--vnc")
     run.set_defaults(handler=resume)
+    repair = commands.add_parser("rekey", help="cold-boot a new checkpoint copy with the current SSH key, then save it")
+    repair.add_argument("source", type=checked_path)
+    repair.add_argument("bundle", type=checked_path)
+    display = repair.add_mutually_exclusive_group()
+    display.add_argument("--headless", action="store_true")
+    display.add_argument("--vnc")
+    repair.set_defaults(handler=rekey)
     args = parser.parse_args()
     try:
         args.handler(args)
