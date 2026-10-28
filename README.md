@@ -52,6 +52,23 @@ machines and its QEMU build. Keep the checkout in place and install the host
 requirements above before creating or running a machine. `./eink` remains
 available from the checkout.
 
+### Local commands
+
+An immediate subdirectory can supply an `eink-commands.json` manifest mapping
+command names to Python scripts and help text:
+
+```json
+{
+  "inspect": {"script": "inspect.py", "help": "inspect a local guest"}
+}
+```
+
+`eink inspect` runs that script with the CLI's Python interpreter and forwards
+its arguments unchanged, including `--help`. Script paths are relative to the
+manifest and must stay inside its directory. Commands appear in `eink --help`
+while the directory is present. Names must be unique and cannot replace built-in
+commands. This also works with an editable installation from another directory.
+
 ## Quick start
 
 ```sh

@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from . import ftvdb, kobo
+from .extensions import LocalCommand, discover_commands
 from .firmware import import_recovery
 from .images import addons, build_raw_image, pocketbook, pocketbook_b288, tolino
 from .qemu import build as build_qemu
@@ -923,7 +924,9 @@ def command_import(args: argparse.Namespace) -> None:
         print(f"  {role}: {path.relative_to(ROOT)}")
 
 
-def parser() -> argparse.ArgumentParser:
+def parser(extensions: dict[str, LocalCommand] | None = None) -> argparse.ArgumentParser:
+    if extensions is None:
+        extensions = discover_commands(ROOT)
     root = argparse.ArgumentParser(prog="eink", description=__doc__)
     root.add_argument("--version", action="version", version="%(prog)s 0.1.0")
     commands = root.add_subparsers(dest="command", required=True)
@@ -1009,11 +1012,21 @@ def parser() -> argparse.ArgumentParser:
     maintenance.add_argument("--compact", action="store_true", help="deduplicate stopped base revisions using shared backing images")
     images.add_argument("--dry-run", action="store_true", help="preview --prune or --compact without changing images")
     images.set_defaults(handler=command_images)
+    for name, command in extensions.items():
+        commands.add_parser(name, help=command.help, add_help=False)
     return root
 
 
 def main() -> None:
-    args, extra = parser().parse_known_args()
+    try:
+        extensions = discover_commands(ROOT)
+        arguments = parser(extensions)
+        if len(sys.argv) > 1 and sys.argv[1] in extensions:
+            script = extensions[sys.argv[1]].script
+            os.execv(sys.executable, [sys.executable, str(script), *sys.argv[2:]])
+    except (OSError, ValueError, argparse.ArgumentError) as error:
+        fail(str(error))
+    args, extra = arguments.parse_known_args()
     if extra:
         if args.command not in {"qemu", "run"} or extra[0] != "--":
             fail("unrecognized arguments: " + " ".join(extra))
