@@ -2,7 +2,9 @@
 
 This repo runs stock Kindle, Kobo and Tolino firmware in QEMU. Use it to test
 homebrew against specific device models and firmware versions. Everything goes
-through `./eink`; run `./eink <command> --help` for options.
+through `./eink`, or `eink` after `python3 -m pip install -e /path/to/eink-emulator`.
+Run `eink <command> --help` for options. The installed command still stores
+firmware, machines and build output in this checkout.
 
 ## Pick a model and firmware
 

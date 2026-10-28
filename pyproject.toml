@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eink-emulator"
+version = "0.1.0"
+description = "Run e-reader firmware in QEMU"
+requires-python = ">=3.10"
+
+[project.scripts]
+eink = "eink_emulator.cli:main"
+
+[tool.setuptools]
+packages = ["eink_emulator", "eink_emulator.images"]

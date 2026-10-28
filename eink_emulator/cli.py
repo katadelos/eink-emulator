@@ -100,8 +100,8 @@ def selected_artifacts(
             missing.append(" or ".join(str(directory / candidate) for candidate in candidates))
     if missing:
         hint = (
-            f"Download it again with: ./eink download --model {model} {version}"
-            if version else "See docs/firmware.md."
+            f"Download it again with: eink download --model {model} {version}"
+            if version else f"See {ROOT / 'docs/firmware.md'}."
         )
         fail("missing required firmware:\n  " + "\n  ".join(missing) + "\n" + hint)
     return selected
@@ -323,7 +323,7 @@ def command_create(args: argparse.Namespace) -> None:
         if temporary.exists():
             shutil.rmtree(temporary)
     print(f"created {args.name} ({definition['description']}" + (f", firmware {version})" if version else ")"))
-    print(f"run it with: ./eink run {args.name}")
+    print(f"run it with: eink run {args.name}")
     if addon_plan and addon_plan.get("jbsh"):
         print("jb.sh runs during the first boot, before the framework starts")
     if definition["network"].get("usb", {}).get("service") == "ssh":
@@ -569,11 +569,11 @@ def attach_existing(directory: Path, status: dict[str, Any]) -> None:
     state = status.get("status", "running")
     print(f"{directory.name} is already {state}; reusing the existing QEMU process.")
     runtime = runtime_paths(directory)
-    print(f"QMP: python3 scripts/eink-qmp.py --machine {directory.name} status")
+    print(f"QMP: python3 {shlex.quote(str(ROOT / 'scripts/eink-qmp.py'))} --machine {directory.name} status")
     if runtime["serial"].exists():
         print(f"serial socket: {runtime['serial']}")
     else:
-        print("serial remains attached to the original ./eink run process")
+        print("serial remains attached to the original eink run process")
 
 
 def command_run(args: argparse.Namespace) -> None:
@@ -593,7 +593,7 @@ def command_run(args: argparse.Namespace) -> None:
     qemu = qemu_system(definition)
     if args.qmp_socket:
         runtime["qmp"].unlink(missing_ok=True)
-        print(f"QMP: python3 scripts/eink-qmp.py --machine {directory.name} status")
+        print(f"QMP: python3 {shlex.quote(str(ROOT / 'scripts/eink-qmp.py'))} --machine {directory.name} status")
     if args.serial_socket:
         if runtime["serial"].exists():
             fail(
@@ -675,7 +675,7 @@ def command_list(_: argparse.Namespace) -> None:
     if rows:
         print_table(("NAME", "MODEL", "FIRMWARE", "STATE", "OVERLAY", "CREATED"), rows)
     else:
-        print("No machines. Create one with: ./eink create NAME --model MODEL")
+        print("No machines. Create one with: eink create NAME --model MODEL")
     print_storage_summary()
 
 
@@ -749,7 +749,7 @@ def command_reset(args: argparse.Namespace) -> None:
     if not base.is_file():
         fail(f"machine base is missing: {base}")
     if not QEMU_IMG.is_file():
-        fail("QEMU image tool is not built; run ./eink build")
+        fail("QEMU image tool is not built; run eink build")
     qmp = runtime_paths(directory)["qmp"]
     if qmp.exists() and qmp_status(qmp) is not None:
         fail(f"machine is still running: {args.name}; stop it before resetting it")
@@ -780,7 +780,7 @@ def command_reset(args: argparse.Namespace) -> None:
     finally:
         temporary.unlink(missing_ok=True)
     print(f"reset {args.name} to its prepared image; all guest changes discarded")
-    print(f"run it with: ./eink run {args.name}")
+    print(f"run it with: eink run {args.name}")
 
 
 def command_images(args: argparse.Namespace) -> None:
@@ -888,7 +888,7 @@ def command_download(args: argparse.Namespace) -> None:
     definition = model_definition(args.model)
     version = install_version(args.model, definition, args.version)
     print(f"{definition['description']} firmware {version}: {firmware_directory(args.model, version).relative_to(ROOT)}")
-    print(f"create a machine with: ./eink create NAME --model {args.model} --firmware {version}")
+    print(f"create a machine with: eink create NAME --model {args.model} --firmware {version}")
 
 
 def command_import(args: argparse.Namespace) -> None:

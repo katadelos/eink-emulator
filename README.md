@@ -37,6 +37,21 @@ direnv allow
 
 and the development environment will be loaded automatically when entering this directory.
 
+### Use `eink` from another directory
+
+Install the CLI from this checkout in editable mode with the Python environment
+you intend to use:
+
+```sh
+python3 -m pip install -e /path/to/eink-emulator
+eink models
+```
+
+The command continues to use the source checkout for `models.json`, firmware,
+machines and its QEMU build. Keep the checkout in place and install the host
+requirements above before creating or running a machine. `./eink` remains
+available from the checkout.
+
 ## Quick start
 
 ```sh

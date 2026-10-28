@@ -21,5 +21,6 @@
 !/machines/.gitkeep
 __pycache__/
 *.pyc
+*.egg-info/
 .DS_Store
 .direnv/
