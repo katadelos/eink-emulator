@@ -1,4 +1,4 @@
-"""Pinned, opt-in KUAL/MRPI preparation for the K4–Oasis 3 firmware family."""
+"""Optional Kindle jailbreak, launcher and package-manager preparation."""
 
 from __future__ import annotations
 
@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tarfile
 import tempfile
+import urllib.parse
 import urllib.request
 import zipfile
 from pathlib import Path, PurePosixPath
@@ -19,6 +20,7 @@ from . import rootfs
 ROOT = Path(__file__).resolve().parents[2]
 SOURCES = ROOT / "guest-additions" / "kindle"
 DOWNLOADS = SOURCES / "downloads"
+OPKG_FEED = "https://katadelos.github.io/eink-opkg-beta"
 KINDLETS = {"kindle-4": "1.0", "kindle-touch": "2.0", "kindle-paperwhite-1": "2.0"}
 SUPPORTED = set(KINDLETS) | {
     "kindle-paperwhite-2", "kindle-basic-2014", "kindle-voyage",
@@ -36,31 +38,48 @@ JBSH_SUPPORTED = (SUPPORTED - set(KINDLETS)) | {
 
 def plan(
     model: str, *, jailbreak: bool, kual: bool, mrpi: bool, jbsh: bool = False,
+    opkg: bool = False, opkg_feed: str | None = None,
 ) -> dict[str, Any] | None:
+    if opkg_feed is not None and not opkg:
+        raise SystemExit("--opkg-feed requires --opkg")
+    if opkg and not model.startswith("kindle-"):
+        raise SystemExit("--opkg is only supported by Kindle models")
+    feed = (opkg_feed or OPKG_FEED).rstrip("/")
+    if opkg:
+        url = urllib.parse.urlsplit(feed)
+        if (url.scheme not in {"http", "https"} or not url.netloc or
+                url.query or url.fragment or any(c.isspace() for c in feed)):
+            raise SystemExit("--opkg-feed must be an HTTP(S) feed root without a query or fragment")
     if jbsh:
         if jailbreak or kual or mrpi:
             raise SystemExit("--jbsh cannot be combined with --jailbreak, --kual or --mrpi")
         if model not in JBSH_SUPPORTED:
             raise SystemExit("--jbsh supports Kindle Paperwhite 2 and later; see docs/kindle-addons.md")
         catalogue = json.loads((SOURCES / "assets.json").read_text())
-        return {"model": model, "jbsh": True, "assets": {"jbsh": catalogue["jbsh"]}}
-    if not (jailbreak or kual or mrpi):
+        options = {"model": model, "jbsh": True, "assets": {"jbsh": catalogue["jbsh"]}}
+    elif jailbreak or kual or mrpi:
+        if model not in SUPPORTED:
+            raise SystemExit("Kindle add-ons support Kindle 4 through Oasis 3; see docs/kindle-addons.md")
+        kual = kual or mrpi
+        selected = {"jailbreak"}
+        if model != "kindle-4" or kual:
+            selected.add("mkk" if model in KINDLETS else "hotfix")
+        if kual:
+            selected.add("kual_kindlet" if model in KINDLETS else "kual_booklet")
+        if mrpi:
+            selected.add("mrpi")
+        catalogue = json.loads((SOURCES / "assets.json").read_text())
+        options = {
+            "model": model, "jailbreak": True, "kual": kual, "mrpi": mrpi,
+            "assets": {name: catalogue[name] for name in sorted(selected)},
+        }
+    elif opkg:
+        options = {"model": model, "assets": {}}
+    else:
         return None
-    if model not in SUPPORTED:
-        raise SystemExit("Kindle add-ons support Kindle 4 through Oasis 3; see docs/kindle-addons.md")
-    kual = kual or mrpi
-    selected = {"jailbreak"}
-    if model != "kindle-4" or kual:
-        selected.add("mkk" if model in KINDLETS else "hotfix")
-    if kual:
-        selected.add("kual_kindlet" if model in KINDLETS else "kual_booklet")
-    if mrpi:
-        selected.add("mrpi")
-    catalogue = json.loads((SOURCES / "assets.json").read_text())
-    return {
-        "model": model, "jailbreak": True, "kual": kual, "mrpi": mrpi,
-        "assets": {name: catalogue[name] for name in sorted(selected)},
-    }
+    if opkg:
+        options["opkg"] = {"feed": feed}
+    return options
 
 
 def verify(asset: dict[str, str], path: Path) -> None:
@@ -115,7 +134,11 @@ def write(directory: Path, name: str, contents: bytes, mode: int = 0o644) -> Non
 
 
 def prepare_startup(system: Path, options: dict[str, Any], steps: list[str]) -> None:
-    """Run selected installers in order before starting the framework."""
+    """Run selected installers in order, then activate the SDK on later boots."""
+    if options.get("opkg"):
+        write(system, "/usr/sbin/qemu-opkg", (SOURCES / "qemu-opkg").read_bytes(), 0o755)
+        write(system, "/etc/eink-opkg-feed", (options["opkg"]["feed"] + "\n").encode())
+        steps = [*steps, "/usr/sbin/qemu-opkg"]
     write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
     write(system, "/usr/sbin/qemu-kindle-setup",
           ("#!/bin/sh\nset -e\n" + "\n".join(steps) + "\n").encode(), 0o755)
@@ -191,6 +214,12 @@ def prepare(source: Path, output: Path, options: dict[str, Any]) -> Path:
     """Inject root files plus a first-boot data-volume payload into a copy."""
     if options.get("jbsh"):
         return prepare_jbsh(source, output, options)
+    if not options.get("jailbreak"):
+        with tempfile.TemporaryDirectory(prefix="eink-opkg-", dir=output.parent) as temporary:
+            system = Path(temporary) / "root"
+            prepare_startup(system, options, [])
+            install_root_files(source, output, system, check="/usr/sbin/qemu-opkg")
+        return output
     model = options["model"]
     assets = {name: download(asset) for name, asset in options["assets"].items()}
     with tempfile.TemporaryDirectory(prefix="eink-addons-", dir=output.parent) as temporary:

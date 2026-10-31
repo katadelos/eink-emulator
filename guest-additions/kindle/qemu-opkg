@@ -1,0 +1,57 @@
+#!/bin/sh
+# Install from the selected beta feed once; reconstruct its runtime each boot.
+set -eu
+export PATH=/usr/sbin:/usr/bin:/sbin:/bin
+umask 022
+state=/var/local/eink-addons
+control=/mnt/us/.eink-sdk/control
+mkdir -p "$state"
+exec >>"$state/opkg.log" 2>&1
+installer=
+cleanup()
+{
+    status=$?
+    [ -z "$installer" ] || rm -f "$installer"
+    [ "$status" -eq 0 ] || echo "opkg setup failed ($status); retry on next boot"
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
+grep -q ' /var/local ' /proc/mounts
+grep -q ' /mnt/us ' /proc/mounts
+
+if [ ! -f "$state/opkg-installed" ]; then
+    feed=$(cat /etc/eink-opkg-feed)
+    # The beta bootstrap expects its CA bundle in the SDK, before any packages
+    # can be fetched over HTTPS. Use the same trust store as firmware curl.
+    mkdir -p /mnt/us/.eink-sdk/etc/ssl/certs
+    cp /etc/ssl/certs/ca-certificates.crt \
+        /mnt/us/.eink-sdk/etc/ssl/certs/ca-certificates.crt
+    installer=$(mktemp /tmp/eink-opkg-install.XXXXXX)
+    downloaded=false
+    for attempt in 1 2 3; do
+        if /usr/bin/curl -fL --connect-timeout 5 --max-time 30 \
+                "$feed/install.sh" -o "$installer"; then
+            downloaded=true
+            break
+        fi
+        echo "Waiting for opkg feed (attempt $attempt)"
+        [ "$attempt" -eq 3 ] || sleep 2
+    done
+    if [ "$downloaded" != true ]; then
+        rm -f "$installer"
+        exit 1
+    fi
+    echo "Installing opkg from $feed"
+    result=0
+    sh "$installer" "$feed" || result=$?
+    rm -f "$installer"
+    [ "$result" -eq 0 ] || exit "$result"
+    sh "$control/activate"
+    "$control/run" opkg --version
+    cp /etc/eink-opkg-feed "$state/opkg-installed.tmp"
+    mv "$state/opkg-installed.tmp" "$state/opkg-installed"
+    echo 'opkg installation complete'
+else
+    sh "$control/activate"
+    echo 'opkg SDK activated'
+fi
