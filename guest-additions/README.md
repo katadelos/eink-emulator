@@ -15,7 +15,8 @@ The builder selects binaries for the guest userspace ABI:
 | `kindlepw2` | ARMv7 soft float: later models without the hard-float loader |
 | `kindlehf` | ARMv7 hard float: rootfs contains `/lib/ld-linux-armhf.so.3` |
 
-MediaTek guests use the ARMv7 hard-float build even on an emulated ARM64 CPU.
+MediaTek firmware can use ARMv7 soft float or hard float, even on an emulated
+ARM64 CPU; the guest loader determines the selection.
 The binaries link to the guest loader and C library. They support public-key
 authentication and SCP. Password authentication and SFTP are disabled.
 
