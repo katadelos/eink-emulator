@@ -6,13 +6,17 @@ umask 022
 state=/var/local/eink-addons
 control=/mnt/us/.eink-sdk/control
 mkdir -p "$state"
-exec >>"$state/opkg.log" 2>&1
+# K4 mounts var-local synchronously. Firmware curl emits its progress meter
+# one byte per write, so logging there can stall the download itself.
+log=/var/run/eink-opkg.log
+exec >"$log" 2>&1
 installer=
 cleanup()
 {
     status=$?
     [ -z "$installer" ] || rm -f "$installer"
     [ "$status" -eq 0 ] || echo "opkg setup failed ($status); retry on next boot"
+    cat "$log" >>"$state/opkg.log"
 }
 trap cleanup EXIT
 trap 'exit 1' HUP INT TERM

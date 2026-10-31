@@ -25,6 +25,8 @@ The default feed is `https://katadelos.github.io/eink-opkg-beta`. A custom feed
 root must provide `install.sh`, `bootstrap/` and the architecture-specific
 package directories. Use an HTTP(S) URL reachable from the guest. A server
 on the emulator host can use `http://192.168.15.201:8086` over USB networking.
+Kindle 4 needs an HTTP feed; its firmware curl cannot negotiate the TLS version
+required by the public HTTPS feed.
 
 The installer selects `kindle5`, `kindlepw2` or `kindlehf` from the running
 firmware. No jailbreak flag is required. `--opkg` can also accompany `--jbsh`,
@@ -43,7 +45,8 @@ opkg update
 opkg install tree
 ```
 
-Installation output is in `/var/local/eink-addons/opkg.log`. Failed setup
+During setup, output is in `/var/run/eink-opkg.log`; it is appended to
+`/var/local/eink-addons/opkg.log` when setup exits. Failed setup
 retries on the next boot. `eink reset` removes the installed SDK and repeats
 installation on the next boot. The feed selection is fixed at creation;
 create another instance to use a different feed.
