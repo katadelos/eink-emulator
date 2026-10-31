@@ -162,7 +162,7 @@ wpa_cli -i wlan0 select_network 0
 
 Replace `0` with the ID returned by `add_network`. Kindle's `wpa_cli` adds SSID
 quotes itself. Keep `ap_scan=2` on AR6003 devices; `ap_scan=1` exposes a bug in
-their stock supplicant. MediaTek manual probes used `ap_scan=1`.
+their stock supplicant. Use `ap_scan=1` for MediaTek manual association.
 
 Kobo uses standard SSID syntax. For example, use
 `set_network 0 ssid 4b696e646c652d51454d55` for the hex form of `Kindle-QEMU`.
@@ -184,20 +184,7 @@ Kobo uses standard SSID syntax. For example, use
 | Tolino Vision Color | MediaTek CONNAC DMA | MT8113 configfs RNDIS |
 | Tolino Shine 5 / Shine Color / Shine 5 TPV | MediaTek CONNAC DMA | MT8113 configfs RNDIS |
 
-## Verification and limits
-
-The 20 September 2026 audit recorded concurrent Wi-Fi and USB traffic on all
-26 models. Checks covered Wi-Fi association, DHCP and gateway packets, plus
-separate USB gateway packets. Runs used temporary `-snapshot` disks, including
-fresh builder output. Local command, serial and packet logs are under
-`build/network-audit/2026-09-20-fixes/`; they are not distributed in Git.
-
-Reconnect checks covered all radio families, but some required manual
-`wpa_cli reconnect`. These do not prove automatic reconnection or saved
-profiles. Selected models also passed USB route/DNS restoration and cable
-reconnection checks. MediaTek models passed DNS and HTTP transfers.
+## Limits
 
 WPA, a configurable access point and physical radio behavior are not
-implemented. Deep-suspend recovery and every firmware/profile combination
-have not been tested. Network results do not establish Amazon registration
-or complete GUI operation.
+implemented. Connecting to `Kindle-QEMU` does not register an Amazon account.

@@ -154,10 +154,7 @@ start each test from the same jailbroken state, run with `-- -snapshot` (for
 example `./eink run my-reader --headless -- -snapshot`); all guest writes are
 discarded on exit.
 
-On both tested models, the guest returned to Home, the userstore permitted
-execution, the `kmc` job ran and the jailbreak survived reboots. Paperwhite 6
-was also jailbroken by hand. One `chattr` warning about `gandalf` is
-harmless; the flag is set.
+The `chattr` warning about `gandalf` is harmless; the flag is set.
 
 The script skips its system patches when the kernel command line contains
 `androidboot.veritymode`. Scribe 3 and Scribe Colorsoft images carry
