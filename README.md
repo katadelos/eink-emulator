@@ -151,6 +151,9 @@ disables the display; `--vnc ENDPOINT` selects VNC. Use `--dry-run` to print
 the QEMU command. See [QMP inspection](docs/qmp.md) for remote control and
 [storage](docs/storage.md) for backups.
 
+Kindle guests reboot inside the same QEMU process. Run `reboot` from the guest
+shell; the emulator window and port mappings remain in place while it boots.
+
 Kindle images start SSH over USB automatically:
 
 ```sh

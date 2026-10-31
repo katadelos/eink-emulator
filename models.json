@@ -266,7 +266,7 @@
       }
     },
     "accel": "tcg",
-    "allow_reboot": false,
+    "allow_reboot": true,
     "machine_properties": {
       "touch-controller": "focaltech",
       "board": "calvados",
@@ -326,7 +326,7 @@
       }
     },
     "accel": "tcg",
-    "allow_reboot": false,
+    "allow_reboot": true,
     "machine_properties": {
       "touch-controller": "focaltech",
       "board": "paloma",
@@ -452,6 +452,7 @@
   "kindle-oasis-1": {
     "description": "Kindle Oasis 1",
     "qemu_machine": "imx6sl-duet",
+    "allow_reboot": true,
     "memory": "512M",
     "builder": "oasis-duet",
     "ftvdb_package": "com.lab126.eink.whisky.os",
@@ -488,6 +489,7 @@
   "kindle-oasis-2": {
     "description": "Kindle Oasis 2",
     "qemu_machine": "imx7d-zelda",
+    "allow_reboot": true,
     "accel": "tcg,thread=multi",
     "memory": "512M",
     "builder": "oasis-zelda",
@@ -525,6 +527,7 @@
   "kindle-oasis-3": {
     "description": "Kindle Oasis 3",
     "qemu_machine": "imx7d-stinger",
+    "allow_reboot": true,
     "accel": "tcg,thread=single",
     "icount": "shift=auto,sleep=on",
     "memory": "512M",
@@ -564,6 +567,7 @@
   "kindle-voyage": {
     "description": "Kindle Voyage",
     "qemu_machine": "imx6sl-wario",
+    "allow_reboot": true,
     "machine_properties": {"board": "icewine"},
     "memory": "512M",
     "builder": "wario",
@@ -599,6 +603,7 @@
   "kindle-basic-2014": {
     "description": "Kindle Basic (2014)",
     "qemu_machine": "imx6sl-wario",
+    "allow_reboot": true,
     "memory": "256M",
     "builder": "wario",
     "ftvdb_package": "com.lab126.eink.bourbon.os",
@@ -634,6 +639,7 @@
   "kindle-basic-2016": {
     "description": "Kindle Basic (2016)",
     "qemu_machine": "imx6sl-eanab",
+    "allow_reboot": true,
     "memory": "512M",
     "builder": "heisenberg",
     "ftvdb_package": "com.lab126.eink.eanab.os",
@@ -662,6 +668,7 @@
   "kindle-kt4": {
     "description": "Kindle KT4",
     "qemu_machine": "imx6sll-jaeger",
+    "allow_reboot": true,
     "memory": "512M",
     "builder": "jaeger",
     "ftvdb_package": "com.lab126.eink.jaeger.os",
@@ -722,6 +729,7 @@
   "kindle-paperwhite-2": {
     "description": "Kindle Paperwhite 2",
     "qemu_machine": "imx6sl-wario",
+    "allow_reboot": true,
     "memory": "256M",
     "builder": "wario",
     "ftvdb_package": "com.lab126.eink.pinot.os",
@@ -757,6 +765,7 @@
   "kindle-paperwhite-3": {
     "description": "Kindle Paperwhite 3",
     "qemu_machine": "imx6sl-wario",
+    "allow_reboot": true,
     "memory": "512M",
     "builder": "wario",
     "ftvdb_package": "com.lab126.eink.muscat.os",
@@ -792,6 +801,7 @@
   "kindle-paperwhite-4": {
     "description": "Kindle Paperwhite 4",
     "qemu_machine": "imx6sll-rex",
+    "allow_reboot": true,
     "memory": "512M",
     "builder": "rex",
     "ftvdb_package": "com.lab126.eink.moonshine.os",
@@ -825,6 +835,7 @@
   "kindle-4": {
     "description": "Kindle 4",
     "qemu_machine": "imx50-tequila",
+    "allow_reboot": true,
     "memory": "256M",
     "builder": "tequila",
     "drive_index": 0,
@@ -846,6 +857,7 @@
   "kindle-touch": {
     "description": "Kindle Touch",
     "qemu_machine": "imx50-whitney",
+    "allow_reboot": true,
     "memory": "256M",
     "builder": "whitney",
     "drive_index": 0,
@@ -925,7 +937,7 @@
     },
     "device_profiles": ["production", "dvt", "evt", "evt-doe", "hvt", "hvt-a", "proto"],
     "accel": "tcg,thread=multi,tb-size=2048",
-    "allow_reboot": false,
+    "allow_reboot": true,
     "machine_properties": {
       "board": "barolo",
       "boot-stage": "u-boot"
@@ -976,7 +988,7 @@
     },
     "device_profiles": ["production", "dvt"],
     "accel": "tcg,thread=multi,tb-size=2048",
-    "allow_reboot": false,
+    "allow_reboot": true,
     "machine_properties": {
       "board": "pisco",
       "boot-stage": "u-boot"

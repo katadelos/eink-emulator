@@ -37,4 +37,5 @@ sync
 shutdown -r now
 ```
 
-The launcher uses `-no-reboot`, so the guest reboot request exits QEMU.
+The guest reboots inside the running QEMU process. Saved settings persist across
+reboots.
