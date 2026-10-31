@@ -1,7 +1,8 @@
 # Kindle Paperwhite 7
 
-PW7 uses the Amaro (AO5) MediaTek board with 1 GiB RAM and a 1272 × 1696
-monochrome display. Its model ID is `kindle-paperwhite-7`.
+Experimental support for PW7 uses the Amaro (AO5) MediaTek board with 1 GiB
+RAM and a 1272 × 1696 monochrome display. Its model ID is
+`kindle-paperwhite-7`.
 It opens the unregistered Home screen with account setup skipped. Click the
 display to tap, and join `Kindle-QEMU` in Wi-Fi settings for network access.
 

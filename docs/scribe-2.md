@@ -1,7 +1,6 @@
 # Kindle Scribe 2
 
-Experimental: Home, touch and suspend are not yet verified with the standard
-images. Scribe 2 uses `mt8113-bellatrix3,board=pisco` with 1 GiB RAM and an
+Scribe 2 uses `mt8113-bellatrix3,board=pisco` with 1 GiB RAM and an
 8 GiB sparse disk.
 
 ## Setup

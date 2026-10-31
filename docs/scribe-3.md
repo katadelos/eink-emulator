@@ -1,8 +1,8 @@
 # Kindle Scribe 3
 
-Experimental: Wi-Fi, USB Ethernet, Home and Library work in the firmware
-5.19.6 development VM. Scribe 3 uses `mt8115-pa6-cs8,board=paloma` with
-four CPUs, 4 GiB RAM and an 8 GiB sparse disk.
+Scribe 3 uses `mt8115-pa6-cs8,board=paloma` with four CPUs, 4 GiB RAM
+and an 8 GiB sparse disk. It opens Home without account setup and provides
+Wi-Fi, USB Ethernet and SSH.
 
 ## Setup
 

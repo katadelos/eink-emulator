@@ -1,7 +1,6 @@
 # Kindle Scribe 1
 
-Experimental: Home, touch and suspend are not yet verified with the standard
-images. Scribe 1 uses `mt8113-bellatrix3,board=barolo` with 1 GiB RAM and an
+Scribe 1 uses `mt8113-bellatrix3,board=barolo` with 1 GiB RAM and an
 8 GiB sparse disk.
 
 ## Setup

@@ -1,8 +1,8 @@
 # Kindle Scribe Colorsoft
 
-Experimental: Wi-Fi and USB Ethernet have carried traffic, but a usable Home
-screen is not yet verified. Scribe Colorsoft uses `mt8115-pa6-cs8,board=calvados`
-with four CPUs, 4 GiB RAM and an 8 GiB sparse disk.
+Scribe Colorsoft uses `mt8115-pa6-cs8,board=calvados` with four CPUs,
+4 GiB RAM and an 8 GiB sparse disk. It opens Home without account setup and
+provides Wi-Fi, USB Ethernet and SSH.
 
 ## Setup
 

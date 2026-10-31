@@ -4,7 +4,7 @@
 </div>
 
 Run Kindle, Kobo, Tolino, PocketBook and reMarkable firmware in QEMU with
-persistent storage and input. Network support varies by model. Scribe
+persistent storage and input. Network support varies by model. PW7 and KT7
 support is experimental; see the model pages below.
 
 Supply your own firmware. The project is not affiliated with Amazon or
@@ -212,15 +212,15 @@ Arguments after `--` also pass through on `run`; see
 | [Kindle Oasis 3](docs/koa3.md) | KOA3 | Stinger | |
 | [Kindle Paperwhite 5](docs/paperwhite-5.md) | PW5 | Malbec | |
 | Kindle Basic 5 (2022) | KT5 | Cava | |
-| [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | Experimental |
+| [Kindle Scribe 1](docs/scribe-1.md) | KS1 | Barolo | |
 | Kindle Basic 6 (2024) | KT6 | Rossini | |
 | [Kindle Basic 7 (2026)](docs/kt7.md) | KT7 | Prosecco | Experimental |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Sangria Color | |
 | [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Sangria | |
 | [Kindle Paperwhite 7](docs/paperwhite-7.md) | PW7 | Amaro / AO5 | Experimental |
-| [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | Experimental |
-| [Kindle Scribe 3](docs/scribe-3.md) | KS3 | Paloma | Experimental |
-| [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | Experimental |
+| [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | |
+| [Kindle Scribe 3](docs/scribe-3.md) | KS3 | Paloma | |
+| [Kindle Scribe Colorsoft](docs/scribe-colorsoft.md) | KSC | Calvados | |
 | Kobo Mini | N705 | E50610 | |
 | Kobo Touch | N905 | E60610 | |
 | [Kobo Glo](docs/kobo-glo.md) | N613 | E606B0 | Experimental |
