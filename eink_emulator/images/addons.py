@@ -114,6 +114,23 @@ def write(directory: Path, name: str, contents: bytes, mode: int = 0o644) -> Non
     path.chmod(mode)
 
 
+def prepare_startup(system: Path, options: dict[str, Any], steps: list[str]) -> None:
+    """Run selected installers in order before starting the framework."""
+    write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
+    write(system, "/usr/sbin/qemu-kindle-setup",
+          ("#!/bin/sh\nset -e\n" + "\n".join(steps) + "\n").encode(), 0o755)
+    if options["model"] == "kindle-4":
+        write(system, "/etc/rc5.d/S92qemu-kindle-addons",
+              b"#!/bin/sh\nexec /usr/sbin/qemu-kindle-setup\n", 0o755)
+    else:
+        write(system, "/etc/upstart/qemu-kindle-setup.conf", b'''# Finish optional setup before starting the Kindle framework.
+start on starting framework
+task
+console output
+exec /usr/sbin/qemu-kindle-setup
+''')
+
+
 def kindlet_keystore(kindlet: bytes, existing: bytes, work: Path) -> bytes:
     """Trust the original KUAL signatures, including the renewed 2025 certs."""
     for executable in ("keytool", "openssl"):
@@ -161,16 +178,11 @@ def prepare_jbsh(source: Path, output: Path, options: dict[str, Any]) -> Path:
     with tempfile.TemporaryDirectory(prefix="eink-jbsh-", dir=output.parent) as temporary:
         system = Path(temporary) / "root"
         write(system, "/usr/share/eink-addons/jb.sh", script.read_bytes(), 0o755)
-        write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
         write(system, "/usr/sbin/qemu-jbsh", (SOURCES / "qemu-jbsh").read_bytes(), 0o755)
         # jb.sh reboots only so the framework rereads what it installed.
         write(system, "/usr/share/eink-addons/jbsh-shims/reboot",
               b"#!/bin/sh\ntouch /var/local/eink-addons/jbsh-reboot\n", 0o755)
-        write(system, "/etc/upstart/qemu-jbsh.conf", b'''# Jailbreak with the pinned jb.sh; the framework then starts jailbroken.
-start on starting framework
-task
-exec /usr/sbin/qemu-jbsh
-''')
+        prepare_startup(system, options, ["/usr/sbin/qemu-jbsh"])
         install_root_files(source, output, system, check="/usr/share/eink-addons/jb.sh")
     return output
 
@@ -233,8 +245,6 @@ def prepare(source: Path, output: Path, options: dict[str, Any]) -> Path:
                     mode = (entry.external_attr >> 16) & 0o777
                     write(data, "/mnt/us/" + entry.filename, archive.read(entry), mode or 0o644)
             (data / "mnt/us/mrpackages").mkdir(parents=True)
-        # A receipt records exactly which pinned assets produced this base.
-        write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
         write(system, "/usr/sbin/qemu-kindle-addons", (SOURCES / "qemu-kindle-addons").read_bytes(), 0o755)
         payload = system / "usr/share/eink-addons/data.tar.gz"
         payload.parent.mkdir(parents=True, exist_ok=True)
@@ -248,13 +258,6 @@ def prepare(source: Path, output: Path, options: dict[str, Any]) -> Path:
                 return info
             for path in sorted(data.iterdir()):
                 archive.add(path, arcname=path.name, filter=root_owner)
-        if model == "kindle-4":
-            write(system, "/etc/rc5.d/S92qemu-kindle-addons", b"#!/bin/sh\n/usr/sbin/qemu-kindle-addons\n", 0o755)
-        else:
-            write(system, "/etc/upstart/qemu-kindle-addons.conf", b'''# Block framework startup until optional data-volume setup completes.
-start on starting framework
-task
-exec /usr/sbin/qemu-kindle-addons
-''')
+        prepare_startup(system, options, ["/usr/sbin/qemu-kindle-addons"])
         install_root_files(source, output, system, check="/usr/share/eink-addons/data.tar.gz")
     return output

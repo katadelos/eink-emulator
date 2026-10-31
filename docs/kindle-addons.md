@@ -95,9 +95,9 @@ jailbreaks run as root after their exploit. The emulator needs no exploit;
 ./eink run pw6-jb
 ```
 
-On the first boot, an Upstart task (`qemu-jbsh`) runs jb.sh when the
+On the first boot, an Upstart task (`qemu-kindle-setup`) runs jb.sh when the
 framework is about to start, and holds the framework until it finishes.
-The script shows its progress on screen. Later boots skip the task, because
+The script shows its progress on screen. Later boots skip jb.sh, because
 `/var/local/kmc/bin` exists. Failed runs retry on the next boot, at most
 three times. The log is `/var/local/eink-addons/jbsh.log`.
 
