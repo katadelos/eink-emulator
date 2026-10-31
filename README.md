@@ -164,6 +164,10 @@ Select `Kindle-QEMU` in the guest for Wi-Fi; SSH then also works on port 2223.
 Kobo provides USB telnet on port 2323. See [networking](docs/networking.md)
 for file transfer, port options and limits.
 
+Add `--opkg` to `create` to install opkg beta on a Kindle's first boot.
+Use `--opkg-feed URL` to select a LAN or other beta feed. See
+[Kindle add-ons](docs/kindle-addons.md#opkg-beta) for setup and package commands.
+
 ## Taking a screenshot
 
 With serial in the terminal, press `Ctrl-A C` to open the QEMU monitor:

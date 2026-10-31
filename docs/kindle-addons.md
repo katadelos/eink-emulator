@@ -11,6 +11,43 @@ There are two ways to give an instance a jailbroken environment:
 
 `--jbsh` cannot be combined with the other three flags.
 
+## opkg beta
+
+Add `--opkg` to install the beta package manager during the first boot:
+
+```sh
+./eink create pw6-opkg --model kindle-paperwhite-6 --profile production --opkg
+./eink create pw6-lan --model kindle-paperwhite-6 --profile production \
+  --opkg --opkg-feed http://192.168.1.109
+```
+
+The default feed is `https://katadelos.github.io/eink-opkg-beta`. A custom feed
+root must provide `install.sh`, `bootstrap/` and the architecture-specific
+package directories. Use an HTTP(S) URL reachable from the guest. A server
+on the emulator host can use `http://192.168.15.201:8086` over USB networking.
+
+The installer selects `kindle5`, `kindlepw2` or `kindlehf` from the running
+firmware. No jailbreak flag is required. `--opkg` can also accompany `--jbsh`,
+`--jailbreak`, `--kual` or `--mrpi`; their setup finishes before opkg starts.
+Installation uses USB networking before the framework starts. The selected
+feed is recorded in `machine.json` and `/etc/eink-opkg-feed` in the guest.
+The SDK receives the firmware's CA bundle for HTTPS feed access.
+
+Later boots activate the SDK without reinstalling it. Packages and the opkg
+database persist under `/mnt/us/.eink-sdk`. Login shells receive the SDK
+environment; in an existing shell, run:
+
+```sh
+. /mnt/us/.eink-sdk/control/env
+opkg update
+opkg install tree
+```
+
+Installation output is in `/var/local/eink-addons/opkg.log`. Failed setup
+retries on the next boot. `eink reset` removes the installed SDK and repeats
+installation on the next boot. The feed selection is fixed at creation;
+create another instance to use a different feed.
+
 ## Build-time add-ons
 
 Use `--mrpi` when creating a Kindle to install KUAL, MRPI and their jailbreak
