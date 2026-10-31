@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -66,6 +67,25 @@ def launch(bundle: Path, runtime: Path, manifest: dict, args: argparse.Namespace
     command = [str(binary)] + [arg.format(
         bundle=str(bundle), runtime=str(runtime), disk=str(runtime / "disk.qcow2")
     ) for arg in manifest["arguments"]]
+    if resume:
+        for index, argument in enumerate(command[:-1]):
+            if argument != "-netdev":
+                continue
+            options = command[index + 1].split(",")
+            network = next((part[3:] for part in options if part.startswith("id=")), None)
+            port = (args.ssh_port if network == "usb" else
+                    args.wifi_ssh_port if network == "wifi" else None)
+            if port is None:
+                continue
+            if not 1 <= port <= 65535:
+                raise ValueError(f"invalid SSH port: {port}")
+            hostfwd = next((i for i, part in enumerate(options)
+                            if part.startswith("hostfwd=tcp:127.0.0.1:")), None)
+            if hostfwd is None:
+                raise ValueError(f"no SSH forwarding for {network} network")
+            options[hostfwd] = re.sub(r"^(hostfwd=tcp:127\.0\.0\.1:)\d+(-.*)$",
+                                      rf"\g<1>{port}\g<2>", options[hostfwd])
+            command[index + 1] = ",".join(options)
     if args.headless:
         command.extend(["-display", "none"])
     elif args.vnc:
@@ -269,6 +289,8 @@ def main() -> None:
     display = run.add_mutually_exclusive_group()
     display.add_argument("--headless", action="store_true")
     display.add_argument("--vnc")
+    run.add_argument("--ssh-port", type=int)
+    run.add_argument("--wifi-ssh-port", type=int)
     run.set_defaults(handler=resume)
     repair = commands.add_parser("rekey", help="cold-boot a new checkpoint copy with the current SSH key, then save it")
     repair.add_argument("source", type=checked_path)

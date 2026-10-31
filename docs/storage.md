@@ -130,6 +130,13 @@ python3 scripts/eink-checkpoint.py save build/checkpoints/pw3-gui
 python3 scripts/eink-checkpoint.py resume build/checkpoints/pw3-gui /tmp/pw3-run
 ```
 
+To run independent copies concurrently, assign different host SSH ports to
+each resumed copy:
+
+```sh
+python3 scripts/eink-checkpoint.py resume build/checkpoints/pw3-gui /tmp/pw3-run-2 --headless --ssh-port 4222 --wifi-ssh-port 4223
+```
+
 `start` boots a standalone disk copy and leaves the original instance untouched.
 `save` pauses the copy, captures memory and devices, stops QEMU and seals the
 bundle. `resume` creates a new runtime directory with a writable disk overlay;
