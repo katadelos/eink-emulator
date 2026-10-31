@@ -86,6 +86,9 @@ def launch(bundle: Path, runtime: Path, manifest: dict, args: argparse.Namespace
             options[hostfwd] = re.sub(r"^(hostfwd=tcp:127\.0\.0\.1:)\d+(-.*)$",
                                       rf"\g<1>{port}\g<2>", options[hostfwd])
             command[index + 1] = ",".join(options)
+        command = [argument for argument in command if argument != "-no-reboot"]
+        if not args.allow_reboot:
+            command.append("-no-reboot")
     if args.headless:
         command.extend(["-display", "none"])
     elif args.vnc:
@@ -291,6 +294,7 @@ def main() -> None:
     display.add_argument("--vnc")
     run.add_argument("--ssh-port", type=int)
     run.add_argument("--wifi-ssh-port", type=int)
+    run.add_argument("--allow-reboot", action="store_true")
     run.set_defaults(handler=resume)
     repair = commands.add_parser("rekey", help="cold-boot a new checkpoint copy with the current SSH key, then save it")
     repair.add_argument("source", type=checked_path)
