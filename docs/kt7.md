@@ -24,7 +24,8 @@ The importer uses KindleTool and expects the Bellatrix package layout:
 KT7 update packages have not been released, so this expected package layout
 has not been verified against a retail update.
 
-The builder prepares a separate rootfs copy with local serial and SSH access.
+The builder prepares a separate rootfs copy with local serial and SSH access,
+British English and offline Home on the first boot.
 It creates a GPT disk with the root filesystem at partition 8, fresh persistent
 filesystems, cold-boot configuration in `miscdata` and a synthetic waveform.
 Imported firmware remains unchanged.

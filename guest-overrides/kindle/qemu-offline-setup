@@ -7,6 +7,7 @@ state=/var/local/system/eink-offline-initialized
 # OTA's filesystems_setup may recreate these even after the first boot.
 rm -f /var/local/decanter/ENABLE_KPP_BOOT \
       /var/local/decanter/ENABLE_KPP_OOBE \
+      /var/local/decanter/RESUME_OOBE_FOR_OTA \
       /var/local/decanter/kpp_oobe_crash.txt
 [ ! -e "$state" ] || exit 0
 mkdir -p /var/local/system /var/local/java/prefs

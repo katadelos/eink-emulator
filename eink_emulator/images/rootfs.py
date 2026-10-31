@@ -728,8 +728,9 @@ def prepare_bellatrix(
 
 
 def prepare_kt7(source: Path, output: Path) -> None:
-    """Keep Prosecco's stock startup code with local serial and SSH access."""
+    """Prepare Prosecco's stock startup with offline Home and local access."""
     copy_source(source, output, maximum_size=1024 * 1024**2)
+    prepare_offline_setup(output)
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/console.conf": ("console.conf", "0100644"),

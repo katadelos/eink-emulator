@@ -81,6 +81,14 @@ Colorsoft also disables native debugger stack dumps, which can occupy an
 emulated CPU. 5.20.1 no longer ships the stack-dump script, so it is left
 alone there. See [Colorsoft](colorsoft.md) for display behavior.
 
+## Basic 2026
+
+Prosecco uses the shared offline setup hook before language selection and
+framework startup. It selects British English, records the stock Home
+setup-completion preferences and removes the OTA setup-resume marker.
+The first boot opens Home without an account or a manual LIPC command.
+The prepared rootfs also enables serial access, USB Ethernet and SSH.
+
 ## Scribe 1 and 2
 
 Barolo and Pisco skip initial setup, select British English and supply the
@@ -94,14 +102,17 @@ Paloma and Calvados use development copies of the rootfs and boot FIT. The
 builder enables a serial root shell, USB Ethernet and SSH. It disables verity
 for the modified rootfs and updates the FIT device-tree hash. The rootfs
 partition retains the source size and AVB footer, but its contents are changed.
+The shared offline setup hook selects British English and records setup
+completion before the UI starts, so the first boot opens Home without an
+account or manual navigation. It also clears the OTA setup-resume marker.
 The language picker retries its powerd startup call for up to 60 seconds so
 delayed LIPC initialization does not immediately reboot the guest. A persistent
 failure still takes the firmware's normal recovery path.
 
 The catalogue enables QEMU development mode. This removes the production-key
 requirement from U-Boot's in-memory control tree. The kernel binary stays
-unchanged. This provides development access; a usable Home screen is not yet
-verified.
+unchanged. Home and Library are usable offline; account-dependent features
+retain the stock sign-in invitation.
 
 ## Kobo
 

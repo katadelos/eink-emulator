@@ -156,6 +156,7 @@ def build(
         prepared_root = Path(temporary) / "rootfs.img"
         prepared_boot = Path(temporary) / "boot.img"
         rootfs.copy_source(rootfs_image, prepared_root)
+        rootfs.prepare_offline_setup(prepared_root)
         rootfs.transform_file(
             prepared_root, "/etc/shadow", "0100600", rootfs.blank_root_password,
         )
