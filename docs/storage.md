@@ -117,8 +117,8 @@ and any separate machine firmware. Keep `build/ssh/` for Kindle SSH access.
 
 `scripts/eink-checkpoint.py` captures a running guest's CPU, RAM and device
 state together with its disk. A checkpoint resumes at the captured GUI without
-booting the guest again. The tool supports Paperwhite 3 and Kindle Basic 7
-(2026). Device migration coverage for other models is incomplete; their
+booting the guest again. The tool supports Kindle 4, Paperwhite 3 and Kindle
+Basic 7 (2026). Device migration coverage for other models is incomplete; their
 checkpoints require additional saved-state support and restore validation.
 
 Start from a stopped instance:
