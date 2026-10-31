@@ -786,11 +786,18 @@ def bellatrix3_patch_system_permissions(contents: str) -> str:
 
 def bellatrix3_patch_varlocal_permissions(contents: str) -> str:
     old = "  chgrp -R javausers /var/local/ || true\n"
-    if contents.count(old) != 1:
+    ready = "  # see if the var local sqlite db upgrade file is present\n"
+    if contents.count(old) != 1 or contents.count(ready) != 1:
         raise SystemExit("stock Bellatrix3 var-local ownership boundary was not found")
+    contents = contents.replace(
+        ready,
+        "  # Repair descendants before migration or mounted_varLocal starts writers.\n"
+        "  /usr/sbin/qemu-runtime-permissions persistent\n\n" + ready,
+        1,
+    )
     return contents.replace(
         old,
-        "  # Display's starting job migrates existing descendants once.\n"
+        "  # Descendants were repaired before the readiness events.\n"
         "  chgrp javausers /var/local/ || true\n"
         "  chmod g=u,g+s /var/local/ || true\n",
         1,

@@ -25,8 +25,9 @@ from the production lookup table. A valid existing value is kept.
 
 ## Startup and permissions
 
-Permissions are set before services create shared files. A version marker
-limits updates to existing files to one pass. Shared directories use setgid
+Persistent permissions are set before filesystem migration and the
+`mounted_varLocal` event start database writers. A version marker limits
+updates to existing files to one pass. Shared directories use setgid
 so new files inherit the `javausers` group. Framework restarts check top-level
 directories instead of walking every file. The private root directory and
 stock chroot exclusion retain their ownership rules.
