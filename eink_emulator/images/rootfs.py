@@ -503,7 +503,6 @@ def prepare_wario(source: Path, output: Path) -> None:
     prepare_offline_setup(output)
     install_overrides(image=output, group="wario", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
-        "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
         "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
         "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
     })
@@ -516,7 +515,6 @@ def prepare_heisenberg(source: Path, output: Path) -> None:
     prepare_offline_setup(output)
     install_overrides(image=output, group="heisenberg", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
-        "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
         "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
         "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
     })
@@ -571,7 +569,6 @@ def prepare_oasis(source: Path, output: Path) -> None:
     prepare_offline_setup(output)
     install_overrides(image=output, group="oasis", replacements={
         "/etc/upstart/perfd.conf": ("perfd.conf", "0100644"),
-        "/etc/upstart/kb.conf": ("kb.conf", "0100644"),
         "/etc/upstart/console.conf": ("console.conf", "0100644"),
         "/etc/upstart/prevent-screensaver.conf": ("prevent-screensaver.conf", "0100644"),
         "/etc/upstart/qemu-wake-gui.conf": ("qemu-wake-gui.conf", "0100644"),
