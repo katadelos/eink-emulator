@@ -44,6 +44,9 @@ bootstrap selects `kindle5`, `kindlepw2` or `kindlehf` from the running firmware
 Add `--no-opkg` to `create` to skip it, or `--opkg-feed URL` to use another feed.
 See `docs/kindle-addons.md#opkg-beta` for package commands and installation logs.
 
+Kindle serial and SSH logins display the bundled emulator MOTD. Add
+`--no-motd` to `create` to retain the stock login message.
+
 ## Run headless
 
 `./eink run` replaces itself with QEMU and blocks, so start it in the

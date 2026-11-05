@@ -171,6 +171,9 @@ Add `--no-opkg` to `create` to skip installation, or `--opkg-feed URL` to select
 a LAN or other beta feed. See
 [Kindle add-ons](docs/kindle-addons.md#opkg-beta) for setup and package commands.
 
+Kindle serial and SSH logins show a pre-rendered colour `eink emulator` banner.
+Add `--no-motd` to `create` to retain the stock login message.
+
 ## Taking a screenshot
 
 With serial in the terminal, press `Ctrl-A C` to open the QEMU monitor:

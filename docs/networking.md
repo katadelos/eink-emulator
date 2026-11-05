@@ -53,6 +53,10 @@ to keep their host records separate:
 ssh -i build/ssh/id_ed25519 -p 2222 -o HostKeyAlias=my-reader root@127.0.0.1
 ```
 
+Serial and SSH logins display the bundled colour `eink emulator` MOTD.
+Create a Kindle with `--no-motd` to retain its stock login message. Remote
+commands and file transfers do not print the banner.
+
 Logs are in `/var/log/sshd.log`. On Kindle Touch and later, use
 `initctl status sshd` or `restart sshd` from serial to inspect or restart the
 service. [Guest additions](../guest-additions/README.md) documents startup

@@ -1,4 +1,4 @@
-"""Kindle jailbreak, launcher and package-manager preparation."""
+"""Kindle login banner, jailbreak, launcher and package-manager preparation."""
 
 from __future__ import annotations
 
@@ -38,13 +38,14 @@ JBSH_SUPPORTED = (SUPPORTED - set(KINDLETS)) | {
 
 def plan(
     model: str, *, jailbreak: bool, kual: bool, mrpi: bool, jbsh: bool = False,
-    no_opkg: bool = False, opkg_feed: str | None = None,
+    no_opkg: bool = False, opkg_feed: str | None = None, no_motd: bool = False,
 ) -> dict[str, Any] | None:
     if opkg_feed is not None and no_opkg:
         raise SystemExit("--opkg-feed cannot be combined with --no-opkg")
     if opkg_feed is not None and not model.startswith("kindle-"):
         raise SystemExit("--opkg-feed is only supported by Kindle models")
     opkg = model.startswith("kindle-") and not no_opkg
+    motd = model.startswith("kindle-") and not no_motd
     feed = (opkg_feed or OPKG_FEED).rstrip("/")
     if opkg:
         url = urllib.parse.urlsplit(feed)
@@ -74,12 +75,14 @@ def plan(
             "model": model, "jailbreak": True, "kual": kual, "mrpi": mrpi,
             "assets": {name: catalogue[name] for name in sorted(selected)},
         }
-    elif opkg:
+    elif opkg or motd:
         options = {"model": model, "assets": {}}
     else:
         return None
     if opkg:
         options["opkg"] = {"feed": feed}
+    if motd:
+        options["motd"] = True
     return options
 
 
@@ -149,12 +152,16 @@ def prepare_opkg(system: Path, options: dict[str, Any]) -> None:
 
 def prepare_startup(system: Path, options: dict[str, Any], steps: list[str]) -> None:
     """Run selected installers in order and activate the SDK on every boot."""
+    if options.get("motd"):
+        write(system, "/etc/motd", (SOURCES / "eink-motd").read_bytes())
     if options.get("opkg"):
         prepare_opkg(system, options)
         write(system, "/usr/sbin/qemu-opkg", (SOURCES / "qemu-opkg").read_bytes(), 0o755)
         write(system, "/etc/eink-opkg-feed", (options["opkg"]["feed"] + "\n").encode())
         steps = [*steps, "/usr/sbin/qemu-opkg"]
     write(system, "/etc/eink-addons.json", (json.dumps(options, indent=2) + "\n").encode())
+    if not steps:
+        return
     write(system, "/usr/sbin/qemu-kindle-setup",
           ("#!/bin/sh\nset -e\n" + "\n".join(steps) + "\n").encode(), 0o755)
     if options["model"] == "kindle-4":
@@ -235,10 +242,11 @@ def prepare(source: Path, output: Path, options: dict[str, Any]) -> Path:
     if options.get("jbsh"):
         return prepare_jbsh(source, output, options)
     if not options.get("jailbreak"):
-        with tempfile.TemporaryDirectory(prefix="eink-opkg-", dir=output.parent) as temporary:
+        with tempfile.TemporaryDirectory(prefix="eink-addons-", dir=output.parent) as temporary:
             system = Path(temporary) / "root"
             prepare_startup(system, options, [])
-            install_root_files(source, output, system, check="/usr/sbin/qemu-opkg")
+            check = "/usr/sbin/qemu-opkg" if options.get("opkg") else "/etc/motd"
+            install_root_files(source, output, system, check=check)
         return output
     model = options["model"]
     assets = {name: download(asset) for name, asset in options["assets"].items()}

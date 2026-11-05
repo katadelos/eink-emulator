@@ -31,6 +31,21 @@ The login public key is installed at `/etc/eink-ssh/authorized_keys`. Each
 guest creates its own server key in `/var/local/eink-ssh`. Framework permission
 changes exclude that directory to keep the key private.
 
+## Login message
+
+New Kindle instances replace `/etc/motd` with [`kindle/eink-motd`](kindle/eink-motd).
+The file contains the `cyberlarge` banner, repository URL, and a list of Kindle
+projects. The banner is rendered on the host with `toilet` and
+`lolcat -F 0.5 -f`; project names are cyan and descriptions and URLs are plain. Run
+`python3 scripts/render-eink-motd.py` to regenerate it; redundant colour escapes
+are removed to fit Dropbear's 2000-byte MOTD limit. Guests display the stored
+ANSI colours on serial and SSH login; neither rendering tool is installed or
+needed there. SSH commands and file transfers do not display the banner.
+
+Use `eink create --no-motd` to retain the stock login message. This option is
+independent of `--no-opkg` and the jailbreak flags. Existing instances retain
+the message in their prepared image.
+
 ## opkg
 
 New Kindle instances include `kindle/qemu-opkg` in the startup install hook.

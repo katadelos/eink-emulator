@@ -288,7 +288,7 @@ def command_create(args: argparse.Namespace) -> None:
         definition["sideloaded"] = True
     addon_plan = addons.plan(args.model, jailbreak=args.jailbreak, kual=args.kual,
                              mrpi=args.mrpi, jbsh=args.jbsh, no_opkg=args.no_opkg,
-                             opkg_feed=args.opkg_feed)
+                             opkg_feed=args.opkg_feed, no_motd=args.no_motd)
     if addon_plan:
         definition["addons"] = addon_plan
     profile = parse_profile(args.profile, definition)
@@ -992,6 +992,8 @@ def parser(extensions: dict[str, LocalCommand] | None = None) -> argparse.Argume
                         help="skip the default opkg installation and activation on Kindle")
     create.add_argument("--opkg-feed", metavar="URL",
                         help=f"opkg feed root for Kindle (default: {addons.OPKG_FEED})")
+    create.add_argument("--no-motd", action="store_true",
+                        help="keep the stock Kindle login message instead of the emulator banner")
     create.set_defaults(handler=command_create)
 
     delete = commands.add_parser("delete", help="delete a stopped machine and prune unused shared bases")
