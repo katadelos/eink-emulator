@@ -31,6 +31,23 @@ The login public key is installed at `/etc/eink-ssh/authorized_keys`. Each
 guest creates its own server key in `/var/local/eink-ssh`. Framework permission
 changes exclude that directory to keep the key private.
 
+## opkg
+
+New Kindle instances include `kindle/qemu-opkg` in the startup install hook.
+It installs opkg from the public bootstrap and activates the SDK immediately
+on the first boot, before the framework starts. No reboot is required. Later
+boots restore the SDK runtime without reinstalling it. The bootstrap selects
+`kindle5`, `kindlepw2` or `kindlehf` from the running firmware. Optional jailbreak
+setup runs before this hook.
+
+For `kindle5`, the builder stages the selected feed's installer and bootstrap
+bundle for offline installation, avoiding the firmware's old TLS implementation.
+Other ABIs download the bootstrap in the guest during the first boot.
+
+Use `eink create --no-opkg` to omit it, or `--opkg-feed URL` to select another
+feed. See [opkg setup](../docs/kindle-addons.md#opkg-beta) for package commands,
+storage and logs.
+
 ## Optional KUAL and MRPI
 
 `eink create --jailbreak`, `--kual` and `--mrpi` opt into the pinned inputs in

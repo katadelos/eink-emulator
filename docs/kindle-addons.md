@@ -13,30 +13,49 @@ There are two ways to give an instance a jailbroken environment:
 
 ## opkg beta
 
-Add `--opkg` to install the beta package manager during the first boot:
+Every new Kindle instance installs opkg beta through a first-boot install hook
+and activates it immediately, before the framework starts. No reboot, extra
+flag or jailbreak is required:
 
 ```sh
-./eink create pw6-opkg --model kindle-paperwhite-6 --profile production --opkg
+./eink create pw6-opkg --model kindle-paperwhite-6 --profile production
 ./eink create pw6-lan --model kindle-paperwhite-6 --profile production \
-  --opkg --opkg-feed http://192.168.1.109
+  --opkg-feed http://192.168.1.109
+./eink create pw6-stock --model kindle-paperwhite-6 --profile production --no-opkg
 ```
 
-The default feed is `https://katadelos.github.io/eink-opkg-beta`. A custom feed
+Use `--no-opkg` (also accepted as `-no-opkg`) to skip installation. It cannot
+be combined with `--opkg-feed`. These creation options do not change existing
+instances; non-Kindle models do not install opkg.
+
+The default feed uses the [public bootstrap](https://katadelos.github.io/eink-opkg-beta/install.sh)
+at `https://katadelos.github.io/eink-opkg-beta`. A custom feed
 root must provide `install.sh`, `bootstrap/` and the architecture-specific
-package directories. Use an HTTP(S) URL reachable from the guest. A server
-on the emulator host can use `http://192.168.15.201:8086` over USB networking.
-Kindle 4 needs an HTTP feed; its firmware curl cannot negotiate the TLS version
-required by the public HTTPS feed.
+package directories. Use an HTTP(S) URL reachable from the guest and, for
+`kindle5`, from the host as well. For `kindlepw2` and `kindlehf`, a server on
+the emulator host can use `http://192.168.15.201:8086` over USB networking.
 
 The installer selects `kindle5`, `kindlepw2` or `kindlehf` from the running
-firmware. No jailbreak flag is required. `--opkg` can also accompany `--jbsh`,
-`--jailbreak`, `--kual` or `--mrpi`; their setup finishes before opkg starts.
-Installation uses USB networking before the framework starts. The selected
-feed is recorded in `machine.json` and `/etc/eink-opkg-feed` in the guest.
-The SDK receives the firmware's CA bundle for HTTPS feed access.
+firmware. When `--jbsh`, `--jailbreak`, `--kual` or `--mrpi` is selected,
+its setup finishes before opkg starts. Installation runs before the framework
+starts:
 
-Later boots activate the SDK without reinstalling it. Packages and the opkg
-database persist under `/mnt/us/.eink-sdk`. Login shells receive the SDK
+- `kindle5` (Kindle 4, Touch and Paperwhite 1): `create` downloads the selected
+  feed's `install.sh` and `bootstrap/kindle5.tar.gz` on the host. The install
+  hook runs the public bootstrap with `--offline` using those staged files.
+  This avoids the firmware's old TLS implementation during installation.
+- `kindlepw2` and `kindlehf`: the hook downloads and runs the public bootstrap
+  over USB networking during the first boot.
+
+The installed SDK provides HTTPS access to the public feed on all three ABIs.
+The offline bundle includes a CA bundle; online installation copies the
+firmware's CA bundle into the SDK. The selected feed is recorded in
+`machine.json` and `/etc/eink-opkg-feed` in the guest.
+
+Later boots restore the SDK runtime without reinstalling it. Packages and the
+opkg database persist under `/mnt/us/.eink-sdk`. Activation mounts `/mnt/us`
+executable, even without a jailbreak. Create with `--no-opkg` and no jailbreak
+flags to retain the stock `noexec` mount. Login shells receive the SDK
 environment; in an existing shell, run:
 
 ```sh
@@ -49,7 +68,9 @@ During setup, output is in `/var/run/eink-opkg.log`; it is appended to
 `/var/local/eink-addons/opkg.log` when setup exits. Failed setup
 retries on the next boot. `eink reset` removes the installed SDK and repeats
 installation on the next boot. The feed selection is fixed at creation;
-create another instance to use a different feed.
+create another instance to use a different feed. Finish the first installation
+before using `run NAME --headless -- -snapshot` to preserve an installed
+baseline between tests.
 
 ## Build-time add-ons
 

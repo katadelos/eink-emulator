@@ -37,6 +37,13 @@ The version is fixed at creation. To test another version, create another
 instance. Instances with the same model, version and options share one base
 image (~650 MB), so extra ones are cheap. Each new version adds a base image.
 
+New Kindle instances install opkg from the public bootstrap and activate it
+immediately during their first boot, before the framework starts. No reboot is
+required; later boots restore the SDK runtime without reinstalling it. The
+bootstrap selects `kindle5`, `kindlepw2` or `kindlehf` from the running firmware.
+Add `--no-opkg` to `create` to skip it, or `--opkg-feed URL` to use another feed.
+See `docs/kindle-addons.md#opkg-beta` for package commands and installation logs.
+
 ## Run headless
 
 `./eink run` replaces itself with QEMU and blocks, so start it in the
@@ -94,10 +101,11 @@ ssh $KEY -p 4022 root@127.0.0.1 '/mnt/us/myapp; echo exit=$?'
 (In zsh, use a bash wrapper or write the options out; zsh does not
 word-split `$KEY`.)
 
-- On a stock guest, `/mnt/us` is mounted `noexec`, as on a real device.
-  Binaries there fail with `Permission denied`; scripts run only as
-  `sh /mnt/us/script.sh`. Jailbreak the instance (below) to test homebrew
-  as users run it.
+- Default opkg setup mounts `/mnt/us` executable when activating the SDK.
+  Create with `--no-opkg` and no jailbreak flags to retain the stock `noexec`
+  mount. Binaries there fail with `Permission denied`; run scripts as
+  `sh /mnt/us/script.sh`. Use the jailbreak options below to reproduce a
+  jailbroken device's full environment.
 - Userstore: `/mnt/us` on Kindle, `/mnt/onboard` on Kobo and Tolino. Kobo
   uses telnet on port 2323 instead of SSH.
 - Check the userspace ABI on each instance; it can change between firmware
@@ -161,6 +169,10 @@ For a jailbroken baseline, finish the `--jbsh` first boot normally, then use
 with `-snapshot` before the jailbreak completes repeats it on every run.
 After `reset`, a `--jbsh` instance jailbreaks again on its next boot. On a
 hand-jailbroken instance, `reset` removes the jailbreak.
+
+The same applies to opkg: finish installation before a snapshot run to keep
+the installed baseline. `reset` removes the SDK and the install hook runs again
+on the next boot unless the instance was created with `--no-opkg`.
 
 ## When older firmware fails to build
 
