@@ -287,7 +287,7 @@ def command_create(args: argparse.Namespace) -> None:
             fail("--sideloaded is only supported by Kobo Aura HD, Forma and Elipsa 2E")
         definition["sideloaded"] = True
     addon_plan = addons.plan(args.model, jailbreak=args.jailbreak, kual=args.kual,
-                             mrpi=args.mrpi, jbsh=args.jbsh, opkg=args.opkg,
+                             mrpi=args.mrpi, jbsh=args.jbsh, no_opkg=args.no_opkg,
                              opkg_feed=args.opkg_feed)
     if addon_plan:
         definition["addons"] = addon_plan
@@ -330,7 +330,7 @@ def command_create(args: argparse.Namespace) -> None:
     if addon_plan and addon_plan.get("jbsh"):
         print("jb.sh runs during the first boot, before the framework starts")
     if addon_plan and addon_plan.get("opkg"):
-        print(f"opkg installs during the first boot from {addon_plan['opkg']['feed']}")
+        print(f"opkg installs and activates during the first boot from {addon_plan['opkg']['feed']}")
     if definition["network"].get("usb", {}).get("service") == "ssh":
         print(f"SSH over USB: ssh -i {shlex.quote(str(LOGIN_KEY))} -p 2222 root@127.0.0.1")
         print("SSH over Wi-Fi: use port 2223 after joining Kindle-QEMU")
@@ -988,10 +988,10 @@ def parser(extensions: dict[str, LocalCommand] | None = None) -> argparse.Argume
     create.add_argument("--mrpi", action="store_true", help="pre-install pinned MRPI (includes --kual and --jailbreak)")
     create.add_argument("--jbsh", action="store_true",
                         help="jailbreak with the pinned jb.sh during the first boot (Paperwhite 2 and later)")
-    create.add_argument("--opkg", action="store_true",
-                        help="install opkg beta during the first boot (Kindle only)")
+    create.add_argument("--no-opkg", "-no-opkg", action="store_true",
+                        help="skip the default opkg installation and activation on Kindle")
     create.add_argument("--opkg-feed", metavar="URL",
-                        help=f"opkg feed root; requires --opkg (default: {addons.OPKG_FEED})")
+                        help=f"opkg feed root for Kindle (default: {addons.OPKG_FEED})")
     create.set_defaults(handler=command_create)
 
     delete = commands.add_parser("delete", help="delete a stopped machine and prune unused shared bases")

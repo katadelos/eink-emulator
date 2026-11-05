@@ -1,4 +1,4 @@
-"""Optional Kindle jailbreak, launcher and package-manager preparation."""
+"""Kindle jailbreak, launcher and package-manager preparation."""
 
 from __future__ import annotations
 
@@ -38,12 +38,13 @@ JBSH_SUPPORTED = (SUPPORTED - set(KINDLETS)) | {
 
 def plan(
     model: str, *, jailbreak: bool, kual: bool, mrpi: bool, jbsh: bool = False,
-    opkg: bool = False, opkg_feed: str | None = None,
+    no_opkg: bool = False, opkg_feed: str | None = None,
 ) -> dict[str, Any] | None:
-    if opkg_feed is not None and not opkg:
-        raise SystemExit("--opkg-feed requires --opkg")
-    if opkg and not model.startswith("kindle-"):
-        raise SystemExit("--opkg is only supported by Kindle models")
+    if opkg_feed is not None and no_opkg:
+        raise SystemExit("--opkg-feed cannot be combined with --no-opkg")
+    if opkg_feed is not None and not model.startswith("kindle-"):
+        raise SystemExit("--opkg-feed is only supported by Kindle models")
+    opkg = model.startswith("kindle-") and not no_opkg
     feed = (opkg_feed or OPKG_FEED).rstrip("/")
     if opkg:
         url = urllib.parse.urlsplit(feed)
@@ -160,7 +161,7 @@ def prepare_startup(system: Path, options: dict[str, Any], steps: list[str]) -> 
         write(system, "/etc/rc5.d/S92qemu-kindle-addons",
               b"#!/bin/sh\nexec /usr/sbin/qemu-kindle-setup\n", 0o755)
     else:
-        write(system, "/etc/upstart/qemu-kindle-setup.conf", b'''# Finish optional setup before starting the Kindle framework.
+        write(system, "/etc/upstart/qemu-kindle-setup.conf", b'''# Finish setup before starting the Kindle framework.
 start on starting framework
 task
 console output
