@@ -6,8 +6,7 @@ umask 022
 state=/var/local/eink-addons
 control=/mnt/us/.eink-sdk/control
 mkdir -p "$state"
-# K4 mounts var-local synchronously. Firmware curl emits its progress meter
-# one byte per write, so logging there can stall the download itself.
+# Keep installer output off the synchronous var-local mount until it exits.
 log=/var/run/eink-opkg.log
 exec >"$log" 2>&1
 installer=
@@ -25,31 +24,45 @@ grep -q ' /mnt/us ' /proc/mounts
 
 if [ ! -f "$state/opkg-installed" ]; then
     feed=$(cat /etc/eink-opkg-feed)
-    # The beta bootstrap expects its CA bundle in the SDK, before any packages
-    # can be fetched over HTTPS. Use the same trust store as firmware curl.
-    mkdir -p /mnt/us/.eink-sdk/etc/ssl/certs
-    cp /etc/ssl/certs/ca-certificates.crt \
-        /mnt/us/.eink-sdk/etc/ssl/certs/ca-certificates.crt
-    installer=$(mktemp /tmp/eink-opkg-install.XXXXXX)
-    downloaded=false
-    for attempt in 1 2 3; do
-        if /usr/bin/curl -fL --connect-timeout 5 --max-time 30 \
-                "$feed/install.sh" -o "$installer"; then
-            downloaded=true
-            break
-        fi
-        echo "Waiting for opkg feed (attempt $attempt)"
-        [ "$attempt" -eq 3 ] || sleep 2
-    done
-    if [ "$downloaded" != true ]; then
-        rm -f "$installer"
-        exit 1
-    fi
+    bundle=/usr/share/eink-addons/opkg
     echo "Installing opkg from $feed"
-    result=0
-    sh "$installer" "$feed" || result=$?
-    rm -f "$installer"
-    [ "$result" -eq 0 ] || exit "$result"
+    if [ -f "$bundle/install.sh" ]; then
+        # kindle5 firmware curl cannot reach modern HTTPS feeds. The image
+        # carries the public bootstrap and bundle for its offline install.
+        sh "$bundle/install.sh" --offline "$bundle"
+        # Offline bootstrap uses the public feed URL. Retain the selected feed
+        # for subsequent package downloads, including custom feeds.
+        config=/mnt/us/.eink-sdk/opkg/opkg.conf
+        awk '
+            NR == FNR { feed = $0; next }
+            $1 == "src/gz" && $2 == "kindle5" {
+                $3 = feed "/kindle5"
+            }
+            { print }
+        ' /etc/eink-opkg-feed "$config" >"$config.tmp"
+        mv "$config.tmp" "$config"
+    else
+        # Seed HTTPS trust before the online bootstrap installs its CA package.
+        mkdir -p /mnt/us/.eink-sdk/etc/ssl/certs
+        cp /etc/ssl/certs/ca-certificates.crt \
+            /mnt/us/.eink-sdk/etc/ssl/certs/ca-certificates.crt
+        installer=$(mktemp /tmp/eink-opkg-install.XXXXXX)
+        downloaded=false
+        for attempt in 1 2 3; do
+            if /usr/bin/curl -fsSL --connect-timeout 5 --max-time 30 \
+                    "$feed/install.sh" -o "$installer"; then
+                downloaded=true
+                break
+            fi
+            echo "Waiting for opkg feed (attempt $attempt)"
+            [ "$attempt" -eq 3 ] || sleep 2
+        done
+        if [ "$downloaded" != true ]; then
+            exit 1
+        fi
+        sh "$installer" "$feed"
+        rm -f "$installer"
+    fi
     sh "$control/activate"
     "$control/run" opkg --version
     cp /etc/eink-opkg-feed "$state/opkg-installed.tmp"

@@ -133,9 +133,23 @@ def write(directory: Path, name: str, contents: bytes, mode: int = 0o644) -> Non
     path.chmod(mode)
 
 
+def prepare_opkg(system: Path, options: dict[str, Any]) -> None:
+    """Stage the public bootstrap for firmware without modern HTTPS support."""
+    if options["model"] not in KINDLETS:
+        return
+    feed = options["opkg"]["feed"]
+    cache = "opkg/" + hashlib.sha256(feed.encode()).hexdigest()[:16]
+    for source, destination in (("install.sh", "install.sh"),
+                                ("bootstrap/kindle5.tar.gz", "bundle.tar.gz")):
+        asset = download({"version": cache, "url": f"{feed}/{source}"})
+        write(system, f"/usr/share/eink-addons/opkg/{destination}", asset.read_bytes())
+    write(system, "/usr/share/eink-addons/opkg/extra-packages.list", b"")
+
+
 def prepare_startup(system: Path, options: dict[str, Any], steps: list[str]) -> None:
-    """Run selected installers in order, then activate the SDK on later boots."""
+    """Run selected installers in order and activate the SDK on every boot."""
     if options.get("opkg"):
+        prepare_opkg(system, options)
         write(system, "/usr/sbin/qemu-opkg", (SOURCES / "qemu-opkg").read_bytes(), 0o755)
         write(system, "/etc/eink-opkg-feed", (options["opkg"]["feed"] + "\n").encode())
         steps = [*steps, "/usr/sbin/qemu-opkg"]
@@ -189,10 +203,15 @@ def install_root_files(source: Path, output: Path, system: Path, *, check: str) 
                              f"set_inode_field {destination} uid 0", f"set_inode_field {destination} gid 0"])
     rootfs.run_many(output, commands, writable=True)
     # debugfs does not propagate allocation failures through its exit code.
-    verified = system.parent / "verify.bin"
-    rootfs.run(output, f'dump {check} "{verified}"')
-    if not verified.is_file() or verified.read_bytes() != (system / check.lstrip("/")).read_bytes():
-        raise SystemExit("cannot write add-on payload to rootfs (check free filesystem space)")
+    checks = [system / check.lstrip("/")]
+    checks.extend(sorted((system / "usr/share/eink-addons/opkg").glob("*")))
+    verified = [system.parent / f"verify-{index}.bin" for index in range(len(checks))]
+    rootfs.run_many(output, [
+        f'dump /{path.relative_to(system)} "{copy}"' for path, copy in zip(checks, verified)
+    ])
+    for path, copy in zip(checks, verified):
+        if not copy.is_file() or copy.read_bytes() != path.read_bytes():
+            raise SystemExit("cannot write add-on payload to rootfs (check free filesystem space)")
 
 
 def prepare_jbsh(source: Path, output: Path, options: dict[str, Any]) -> Path:
