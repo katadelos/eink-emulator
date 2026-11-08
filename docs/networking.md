@@ -179,7 +179,7 @@ Kobo uses standard SSID syntax. For example, use
 | Basic 2016, Oasis 2, Paperwhite 4 | BCM43430 FullMAC SDIO | ChipIdea `g_ether` |
 | Oasis 1/3, KT4 | Broadcom FullMAC SDIO | ChipIdea `g_ether` |
 | Paperwhite 5, Basic 2022/2024 | MediaTek CONNAC DMA | MT8110 `g_ether` |
-| Scribe 1/2, Paperwhite 6, Colorsoft | MediaTek CONNAC DMA | MT8113 `g_ether` |
+| Scribe 1/2, Paperwhite 6/7, Colorsoft 1/2 | MediaTek CONNAC DMA | MT8113 `g_ether` |
 | Scribe 3, Scribe Colorsoft | MT8171 CONNAC DMA | MTU3 `g_ether` / ECM |
 | Kobo Mini, Touch, Aura HD, Glo HD | BCM43362 FullMAC SDIO | ChipIdea `g_ether` |
 | Kobo Clara HD | RTL8189FS SDIO | ChipIdea `g_ether` |

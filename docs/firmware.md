@@ -173,6 +173,12 @@ from the rootfs into `peripherals/tt_fw.bin` by either workflow.
 archive. It extracts `0boot0.img`, `p1.img` and `p8.img`; no update-package
 layout is assumed.
 
+[Kindle Colorsoft 2](colorsoft-2.md) uses
+[`scripts/carve-cs2.py`](../scripts/carve-cs2.py) for its partition-dump archive.
+It extracts `0boot0.img`, `0boot1.img`, `p1.img`, `p2.img` and `p8.img`, checks
+the Julep rootfs identity and imports firmware, waveforms and boot artwork.
+No update-package layout is assumed.
+
 ## Directory layout
 
 For manual setup, place files under `firmware/MODEL/`:
@@ -184,6 +190,8 @@ For manual setup, place files under `firmware/MODEL/`:
 | Paperwhite 4, KT4, Oasis 2/3 | `u-boot.bin`, `boot.img`, `rootfs.img`, `s-bios.bin`, `bios.bin` |
 | Basic 2022/2024, Paperwhite 5/6, Colorsoft, Scribe 1/2 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img` |
 | Basic 2026 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `rootfs.img`, `peripherals/tt_fw.bin` |
+| Paperwhite 7 | `u-boot.bin`, `bl2.img`, `tee.img`, `boot.img`, `rootfs.img` |
+| Colorsoft 2 | `u-boot.bin`, `bl2.img`, `tee.img`, `quickboot.img`, `boot.img`, `waveform.img`, `rootfs.img` |
 | Kobo Mini, Touch | `u-boot.bin`, `sd.img` |
 | Kobo Glo | See the [Glo file list](kobo-glo.md#firmware) |
 | Kobo Aura HD | See the [Aura HD file list](kobo-aura-hd.md#firmware) |

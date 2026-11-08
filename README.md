@@ -4,8 +4,8 @@
 </div>
 
 Run Kindle, Kobo, Tolino, PocketBook and reMarkable firmware in QEMU with
-persistent storage and input. Network support varies by model. PW7 and KT7
-support is experimental; see the model pages below.
+persistent storage and input. Network support varies by model. PW7, KT7 and
+Colorsoft 2 support is experimental; see the model pages below.
 
 Supply your own firmware. The project is not affiliated with Amazon or
 Rakuten Kobo.
@@ -226,6 +226,7 @@ Arguments after `--` also pass through on `run`; see
 | Kindle Basic 6 (2024) | KT6 | Rossini | |
 | [Kindle Basic 7 (2026)](docs/kt7.md) | KT7 | Prosecco | Experimental |
 | [Kindle Colorsoft](docs/colorsoft.md) | CS | Sangria Color | |
+| [Kindle Colorsoft 2](docs/colorsoft-2.md) | CS2 | Julep / JP5 | Experimental |
 | [Kindle Paperwhite 6](docs/paperwhite-6.md) | PW6 / PW12 | Sangria | |
 | [Kindle Paperwhite 7](docs/paperwhite-7.md) | PW7 | Amaro / AO5 | Experimental |
 | [Kindle Scribe 2](docs/scribe-2.md) | KS2 | Pisco | |

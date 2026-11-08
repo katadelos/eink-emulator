@@ -88,6 +88,16 @@ setup-completion preferences and removes the OTA setup-resume marker.
 The first boot opens Home without an account or a manual LIPC command.
 The prepared rootfs also enables serial access, USB Ethernet and SSH.
 
+## Paperwhite 7 and Colorsoft 2
+
+Amaro and Julep share the AO5 disk builder. Their rootfs partitions are
+1280 MiB and 1536 MiB respectively. Prepared copies enable offline Home,
+serial access, USB Ethernet and SSH, extend the framework startup timeout
+and prevent automatic suspend. Persistent filesystems start fresh, using
+the formatter configuration shipped in each rootfs. Julep uses the original
+waveform partition, including its early boot artwork, and the RGB scanout path
+used by Colorsoft.
+
 ## Scribe 1 and 2
 
 Barolo and Pisco skip initial setup, select British English and supply the
