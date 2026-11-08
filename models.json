@@ -1,4 +1,46 @@
 {
+  "kindle-colorsoft-2": {
+    "description": "Kindle Colorsoft 2",
+    "qemu_arch": "aarch64",
+    "qemu_machine": "mt8113-bellatrix4",
+    "memory": "1G",
+    "builder": "ao5",
+    "rootfs_overrides": ["bellatrix", "oasis"],
+    "drive_index": 0,
+    "network": {
+      "usb": {
+        "device": "mt8113",
+        "service": "ssh"
+      },
+      "wifi": {
+        "device": "mt8113",
+        "netdev_property": "wifi-netdev"
+      }
+    },
+    "device_profiles": ["production", "dvt", "evt-doe", "evt", "hvt", "proto"],
+    "accel": "tcg,thread=multi,tb-size=2048",
+    "allow_reboot": true,
+    "machine_properties": {
+      "board": "julep",
+      "boot-stage": "u-boot",
+      "cfa-bypass": "on"
+    },
+    "machine_firmware_properties": {
+      "bl2": "bl2",
+      "tee": "tee",
+      "quickboot": "quickboot"
+    },
+    "firmware": {
+      "bootloader": ["u-boot.bin"],
+      "bl2": ["bl2.img"],
+      "tee": ["tee.img"],
+      "quickboot": ["quickboot.img"],
+      "waveform": ["waveform.img"],
+      "boot_image": ["boot.img"],
+      "rootfs": ["rootfs.img"]
+    },
+    "rootfs_package": "com.lab126.eink.julep.os"
+  },
   "kindle-paperwhite-7": {
     "description": "Kindle Paperwhite 7",
     "qemu_arch": "aarch64",

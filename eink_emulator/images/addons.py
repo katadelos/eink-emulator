@@ -31,7 +31,7 @@ HARD_FLOAT = {"kindle-paperwhite-4", "kindle-kt4", "kindle-oasis-3"}
 # jb.sh ships only kindlepw2 and kindlehf binaries, so it starts at Paperwhite 2.
 JBSH_SUPPORTED = (SUPPORTED - set(KINDLETS)) | {
     "kindle-paperwhite-5", "kindle-basic-2022", "kindle-basic-2024", "kindle-basic-2026",
-    "kindle-colorsoft", "kindle-paperwhite-6", "kindle-scribe-1", "kindle-scribe-2",
+    "kindle-colorsoft", "kindle-colorsoft-2", "kindle-paperwhite-6", "kindle-scribe-1", "kindle-scribe-2",
     "kindle-scribe-3", "kindle-scribe-colorsoft",
 }
 
