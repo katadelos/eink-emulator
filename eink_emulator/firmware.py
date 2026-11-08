@@ -4,10 +4,74 @@ from __future__ import annotations
 
 import gzip
 import shutil
+import struct
 import subprocess
+import tarfile
 import tempfile
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
+
+
+def carve_ao5_dump(
+    package: Path, destination: Path, *, rootfs_size: int,
+    rootfs_package: str, quickboot: bool = False, waveform: bool = False,
+) -> None:
+    """Extract stock Amaro/Julep images without importing device data."""
+    def fit(data: bytes, offset: int = 0) -> bytes:
+        if len(data) < offset + 40:
+            raise ValueError("missing FIT header")
+        magic, size = struct.unpack_from(">II", data, offset)
+        if magic != 0xD00DFEED or not 40 <= size <= len(data) - offset:
+            raise ValueError("invalid FIT extent")
+        return data[offset:offset + size]
+
+    if destination.exists():
+        raise SystemExit(f"firmware destination already exists: {destination}")
+    required = {"0boot0.img", "p1.img", "p8.img"}
+    if quickboot:
+        required.add("0boot1.img")
+    if waveform:
+        required.add("p2.img")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(
+        prefix=f".{destination.name}-import-", dir=destination.parent,
+    ) as temporary:
+        prepared = Path(temporary) / "prepared"
+        prepared.mkdir()
+        seen = set()
+        with tarfile.open(package, "r|*") as archive:
+            for member in archive:
+                name = PurePosixPath(member.name).as_posix()
+                if name not in required:
+                    continue
+                if name in seen or not member.isfile():
+                    raise ValueError(f"duplicate or non-file partition: {name}")
+                seen.add(name)
+                with archive.extractfile(member) as source:
+                    if name in {"p8.img", "p2.img"}:
+                        expected = rootfs_size if name == "p8.img" else 16 * 1024**2
+                        output_name = "rootfs.img" if name == "p8.img" else "waveform.img"
+                        if member.size != expected:
+                            raise ValueError(f"{name} must be {expected // 1024**2} MiB")
+                        with (prepared / output_name).open("wb") as output:
+                            shutil.copyfileobj(source, output, 8 * 1024**2)
+                    elif name == "p1.img":
+                        (prepared / "boot.img").write_bytes(fit(source.read()))
+                    elif name == "0boot1.img":
+                        (prepared / "quickboot.img").write_bytes(fit(source.read(), 0x80000))
+                    else:
+                        boot = source.read()
+                        # MTK eMMC header, signed BL2, and the two inline FITs.
+                        if boot[:9] != b"EMMC_BOOT" or len(boot) < 183296:
+                            raise ValueError("unrecognized AO5 boot area")
+                        (prepared / "bl2.img").write_bytes(boot[:183296])
+                        (prepared / "u-boot.bin").write_bytes(fit(boot, 0x80000))
+                        (prepared / "tee.img").write_bytes(fit(boot, 0x180000))
+        missing = required - seen
+        if missing:
+            raise ValueError("missing partitions: " + ", ".join(sorted(missing)))
+        validate_rootfs_package(prepared / "rootfs.img", rootfs_package)
+        prepared.replace(destination)
 
 
 def import_recovery(
