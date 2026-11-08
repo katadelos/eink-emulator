@@ -735,9 +735,9 @@ def prepare_kt7(source: Path, output: Path) -> None:
     prepare_usb_network(output, mass_storage=False)
 
 
-def prepare_pw7(source: Path, output: Path) -> None:
-    """Prepare Amaro's stock startup with offline Home and local access."""
-    copy_source(source, output, maximum_size=1280 * 1024**2)
+def prepare_ao5(source: Path, output: Path, *, maximum_size: int) -> None:
+    """Prepare AO5 stock startup with offline Home and local access."""
+    copy_source(source, output, maximum_size=maximum_size)
     prepare_offline_setup(output)
     transform_file(output, "/etc/shadow", "0100600", blank_root_password)
     transform_file(

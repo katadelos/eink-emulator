@@ -4,7 +4,7 @@
     "qemu_arch": "aarch64",
     "qemu_machine": "mt8113-bellatrix4",
     "memory": "1G",
-    "builder": "pw7",
+    "builder": "ao5",
     "rootfs_overrides": ["bellatrix", "oasis"],
     "drive_index": 0,
     "network": {

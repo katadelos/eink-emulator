@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any
 
 from . import (
-    addons, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kobo_sd, kt4, kt7, mt8115, oasis,
-    pocketbook, pocketbook_b288, pw7, remarkable, remarkablepp, rex, rootfs, tequila, tolino, wario, whitney,
+    addons, ao5, bellatrix, bellatrix3, celeste, elipsa2e, forma, heisenberg, kobo, kobo_sd, kt4, kt7, mt8115, oasis,
+    pocketbook, pocketbook_b288, remarkable, remarkablepp, rex, rootfs, tequila, tolino, wario, whitney,
 )
 
 
@@ -77,9 +77,11 @@ def build_raw_image(
         kt7.build(
             output, boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
         )
-    elif builder == "pw7":
-        pw7.build(
-            output, boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
+    elif builder == "ao5":
+        ao5.build(
+            output, board=definition["machine_properties"]["board"],
+            boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
+            waveform_image=artifacts.get("waveform"),
         )
     elif builder == "mt8115":
         mt8115.build(
