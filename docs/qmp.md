@@ -46,6 +46,7 @@ Use `python3 scripts/eink-qmp.py --machine NAME` followed by a command:
 | `stop` / `cont` | Pause / resume execution |
 | `quit` | Exit QEMU without a guest shutdown |
 | `screendump /tmp/eink.png` | Save guest pixels to a host file |
+| `tap X Y --size WIDTH HEIGHT` | Inject a touchscreen press in panel pixels |
 | `qmp query-cpus-fast` | Query CPUs through QMP |
 | `hmp info registers -a` | Read CPU registers through the monitor |
 | `memory ADDRESS --words 16` | Read guest memory |
@@ -63,6 +64,10 @@ python3 scripts/eink-qmp.py --machine NAME screendump /tmp/eink.png
 python3 scripts/eink-qmp.py --machine NAME qmp trace-event-set-state \
   --arguments '{"name":"mt8113_gce_*","enable":true}'
 ```
+
+`tap` uses the Bellatrix scanout dimensions when `--size` is omitted. For
+Paperwhite 1, use `--size 758 1024`. Screenshot before and after each interaction
+to confirm its effect.
 
 ## Bellatrix hardware state
 

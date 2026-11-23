@@ -333,9 +333,12 @@ def build_parser() -> argparse.ArgumentParser:
     screen_parser.add_argument("path", type=Path)
 
     tap_parser = subparsers.add_parser(
-        "tap", help="inject a Bellatrix panel-coordinate touch")
+        "tap", help="inject a panel-coordinate touch")
     tap_parser.add_argument("x", type=int)
     tap_parser.add_argument("y", type=int)
+    tap_parser.add_argument("--size", nargs=2, type=int,
+                            metavar=("WIDTH", "HEIGHT"),
+                            help="panel size; defaults to the Bellatrix scanout")
     tap_parser.add_argument("--hold", type=float, default=0.08)
 
     memory_parser = subparsers.add_parser(
@@ -465,10 +468,13 @@ def main() -> int:
                     "format": suffix[1:],
                 }))
             elif args.action == "tap":
-                display = query_hwtcon_properties(
-                    client, ("scanout-width", "scanout-height"))
-                width = display.get("scanout-width", 0)
-                height = display.get("scanout-height", 0)
+                if args.size:
+                    width, height = args.size
+                else:
+                    display = query_hwtcon_properties(
+                        client, ("scanout-width", "scanout-height"))
+                    width = display.get("scanout-width", 0)
+                    height = display.get("scanout-height", 0)
                 if width <= 1 or height <= 1:
                     raise QMPError("tap requires an initialized display scanout")
                 max_x, max_y = width - 1, height - 1
