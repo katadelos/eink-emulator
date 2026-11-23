@@ -173,8 +173,7 @@ def build(
         layout = create_image(image, size)
     write_partition(image, layout, "kernel", boot_image)
     write_partition(image, layout, "rootfs", rootfs_image)
-    # Like Jaeger, Rex uses the kernel's built-in waveform with an empty
-    # generated FAT store.
+    # Rex recovery loads its waveform from the generated FAT store.
     with image.open("r+b") as disk:
         imx6_mmc.write_waveform_store(disk, layout["recovery"][0] * SECTOR)
     with tempfile.TemporaryDirectory(prefix="eink-rex-") as directory:

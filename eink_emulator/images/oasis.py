@@ -34,6 +34,8 @@ def build_zelda(output: Path, *, boot_image: Path, rootfs: Path) -> None:
     )
     bellatrix.write_partition(output, layout, "kernel", boot_image)
     bellatrix.write_partition(output, layout, "system", rootfs)
+    with output.open("r+b") as disk:
+        imx6_mmc.write_waveform_store(disk, layout["wfm"][0] * 512)
     with tempfile.TemporaryDirectory(prefix="eink-zelda-") as directory:
         for name, label in (("keys", "keys"), ("cache", "LocalVars")):
             filesystem = Path(directory) / f"{name}.img"

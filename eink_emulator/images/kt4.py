@@ -34,9 +34,7 @@ def build(output: Path, *, boot_image: Path, rootfs_image: Path) -> None:
     )
     bellatrix.write_partition(output, layout, "kernel", boot_image)
     bellatrix.write_partition(output, layout, "rootfs", rootfs_image)
-    # Recovery mounts p2 directly as VFAT, using the same waveform_to_use
-    # directory as the older i.MX Kindle store. The kernel ships a default
-    # waveform for the virtual panel; no per-panel download is needed.
+    # Recovery mounts the synthetic waveform store in p2 directly as VFAT.
     with output.open("r+b") as image:
         imx6_mmc.write_waveform_store(image, layout["recovery"][0] * 512)
     with tempfile.TemporaryDirectory(prefix="eink-jaeger-") as directory:

@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 """Build legacy i.MX6 Kindle eMMC user-area images."""
 
+import gzip
 import math
 import os
 import shutil
 import struct
 import subprocess
 import tempfile
+import zlib
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -372,9 +374,36 @@ def fat_dir_entry(short_name: bytes, attributes: int, cluster: int,
     return bytes(entry)
 
 
+def build_epdc_waveform() -> bytes:
+    """Create a compressed WRF for the i.MX EPDC's direct-rendering preview."""
+    # Every mode points to the same neutral drive sequence.
+    modes = 16
+    ranges = 2
+    sequence = 8 * modes * (1 + ranges)
+    body = bytearray(sequence + 8 + 4 * 256)
+    for mode in range(modes):
+        table = 8 * (modes + mode * ranges)
+        struct.pack_into("<Q", body, mode * 8, table)
+        struct.pack_into("<QQ", body, table, sequence, sequence)
+    struct.pack_into("<II", body, sequence, 4, 0)
+    header = bytearray(0x30)
+    header[0x08:0x0c] = b"QEMU"
+    header[0x10] = 0x07  # Standard Lab126 update mode mapping.
+    header[0x14] = 0x3c
+    header[0x20:0x24] = b"\x33\0\0\x01"
+    header[0x25:0x27] = bytes((modes - 1, ranges - 1))
+    header[0x28:0x2a] = b"\xff\xfc"
+    waveform = header + bytes((0, 40, 60)) + body
+    struct.pack_into("<I", waveform, 4, len(waveform))
+    waveform[0x1f] = sum(waveform[0x08:0x1f]) & 255
+    waveform[0x2f] = sum(waveform[0x20:0x2f]) & 255
+    struct.pack_into("<I", waveform, 0, zlib.crc32(waveform))
+    return gzip.compress(waveform, mtime=0)
+
+
 def write_waveform_store(disk, output_offset: int) -> None:
     """Create the hidden FAT32 store used by /usr/sbin/wfm_mount."""
-
+    payload = build_epdc_waveform()
     sector_size = 1024
     sectors_per_cluster = 16
     total_sectors = WAVEFORM_STORE_SIZE // sector_size
@@ -401,27 +430,36 @@ def write_waveform_store(disk, output_offset: int) -> None:
     boot[82:90] = b"FAT32   "
     boot[510:512] = b"\x55\xaa"
 
-    used_clusters = 2  # root directory and empty waveform_to_use directory
+    used_clusters = 3  # root directory, waveform_to_use and the waveform
     fsinfo = bytearray(sector_size)
     struct.pack_into("<I", fsinfo, 0, 0x41615252)
     struct.pack_into("<I", fsinfo, 484, 0x61417272)
     struct.pack_into("<II", fsinfo, 488,
-                     cluster_count - used_clusters, 4)
+                     cluster_count - used_clusters, 5)
     struct.pack_into("<I", fsinfo, 508, 0xAA550000)
 
     fat = bytearray(sector_size)
     struct.pack_into("<III", fat, 0, 0x0FFFFFF8, 0xFFFFFFFF, 0x0FFFFFFF)
-    struct.pack_into("<I", fat, 3 * 4, 0x0FFFFFFF)
+    struct.pack_into("<II", fat, 3 * 4, 0x0FFFFFFF, 0x0FFFFFFF)
 
     root = bytearray(cluster_size)
     directory_short = b"WAVEFO~1   "
     root_entries = lfn_entries("waveform_to_use", directory_short)
     root_entries.append(fat_dir_entry(directory_short, 0x10, 3))
+    marker_short = b"DONT_E~1   "
+    root_entries.extend(lfn_entries("DONT_ERASE_WFM", marker_short))
+    root_entries.append(fat_dir_entry(marker_short, 0x20, 0))
     root[0:32 * len(root_entries)] = b"".join(root_entries)
 
     directory = bytearray(cluster_size)
-    directory[0:32] = fat_dir_entry(b".          ", 0x10, 3)
-    directory[32:64] = fat_dir_entry(b"..         ", 0x10, 2)
+    waveform_short = b"QEMU_W~1GZ "
+    entries = [
+        fat_dir_entry(b".          ", 0x10, 3),
+        fat_dir_entry(b"..         ", 0x10, 2),
+        *lfn_entries("QEMU_SYNTHETIC.wrf.gz", waveform_short),
+        fat_dir_entry(waveform_short, 0x20, 4, len(payload)),
+    ]
+    directory[0:32 * len(entries)] = b"".join(entries)
 
     disk.seek(output_offset)
     disk.write(b"\0" * WAVEFORM_STORE_SIZE)
@@ -434,6 +472,7 @@ def write_waveform_store(disk, output_offset: int) -> None:
     disk.seek(output_offset + data_start * sector_size)
     disk.write(root)
     disk.write(directory)
+    disk.write(payload)
 
 
 def build(
