@@ -14,15 +14,14 @@ a Kindle update package for this model:
 ./eink run my-kt7
 ```
 
-The importer uses KindleTool and expects the Bellatrix package layout:
-`mt8110_bellatrix/{u-boot.bin,bl2.img,tee.img,quickboot.img,boot.img}` and
-`rootfs.img.gz`. It installs conventional firmware files under
-`firmware/kindle-basic-2026/`, decompresses the rootfs and extracts
+To download and import automatically, skip `import` and add `--firmware latest`
+to `create`.
+
+The importer uses KindleTool to unpack the boot stages from `boot_images/`
+and decompress `rootfs.img.gz`. It installs firmware files under
+`firmware/kindle-basic-2026/` and extracts
 `peripherals/tt_fw.bin` from it. The rootfs must identify
 `com.lab126.eink.prosecco.os`.
-
-KT7 update packages have not been released, so this expected package layout
-has not been verified against a retail update.
 
 The builder prepares a separate rootfs copy with local serial and SSH access,
 British English and offline Home on the first boot.

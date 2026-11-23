@@ -34,8 +34,7 @@ KindleTool into `firmware/versions/MODEL/VERSION/`. Interrupted or stalled
 transfers resume where they stopped, both within a run and on the next run.
 The package is cached in `build/downloads/` until the import succeeds, so a
 failed import does not download it again. Downloads are available for every
-Kindle in the import table below except Basic 2026, whose firmware FTVDB does
-not list.
+Kindle in the import table below.
 
 The four Tolino models download from Kobo's firmware CDN. Kobo's update
 service publishes no version history or checksums, so the supported release,
@@ -58,7 +57,6 @@ from a device:
 | Kindle Touch, Paperwhite 1 | Updates contain the kernel and rootfs but not U-Boot |
 | Kobo Mini, Touch | The builder needs a complete internal-card image |
 | Kobo Glo, Aura HD, Glo HD, Clara HD, Forma, Elipsa 2E | Updates omit the boot region, recovery partition and factory data |
-| Basic 2026 | No update has been published |
 
 The guest compatibility changes were developed against recent releases.
 Older releases may need further changes; `create` stops with an error when a
@@ -86,6 +84,7 @@ Import is available for these models:
 | Basic 2024 | `kindle-basic-2024` |
 | [Basic 2026](kt7.md) | `kindle-basic-2026` |
 | [Colorsoft](colorsoft.md) | `kindle-colorsoft` |
+| [Colorsoft 2](colorsoft-2.md) | `kindle-colorsoft-2` |
 | Voyage | `kindle-voyage` |
 | [Oasis 1 and 2](oasis.md) | `kindle-oasis-1`, `kindle-oasis-2` |
 | [Oasis 3](koa3.md) | `kindle-oasis-3` |
@@ -93,6 +92,7 @@ Import is available for these models:
 | Paperwhite 2, 3 and 4 | `kindle-paperwhite-2`, `kindle-paperwhite-3`, `kindle-paperwhite-4` |
 | [Paperwhite 5](paperwhite-5.md) | `kindle-paperwhite-5` |
 | [Paperwhite 6](paperwhite-6.md) | `kindle-paperwhite-6` |
+| [Paperwhite 7](paperwhite-7.md) | `kindle-paperwhite-7` |
 | [Scribe 1](scribe-1.md) | `kindle-scribe-1` |
 | [Scribe 2](scribe-2.md) | `kindle-scribe-2` |
 | [Scribe 3](scribe-3.md) | `kindle-scribe-3` |
@@ -161,23 +161,10 @@ Ferrari `.swu` package. Its boot stages come from the separate `imx-boot`
 member; the importer also extracts the hardware-monitor firmware and
 creates synthetic factory provisioning.
 
-[Kindle Basic 7 (2026)](kt7.md) uses the standard update-package importer.
-Its update packages have not been released; the expected Bellatrix package
-layout remains unverified. The supplied partition dump uses the separate
-[`scripts/carve-kt7.py`](../scripts/carve-kt7.py) utility, with its matching
-kernel partition supplied through `--boot-image`. Touch firmware is extracted
-from the rootfs into `peripherals/tt_fw.bin` by either workflow.
-
-[Kindle Paperwhite 7](paperwhite-7.md) uses the separate
-[`scripts/carve-pw7.py`](../scripts/carve-pw7.py) utility for its partition-dump
-archive. It extracts `0boot0.img`, `p1.img` and `p8.img`; no update-package
-layout is assumed.
-
-[Kindle Colorsoft 2](colorsoft-2.md) uses
-[`scripts/carve-cs2.py`](../scripts/carve-cs2.py) for its partition-dump archive.
-It extracts `0boot0.img`, `0boot1.img`, `p1.img` and `p8.img` and checks
-the Julep rootfs identity. The emulator generates the waveform partition.
-No update-package layout is assumed.
+[Basic 2026](kt7.md), [Paperwhite 7](paperwhite-7.md) and
+[Colorsoft 2](colorsoft-2.md) validate the board identity in the imported
+rootfs. Basic 2026 extracts its touch firmware into `peripherals/tt_fw.bin`.
+For partition dumps, see the separate carving commands on each model page.
 
 ## Directory layout
 

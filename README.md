@@ -108,7 +108,7 @@ New instances in this family start at Home with offline setup already prepared.
 
 ## Firmware versions
 
-Basic 2014/2016/2019/2022/2024, Colorsoft, Voyage, Oasis 1–3, Paperwhite 2–6,
+Basic 2014/2016/2019/2022/2024/2026, Colorsoft 1–2, Voyage, Oasis 1–3, Paperwhite 2–7,
 Scribe 1–3 and Scribe Colorsoft can fetch any release listed by
 [FTVDB](https://ftvdb.com/kindle/firmware/) directly from Amazon. The Tolino
 models fetch pinned releases from Kobo. Each instance is pinned to one
