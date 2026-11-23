@@ -442,12 +442,13 @@ def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) 
         transform_file(image, "/etc/inittab", "0100644", lambda text:
                        text + "\nsshd:2345:respawn:/usr/sbin/qemu-sshd\n")
     else:
-        def protect_host_key(contents: str) -> str:
+        def protect_root_helpers(contents: str) -> str:
             # The stock framework grants javausers group access recursively.
-            # Protect the SSH identity and the optional setuid MKK root helper.
+            # Protect the SSH identity and the optional setuid root helpers.
             # PW1 BusyBox find requires \; rather than the newer + terminator.
             exclude = (
-                r"find $dir \( -path /var/local/eink-ssh -o -path /var/local/mkk \) -prune -o "
+                r"find $dir \( -path /var/local/eink-ssh -o -path /var/local/mkk "
+                r"-o -path /var/local/su \) -prune -o "
             )
             terminator = r"\;" if early_kindle else "+"
             contents = contents.replace(
@@ -459,10 +460,17 @@ def prepare_ssh(image: Path, *, early_kindle: bool = False, sysv: bool = False) 
             ).replace(
                 "find $dir -type d",
                 exclude + "-type d",
+            ).replace(
+                "chgrp -R javausers /var/local/",
+                exclude.replace("$dir", "/var/local")
+                + "! -type l -exec chgrp javausers '{}' " + terminator,
             )
             return contents
 
-        transform_file(image, "/etc/upstart/framework.conf", "0100644", protect_host_key)
+        for job in ("framework", "filesystems_var_local"):
+            transform_file(
+                image, f"/etc/upstart/{job}.conf", "0100644", protect_root_helpers,
+            )
 
 
 def prepare_offline_setup(image: Path, *, sysv: bool = False) -> None:
