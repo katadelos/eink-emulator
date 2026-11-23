@@ -14,7 +14,7 @@ from typing import Any
 
 def carve_ao5_dump(
     package: Path, destination: Path, *, rootfs_size: int,
-    rootfs_package: str, quickboot: bool = False, waveform: bool = False,
+    rootfs_package: str, quickboot: bool = False,
 ) -> None:
     """Extract stock Amaro/Julep images without importing device data."""
     def fit(data: bytes, offset: int = 0) -> bytes:
@@ -30,8 +30,6 @@ def carve_ao5_dump(
     required = {"0boot0.img", "p1.img", "p8.img"}
     if quickboot:
         required.add("0boot1.img")
-    if waveform:
-        required.add("p2.img")
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(
         prefix=f".{destination.name}-import-", dir=destination.parent,
@@ -48,12 +46,10 @@ def carve_ao5_dump(
                     raise ValueError(f"duplicate or non-file partition: {name}")
                 seen.add(name)
                 with archive.extractfile(member) as source:
-                    if name in {"p8.img", "p2.img"}:
-                        expected = rootfs_size if name == "p8.img" else 16 * 1024**2
-                        output_name = "rootfs.img" if name == "p8.img" else "waveform.img"
-                        if member.size != expected:
-                            raise ValueError(f"{name} must be {expected // 1024**2} MiB")
-                        with (prepared / output_name).open("wb") as output:
+                    if name == "p8.img":
+                        if member.size != rootfs_size:
+                            raise ValueError(f"{name} must be {rootfs_size // 1024**2} MiB")
+                        with (prepared / "rootfs.img").open("wb") as output:
                             shutil.copyfileobj(source, output, 8 * 1024**2)
                     elif name == "p1.img":
                         (prepared / "boot.img").write_bytes(fit(source.read()))

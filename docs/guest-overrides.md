@@ -31,9 +31,9 @@ changes persist across boots. The guest remains unregistered; newer firmware
 shows a registration invitation on Home, while Library is usable offline.
 
 Kindle 4, Touch and Paperwhite 1 use synthetic panel flash with the waveform
-data required by the stock display service. Basic 2014 and Voyage use panel
-identifiers for their 600×800 and 1072×1448 displays. If you supply a panel-flash
-backing file, QEMU uses its contents.
+data required by the stock display service. Later i.MX Kindle models load a
+synthetic waveform from their emulated storage. Basic 2014 and Voyage use
+panel identifiers for their 600×800 and 1072×1448 displays.
 
 | Models | Changes |
 | --- | --- |
@@ -94,9 +94,8 @@ Amaro and Julep share the AO5 disk builder. Their rootfs partitions are
 1280 MiB and 1536 MiB respectively. Prepared copies enable offline Home,
 serial access, USB Ethernet and SSH, extend the framework startup timeout
 and prevent automatic suspend. Persistent filesystems start fresh, using
-the formatter configuration shipped in each rootfs. Julep uses the original
-waveform partition, including its early boot artwork, and the RGB scanout path
-used by Colorsoft.
+the formatter configuration shipped in each rootfs. Both models use synthetic
+waveform partitions. Julep uses the RGB scanout path used by Colorsoft.
 
 ## Scribe 1 and 2
 

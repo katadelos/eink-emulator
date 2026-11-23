@@ -16,18 +16,17 @@ python3 scripts/carve-cs2.py /path/to/cs2_mmcblk.tar.gz
 ./eink run cs2
 ```
 
-The carver reads `0boot0.img`, `0boot1.img`, `p1.img`, `p2.img` and `p8.img`.
+The carver reads `0boot0.img`, `0boot1.img`, `p1.img` and `p8.img`.
 It installs BL2, U-Boot, TEE, quickboot, the signed kernel FIT, the original
-1536 MiB rootfs and the 16 MiB waveform/artwork partition under
+1536 MiB rootfs under
 `firmware/kindle-colorsoft-2/`. It checks the Julep rootfs identity and refuses
 to overwrite an existing destination.
 Device identity, keys and captured persistent filesystems are not imported.
 Recovery-package import and automatic firmware download are unavailable.
 
 The shared AO5 disk builder creates an 8 GiB sparse disk, fresh persistent
-filesystems and an ext4 userstore. It preserves the supplied waveform and
-boot artwork, and prepares a rootfs copy with offline setup, serial access,
-USB Ethernet and SSH.
+filesystems, an ext4 userstore and a synthetic waveform partition. It
+prepares a rootfs copy with offline setup, serial access, USB Ethernet and SSH.
 Imported boot stages and firmware remain unchanged.
 
 `production` and `dvt` select DVT hardware (ID 4). Other profiles are
@@ -38,5 +37,5 @@ See [networking](networking.md) for SSH and Wi-Fi access.
 
 The preview displays RGB input pixels before colour-filter and waveform
 processing. The CFA bypass avoids the stock software conversion under TCG.
-The original waveform supplies the stock FP9937 driver's voltage tables.
+The synthetic waveform supplies voltage tables for the FP9937 driver.
 Physical panel colour and ghosting are not reproduced.

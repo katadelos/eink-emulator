@@ -81,7 +81,6 @@ def build_raw_image(
         ao5.build(
             output, board=definition["machine_properties"]["board"],
             boot_image=artifacts["boot_image"], rootfs_image=artifacts["rootfs"],
-            waveform_image=artifacts.get("waveform"),
         )
     elif builder == "mt8115":
         mt8115.build(

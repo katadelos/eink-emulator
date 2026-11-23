@@ -1,4 +1,4 @@
-"""Compose Amaro and Julep storage from stock AO5 firmware dumps."""
+"""Compose Amaro and Julep storage from stock AO5 firmware."""
 
 from __future__ import annotations
 
@@ -28,7 +28,6 @@ def partitions(rootfs_size: int) -> list[tuple[str, int]]:
 
 def build(
     image: Path, *, board: str, boot_image: Path, rootfs_image: Path,
-    waveform_image: Path | None = None,
     size: int = 8 * 1024**3,
 ) -> None:
     if board not in ROOTFS_SIZES:
@@ -39,11 +38,6 @@ def build(
             raise ValueError(f"missing {board} firmware: {payload}")
     if rootfs_image.stat().st_size != rootfs_size:
         raise ValueError(f"{board} requires the original {rootfs_size // MIB} MiB rootfs image")
-    if board == "julep" and (
-        waveform_image is None or not waveform_image.is_file()
-        or waveform_image.stat().st_size != 16 * MIB
-    ):
-        raise ValueError("Julep requires the original 16 MiB waveform partition")
     if size % 512:
         raise ValueError("AO5 disk must be sector-aligned")
 
@@ -57,15 +51,14 @@ def build(
         prepared = work / "rootfs.img"
         rootfs.prepare_ao5(rootfs_image, prepared, maximum_size=rootfs_size)
         bellatrix.write_partition(image, layout, "rootfs", prepared)
-        if board == "amaro":
-            waveform = bellatrix_waveform.write_waveform(
-                work / "synthetic-waveform", product=board,
-            )
-            waveform_image = work / "waveform.img"
-            scribe_waveform_partition.build(
-                waveform_image, waveform, partition_start=layout["wfm"][0],
-                volume_label="EINK WFM   ",
-            )
+        waveform = bellatrix_waveform.write_waveform(
+            work / "synthetic-waveform", product=board,
+        )
+        waveform_image = work / "waveform.img"
+        scribe_waveform_partition.build(
+            waveform_image, waveform, partition_start=layout["wfm"][0],
+            volume_label="EINK WFM   ",
+        )
         bellatrix.write_partition(image, layout, "wfm", waveform_image)
     bellatrix3.initialize_persistent_filesystems(image, layout, rootfs_image)
     bellatrix.initialize_factory_data(image, layout)

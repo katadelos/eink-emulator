@@ -23,7 +23,7 @@ def main() -> None:
     carve_ao5_dump(
         args.dump.resolve(), args.output.resolve(),
         rootfs_size=ROOTFS_SIZES["julep"], rootfs_package="com.lab126.eink.julep.os",
-        quickboot=True, waveform=True,
+        quickboot=True,
     )
     print(f"Colorsoft 2 firmware: {args.output.resolve()}")
 

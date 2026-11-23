@@ -35,7 +35,6 @@
       "bl2": ["bl2.img"],
       "tee": ["tee.img"],
       "quickboot": ["quickboot.img"],
-      "waveform": ["waveform.img"],
       "boot_image": ["boot.img"],
       "rootfs": ["rootfs.img"]
     },

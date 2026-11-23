@@ -14,10 +14,11 @@ import struct
 from pathlib import Path
 
 PRODUCTS = (
-    "barolo", "pisco", "cava", "malbec", "rossini", "prosecco", "amaro",
+    "barolo", "pisco", "cava", "malbec", "rossini", "prosecco", "amaro", "julep",
     "sangria", "sangria-color", "elipsa2e",
 )
-DUAL_MODE_PRODUCTS = {"sangria", "sangria-color", "amaro"}
+DUAL_MODE_PRODUCTS = {"sangria", "sangria-color", "amaro", "julep"}
+FP9937_PRODUCTS = {"amaro", "julep"}
 TEMPERATURES = 32
 MODES = 16
 FRAME_BYTES = 0x100
@@ -42,7 +43,7 @@ def build_waveform(product: str = "barolo") -> bytes:
     data[0x53] = 2     # Stock driver reports WAVEFORM_TYPE_5BIT.
     data[0x56] = 1     # Synthetic revision, not a factory revision.
     # FP9937 supports 30 voltage-table rows; the older PMICs use 32 zones.
-    temperatures = 30 if product == "amaro" else TEMPERATURES
+    temperatures = 30 if product in FP9937_PRODUCTS else TEMPERATURES
     thresholds = bytes(range(1, temperatures * 2 - 2, 2))
     data[0x80:0x80 + len(thresholds)] = thresholds
     data[0xA2] = len(thresholds)
@@ -52,7 +53,7 @@ def build_waveform(product: str = "barolo") -> bytes:
         struct.pack_into(">H", data, offset, millivolts * 2 // 25)
     data[0x74] = 251  # XON_LEN=2510; delay=0 and VGH/VGL extensions=0.
     data[0x7E] = 30   # VGHNM_EXT=1500 mV.
-    if product == "amaro":
+    if product in FP9937_PRODUCTS:
         # AO5's FP9937 driver reads VGH/VGL from the extended header and
         # six source rails from one 16-byte record per temperature zone.
         # Values follow the signed AO5 DT; all rails use 12.5 mV units.
