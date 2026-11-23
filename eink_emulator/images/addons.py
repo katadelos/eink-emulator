@@ -204,7 +204,10 @@ def install_root_files(source: Path, output: Path, system: Path, *, check: str) 
     for path in sorted(system.rglob("*")):
         destination = "/" + path.relative_to(system).as_posix()
         if path.is_dir():
-            commands.append(f"mkdir {destination}")
+            # debugfs can leave an allocated inode pointing to a free block
+            # when mkdir tries to link a directory name that already exists.
+            if not rootfs.file_exists(source, destination):
+                commands.append(f"mkdir {destination}")
         else:
             commands.extend([f"rm {destination}", f'write "{path}" {destination}',
                              f"set_inode_field {destination} mode {0o100000 | (path.stat().st_mode & 0o7777):07o}",
